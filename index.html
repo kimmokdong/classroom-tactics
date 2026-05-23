@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>교실 택틱스 (Classroom Tactics)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div id="app">
+        <!-- Top HUD -->
+        <header id="game-header">
+            <div class="hud-left">
+                <button id="btn-dictionary" class="stat btn" style="background:#1976d2; border:1px solid #1565c0; cursor:pointer;">📖 유닛 도감</button>
+            </div>
+            <div class="hud-center" style="display: flex; flex-direction: row; align-items: center; gap: 15px;">
+                <div class="stage-badge">
+                    스테이지 <span id="current-stage">1-1</span>
+                </div>
+                <div id="stage-timeline" style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
+                    <!-- 렌더링될 라운드 아이콘들 -->
+                </div>
+                <div id="enemy-info" class="enemy-info"></div>
+            </div>
+            <div class="hud-right">
+                <!-- 기존의 HP 표시는 하단으로 이동됨 -->
+            </div>
+        </header>
+
+        <main id="game-main">
+            <!-- Left Panel (Synergies & Augments) -->
+            <aside id="synergy-panel" style="display: flex; flex-direction: column; gap: 10px;">
+                <div id="synergy-wrapper" style="flex: 4; overflow-y: auto; overflow-x: hidden; padding-right: 4px;">
+                    <ul id="synergy-list"></ul>
+                </div>
+                <div id="augments-container" style="flex: 1; border-top: 2px dashed rgba(255,255,255,0.3); padding-top: 10px; display: flex; flex-direction: column;">
+                    <div style="font-weight: 800; color: #f1c40f; margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">🎓 진행 중인 학사 일정</div>
+                    <div id="augments-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding: 4px;"></div>
+                </div>
+            </aside>
+
+            <!-- Center Board -->
+            <section id="board-area">
+                
+                <div class="arena" style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; gap: 30px;">
+                    <!-- Item Inventory -->
+                    <aside id="item-inventory" style="display: flex; flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 12px; border: 2px solid rgba(200, 200, 200, 0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="color: #333; font-size: 0.85rem; text-align: center; font-weight: 800; margin-bottom: 12px;">아이템</div>
+                        <div id="inventory-slots" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; align-items: center;">
+                            <!-- 슬롯 동적 생성 -->
+                        </div>
+                    </aside>
+
+                    <div id="battle-board" class="grid-board"></div>
+                </div>
+                
+                <!-- Bottom Area (Bench + Shop) -->
+                <footer id="bottom-area">
+                    <div id="bench-container" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <!-- Player HP Box (대기석 좌측) -->
+                        <div style="font-size: 1.6rem; font-weight: 900; color: #d32f2f; background: rgba(255,255,255,0.95); padding: 10px 20px; border-radius: 15px; border: 2px solid rgba(211,47,47,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; height: 80px; justify-content: center;">
+                            <span style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">내 체력</span>
+                            <div>❤️ <span id="player-hp">100</span></div>
+                        </div>
+                        <div id="bench-board" class="grid-bench"></div>
+                        
+                        <!-- Shop Lock Box (대기석 우측) -->
+                        <div style="background: rgba(255,255,255,0.95); padding: 10px; border-radius: 15px; border: 2px solid rgba(96,125,139,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; height: 80px; justify-content: center; min-width: 100px;">
+                            <span style="font-size: 0.8rem; color: #666; margin-bottom: 5px; font-weight: bold;">상점 관리</span>
+                            <button id="btn-lock-shop" class="btn" style="background:#607d8b; padding:8px 12px; font-size:0.9rem; width: 100%; border-radius: 8px;">🔓 상점 열림</button>
+                        </div>
+                    </div>
+                    
+                    <div id="shop-wrapper" style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div class="gold-panel">
+                            <div id="board-capacity" style="font-size: 0.95rem; font-weight: bold; color: #d81b60; margin-bottom: 10px; background: rgba(216,27,96,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(216,27,96,0.3);">배치: 0/1</div>
+                            <div style="font-size: 1.8rem; font-weight: 900; color: #f57f17; margin-bottom: 5px;">💰 <span id="player-gold">0</span></div>
+                            <div id="interest-info" style="font-size: 0.9rem; color: #7f8c8d; font-weight: bold;">예상 이자: +0G</div>
+                            <div id="streak-info" style="font-size: 0.85rem; color: #34495e; font-weight: bold; margin-top: 3px;">연승/연패: 없음</div>
+                            <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">(승리+5G / 패배+3G)</div>
+                        </div>
+
+                        <div id="shop-area">
+                            <div class="shop-controls">
+                                <div class="shop-level-box">
+                                    <div>Lv.<span id="player-level">1</span></div>
+                                    <button id="btn-buy-exp" class="btn buy-exp-btn">경험치 (4G)</button>
+                                </div>
+                                <button id="btn-reroll" class="btn reroll-btn">🔄 리롤 (2G)</button>
+                                <button id="btn-start-battle" class="btn start-btn">⚔️ 전투 시작</button>
+                            </div>
+                            <div id="shop-slots"></div>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+
+            <!-- Right Panel (Info & Log) -->
+            <aside id="info-panel">
+                <div class="panel-section">
+                    <h3>유닛 정보</h3>
+                    <div id="unit-details">선택된 유닛 없음</div>
+                </div>
+                <div class="panel-section flex-grow">
+                    <h3>전투 로그</h3>
+                    <ul id="battle-log"></ul>
+                </div>
+            </aside>
+        </main>
+
+
+    </div>
+    
+    <!-- Hover Tooltip -->
+    <div id="tooltip" class="glass-tooltip" style="display: none; position: absolute; z-index: 1000; pointer-events: none;"></div>
+    
+    <!-- Augment Selection Modal -->
+    <div id="augment-modal" class="modal-overlay" style="display: none; z-index: 3000;">
+        <div class="modal-content" style="max-width: 900px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.5);">
+            <div class="modal-header" style="justify-content: center; border-bottom: none;">
+                <h2 id="augment-title" style="color: #2c3e50; font-size: 2rem;">학사 일정 선택</h2>
+            </div>
+            <p id="augment-subtitle" style="text-align: center; color: #7f8c8d; margin-bottom: 20px;">하나의 일정을 선택하여 강력한 혜택을 얻으세요!</p>
+            <div id="augment-cards-container" style="display: flex; gap: 20px; justify-content: center; padding: 20px;">
+                <!-- Cards injected here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Unit Dictionary Modal -->
+    <div id="dict-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color: #2c3e50;">📖 유닛 도감</h2>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div id="dict-cost-filters" style="display: flex; gap: 6px;">
+                        <button class="dict-cost-btn" data-cost="0" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: #334155; color: white; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: all 0.2s;">ALL</button>
+                        <button class="dict-cost-btn" data-cost="1" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: white; color: #444; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;">1</button>
+                        <button class="dict-cost-btn" data-cost="2" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: white; color: #444; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;">2</button>
+                        <button class="dict-cost-btn" data-cost="3" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: white; color: #444; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;">3</button>
+                        <button class="dict-cost-btn" data-cost="4" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: white; color: #444; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;">4</button>
+                        <button class="dict-cost-btn" data-cost="5" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: white; color: #444; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;">5</button>
+                    </div>
+                    <select id="filter-synergy" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">
+                        <option value="all">모든 과목/동아리</option>
+                    </select>
+                    <button id="btn-close-dict" class="close-btn">&times;</button>
+                </div>
+            </div>
+            <div id="dict-synergy-info" style="padding: 15px 25px; background: #f1f5f9; font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; display: none; color: #334155;"></div>
+            <div id="dict-body" class="modal-body"></div>
+        </div>
+    </div>
+    <div id="custom-tooltip" style="display: none; position: fixed; background: rgba(15, 23, 42, 0.95); color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 999999; pointer-events: none; min-width: 200px; font-size: 0.85rem; line-height: 1.4; backdrop-filter: blur(4px);"></div>
+    <div id="result-modal" class="modal-overlay" style="display: none; z-index: 4000;">
+        <div class="modal-content" style="max-width: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 2px solid rgba(255,255,255,0.8); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); padding: 30px; text-align: center;">
+            <div id="result-icon" style="font-size: 4rem; margin-bottom: 10px;">🏆</div>
+            <h2 id="result-title" style="color: #2c3e50; font-size: 2.2rem; font-weight: 900; margin-bottom: 15px;">승리!</h2>
+            <div id="result-msg" style="color: #475569; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; font-weight: 600;">메시지 내용</div>
+            <button id="btn-result-ok" class="btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px 40px; font-size: 1.2rem; border-radius: 30px; border: none; font-weight: bold; box-shadow: 0 4px 15px rgba(37,99,235,0.4); cursor: pointer; transition: all 0.2s;">확인</button>
+        </div>
+    </div>
+    <script type="module" src="/js/main.js"></script>
+</body>
+</html>
