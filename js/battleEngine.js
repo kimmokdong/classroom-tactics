@@ -606,9 +606,9 @@ export class BattleEngine {
                 if (dist <= unit.stats.range) {
                     let dmg = unit.stats.ad;
                     
-                    if (unit.combat.isDominator) {
-                        unit.stats.ad += unit.combat.stackAdAp;
-                        unit.stats.ap += unit.combat.stackAdAp;
+                    if (unit.combat.isDominator && unit.combat.stackAdApPct) {
+                        unit.stats.ad *= (1 + unit.combat.stackAdApPct);
+                        unit.stats.ap *= (1 + unit.combat.stackAdApPct);
                     }
                     
                     if (unit.combat.isQuickstriker) {

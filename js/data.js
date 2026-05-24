@@ -7,18 +7,18 @@ export const SYNERGIES = {
         '사회': { name: '사회', desc: '고립(1) 또는 완전체(4) 시 발동', exactMatch: true, levels: { 1: { shield: 300 }, 4: { allStats: 0.3 } } },
         '과학': { name: '과학', desc: '피해 증폭 및 스킬 치명타', levels: { 2: { dmgAmp: 0.2 }, 4: { dmgAmp: 0.45, skillCrit: true, critChance: 0.1 } } },
         '영어': { name: '영어', desc: '마나통 감소', levels: { 2: { manaReduc: 0.15 }, 4: { manaReduc: 0.3 } } },
-        '체육': { name: '체육', desc: '[아군 전체] 최대 체력 버프', levels: { 2: { teamHp: 150, selfHpMult: 2 }, 4: { teamHp: 400, selfHpMult: 2 }, 6: { teamHp: 800, selfHpMult: 2 } } },
+        '체육': { name: '체육', desc: '[아군 전체] 최대 체력 버프', levels: { 2: { teamHp: 150, selfHpMult: 2 }, 4: { teamHp: 400, selfHpMult: 2 } } },
         '음악': { name: '음악', desc: '체력 회복 및 강화 타격', levels: { 2: { tickHeal: 0.05, bonusMagicDmg: 50 }, 4: { tickHeal: 0.12, bonusMagicDmg: 150 } } },
         '미술': { name: '미술', desc: '초당 마나 재생', levels: { 2: { teamManaRegen: 1, artManaRegen: 2 }, 4: { teamManaRegen: 2, artManaRegen: 3 } } },
         '도덕': { name: '도덕', desc: '[아군 전체] 방어/마저 버프', levels: { 2: { teamDef: 15, selfDefMult: 3 }, 4: { teamDef: 40, selfDefMult: 3 }, 6: { teamDef: 80, selfDefMult: 3 } } }
     },
     clubs: {
-        '선도부': { name: '선도부', desc: '시작 보호막 및 피해 증폭', levels: { 2: { startShieldPct: 0.15, dmgAmp: 0.1 }, 4: { startShieldPct: 0.3, dmgAmp: 0.25 } } },
-        '방송부': { name: '방송부', desc: '거리 비례 피해 증폭', levels: { 2: { distAmp: 0.05 }, 4: { distAmp: 0.12, rangeBuff: 1 } } },
-        '육상부': { name: '육상부', desc: '잃은 체력 비례 공속', levels: { 2: { maxAsBuff: 0.4 }, 4: { maxAsBuff: 1.0 } } },
-        '보건부': { name: '보건부', desc: '피해 감소', levels: { 2: { dmgReduc: 0.1 }, 4: { dmgReduc: 0.25 } } },
-        '급식부': { name: '급식부', desc: '보호막 및 스택', levels: { 2: { startShield: 200, stackAdAp: 2 }, 4: { startShield: 500, stackAdAp: 5 } } },
-        '장난꾸러기': { name: '장난꾸러기', desc: '공격력 강화', levels: { 2: { adBuff: 0.2 }, 4: { adBuff: 0.5 } } }
+        '선도부': { name: '선도부', desc: '시작 보호막 및 피해 증폭', levels: { 2: { startShieldPct: 0.15, dmgAmp: 0.1 }, 4: { startShieldPct: 0.3, dmgAmp: 0.25 }, 6: { startShieldPct: 0.5, dmgAmp: 0.45 } } },
+        '방송부': { name: '방송부', desc: '거리 비례 피해 증폭', levels: { 3: { distAmp: 0.05 }, 5: { distAmp: 0.10 }, 7: { distAmp: 0.15, rangeBuff: 1 } } },
+        '육상부': { name: '육상부', desc: '잃은 체력 비례 공속', levels: { 2: { maxAsBuff: 0.3 }, 4: { maxAsBuff: 0.6 }, 6: { maxAsBuff: 1.2 } } },
+        '보건부': { name: '보건부', desc: '피해 감소', levels: { 2: { dmgReduc: 0.1 }, 4: { dmgReduc: 0.25 }, 6: { dmgReduc: 0.5 } } },
+        '급식부': { name: '급식부', desc: '보호막 및 스택', levels: { 3: { startShield: 300, stackAdApPct: 0.02 }, 5: { startShield: 600, stackAdApPct: 0.04 }, 7: { startShield: 1000, stackAdApPct: 0.08, vampBuff: 0.15 } } },
+        '장난꾸러기': { name: '장난꾸러기', desc: '공격력 강화', levels: { 2: { adBuff: 0.2 }, 4: { adBuff: 0.5 }, 6: { adBuff: 1.0 } } }
     }
 };
 

@@ -29,6 +29,10 @@ const STAT_NAMES_KO = {
     dmgReduc: "피해 감소",
     startShield: "시작 보호막",
     stackAdAp: "타격당 공격력/주문력 스택",
+    stackAdApPct: "타격당 공격력/주문력 증가",
+    vampBuff: "피해 흡혈",
+    teamManaRegen: "아군 전체 초당 마나 재생",
+    artManaRegen: "미술 유닛 추가 마나 재생",
     adBuff: "기본 공격력",
     splashAdRatio: "광역 피해량 비율"
 };
@@ -36,9 +40,16 @@ const STAT_NAMES_KO = {
 function formatStat(k, v) {
     const name = STAT_NAMES_KO[k] || k;
     let valStr = v;
+    
+    // 이 키들은 무조건 절대 수치로 표기
+    const flatStats = ['rangeBuff', 'teamManaRegen', 'artManaRegen', 'startShield', 'stackAdAp', 'bonusMagicDmg'];
+    
     if (typeof v === 'number') {
-        if (v > 0 && v < 5) valStr = `+${Math.round(v * 100)}%`;
-        else valStr = `+${v}`;
+        if (v > 0 && v < 5 && !flatStats.includes(k)) {
+            valStr = `+${Math.round(v * 100)}%`;
+        } else {
+            valStr = `+${v}`;
+        }
     }
     if (v === true) valStr = "적용됨";
     return `${name} ${valStr}`;
@@ -1144,7 +1155,7 @@ class GameApp {
                 if(u.club === '방송부') { u.combat.isSniper = true; u.combat.distAmp = clubEff.distAmp; u.stats.range += (clubEff.rangeBuff || 0); }
                 if(u.club === '육상부') { u.combat.isQuickstriker = true; u.combat.maxAsBuff = clubEff.maxAsBuff; }
                 if(u.club === '보건부') { u.combat.isWatcher = true; u.combat.dmgReduc += clubEff.dmgReduc; }
-                if(u.club === '급식부') { u.combat.isDominator = true; u.combat.shield += clubEff.startShield; u.combat.stackAdAp = clubEff.stackAdAp; }
+                if(u.club === '급식부') { u.combat.isDominator = true; u.combat.shield += clubEff.startShield; u.combat.stackAdApPct = clubEff.stackAdApPct; if(clubEff.vampBuff) u.combat.vamp = (u.combat.vamp || 0) + clubEff.vampBuff; }
                 if(u.club === '장난꾸러기') { u.stats.ad *= (1 + clubEff.adBuff); }
             }
             
@@ -1375,7 +1386,7 @@ class GameApp {
         if (skill.vampBuff) details.push(`피해 흡혈: ${formatArr(skill.vampBuff, true, '', COLORS.def, '')}`);
         if (skill.dmgReduc || skill.dmgReducPct) details.push(`피해 감소: ${formatArr(skill.dmgReduc || skill.dmgReducPct, true, '', COLORS.def, '')}`);
         
-        if (skill.asBuff) details.push(`공격 속도 증가(🔮비례): ${formatArr(skill.asBuff, true, '', COLORS.as, '⚡')}`);
+        if (skill.asBuff) details.push(`공격 속도 증가(🔮비례): ${formatArr(skill.asBuff, true, '', COLORS.ap, '🔮')}`);
         if (skill.allyApFlat) details.push(`아군 주문력 증가: ${formatArr(skill.allyApFlat, false, '', COLORS.ap, '🔮')}`);
         if (skill.enemyMrReduc) details.push(`적 마저 감소: ${formatArr(skill.enemyMrReduc, false, '', COLORS.mr, '🌀')}`);
         if (skill.adReducPct) details.push(`적 공격력 감소: ${formatArr(skill.adReducPct, true, '', COLORS.ad, '⚔️')}`);
@@ -1484,7 +1495,7 @@ class GameApp {
         
         if (skill.asBuff) {
             let asVal = Math.round(skill.asBuff[starIdx] * (currAp / 100) * 100);
-            html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가/, `공격 속도 ${wrap('+' + asVal + '% 🔮', COLORS.as, '⚡')} 증가`);
+            html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가/, `공격 속도 ${wrap('+' + asVal + '%', COLORS.ap, '🔮')} 증가`);
         }
         
         if (skill.allyApFlat) html = html.replace(/주문력 증가/, `주문력 ${wrap('+' + skill.allyApFlat[starIdx], COLORS.def)} 증가`);
