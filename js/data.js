@@ -117,7 +117,7 @@ export const UNIT_POOL = [
     { id: 'u3_3', name: '육상부 에이스', subject: '체육', club: '육상부', tier: 3, icon: '🥇', manaType: '전투', stats: { hp: 700, mana: 0, maxMana: 50, ad: 70, ap: 100, armor: 25, mr: 25, as: 0.9, range: 1 },
       skill: { name: '미친 스퍼트', desc: '공격 속도 대폭 증가', type: 'self_buff', vfx: 'buff_green', buffType: 'attackSpeed', asBuff: [1.0, 1.5, 2.5], buffDuration: [80, 100, 120] } },
     { id: 'u3_4', name: '발명품 매니아', subject: '과학', club: '장난꾸러기', tier: 3, icon: '💡', manaType: '전투', stats: { hp: 650, mana: 0, maxMana: 80, ad: 60, ap: 100, armor: 20, mr: 30, as: 0.75, range: 2 },
-      skill: { name: '폭탄 투척', desc: '가장 밀집된 적 주변 광역 마법 피해', type: 'aoe_magic_cluster', vfx: 'fire_red', aoeRange: 1, adRatio: [2.5, 3.5, 5.5] } },
+      skill: { name: '폭탄 투척', desc: '가장 밀집된 적 주변 광역 물리 피해', type: 'aoe_magic_cluster', vfx: 'fire_red', aoeRange: 1, adRatio: [2.5, 3.5, 5.5] } },
     { id: 'u3_5', name: '사회탐구 1타', subject: '사회', club: '방송부', tier: 3, icon: '🗺️', manaType: '집중', stats: { hp: 600, mana: 40, maxMana: 100, ad: 45, ap: 100, armor: 25, mr: 40, as: 0.7, range: 4 },
       skill: { name: '세계화 전략', desc: '가장 먼 적에게 마법 피해', type: 'farthest_magic', vfx: 'magic_purple', apRatio: [3.0, 4.5, 7.0] } },
     { id: 'u3_6', name: '시조 읊는 선비', subject: '국어', club: '급식부', tier: 3, icon: '🍵', manaType: '근성', stats: { hp: 700, mana: 0, maxMana: 90, ad: 50, ap: 100, armor: 30, mr: 45, as: 0.65, range: 2 },
@@ -139,7 +139,7 @@ export const UNIT_POOL = [
     { id: 'u4_4', name: '논술의 신', subject: '국어', club: '육상부', tier: 4, icon: '✍️', manaType: '전투', stats: { hp: 1000, mana: 0, maxMana: 80, ad: 105, ap: 100, armor: 50, mr: 40, as: 0.9, range: 1 },
       skill: { name: '필살의 논리', desc: '단일 대상 강력한 물리 피해', type: 'single_damage', vfx: 'slam_yellow', adRatio: [6.0, 9.0, 15.0] } },
     { id: 'u4_5', name: '전교 학생회장', subject: '사회', club: '급식부', tier: 4, icon: '👑', manaType: '근성', stats: { hp: 1100, mana: 0, maxMana: 140, ad: 60, ap: 100, armor: 45, mr: 45, as: 0.65, range: 1 },
-      skill: { name: '전교생 집합', desc: '아군 전체 공격력 및 주문력 증가 + 보호막', type: 'team_buff_shield', vfx: 'buff_green', statBuffPct: [0.25, 0.35, 0.5], shieldFlat: [300, 500, 800], dmgReducPct: [0.1, 0.15, 0.25], buffDuration: [80, 80, 80] } },
+      skill: { name: '전교생 집합', desc: '아군 전체 공격력 및 주문력 증가 + 피해 감소 및 보호막', type: 'team_buff_shield', vfx: 'buff_green', statBuffPct: [0.25, 0.35, 0.5], shieldFlat: [300, 500, 800], dmgReducPct: [0.1, 0.15, 0.25], buffDuration: [80, 80, 80] } },
     { id: 'u4_6', name: '나이팅게일', subject: '도덕', club: '보건부', tier: 4, icon: '🕊️', manaType: '집중', stats: { hp: 1050, mana: 60, maxMana: 150, ad: 55, ap: 100, armor: 50, mr: 65, as: 0.7, range: 3 },
       skill: { name: '천사의 손길', desc: '아군 전체 회복 + 가장 많이 다친 아군 추가 회복', type: 'team_heal_plus', vfx: 'heal_white', defMrRatio: [1.0, 1.5, 2.5], extraHealPct: [0.1, 0.15, 0.25] } },
     { id: 'u4_7', name: '천재 피아니스트', subject: '음악', club: '방송부', tier: 4, icon: '🎹', manaType: '집중', stats: { hp: 900, mana: 40, maxMana: 100, ad: 85, ap: 100, armor: 35, mr: 40, as: 0.85, range: 3 },
@@ -151,7 +151,7 @@ export const UNIT_POOL = [
     { id: 'u5_2', name: '수석 연구원', subject: '과학', club: '급식부', tier: 5, icon: '👽', manaType: '집중', stats: { hp: 1100, mana: 50, maxMana: 150, ad: 90, ap: 100, armor: 40, mr: 40, as: 0.9, range: 3 },
       skill: { name: '차원 분열', desc: '적 전체 광역 마법 피해 + 방/마저 감소', type: 'global_magic_debuff', vfx: 'fire_red', apRatio: [4.0, 6.0, 10.0], defReducPct: [0.5, 0.6, 0.75], debuffDuration: [50, 70, 100] } },
     { id: 'u5_3', name: '피카소의 재림', subject: '미술', club: '장난꾸러기', tier: 5, icon: '🧑‍🎨', manaType: '전투', stats: { hp: 1050, mana: 40, maxMana: 120, ad: 100, ap: 100, armor: 35, mr: 35, as: 0.95, range: 3 },
-      skill: { name: '명작 탄생', desc: '적 전체 마법 피해 + 아군 전체 영구 버프 및 보호막 부여', type: 'global_magic_team_buff', vfx: 'magic_purple', adRatio: [3.0, 5.0, 8.0], teamStatBuff: [0.2, 0.3, 0.5] } },
+      skill: { name: '명작 탄생', desc: '적 전체 물리 피해 + 아군 전체 스탯 영구 버프', type: 'global_magic_team_buff', vfx: 'magic_purple', adRatio: [3.0, 5.0, 8.0], teamStatBuff: [0.2, 0.3, 0.5] } },
     { id: 'u5_4', name: '교장 선생님', subject: '도덕', club: '선도부', tier: 5, icon: '👨‍🏫', manaType: '근성', stats: { hp: 1500, mana: 80, maxMana: 200, ad: 80, ap: 100, armor: 70, mr: 70, as: 0.7, range: 1 },
       skill: { name: '훈시', desc: '적 전체 기절 및 디버프 + 본인 방어력과 마저에 비례한 마법 피해', type: 'global_cc_dmg_debuff', vfx: 'stun_star', stunDuration: [30, 40, 50], statReducPct: [0.3, 0.4, 0.5], debuffDuration: [100, 100, 100], defMrRatio: [1.5, 2.5, 5.0] } }
 ];

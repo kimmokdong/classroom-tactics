@@ -1459,13 +1459,14 @@ class GameApp {
             html = html.replace(/회복/, `${wrap(Math.round(unit.stats.mr * skill.mrRatio[starIdx]), COLORS.mr, '🌀')} 회복`);
         }
         if (skill.defMrRatio) html = html.replace(/회복/, `${wrap(Math.round((unit.stats.armor + unit.stats.mr) * skill.defMrRatio[starIdx]), COLORS.def, '🛡️🌀')} 회복`);
-        if (skill.asRatio) html = html.replace(/추가 고정 피해/, `추가 고정 ${wrap('+' + Math.round(unit.stats.as * skill.asRatio[starIdx]), COLORS.as, '⚡')} 피해`);
+        
         
         if (skill.stunDuration) html = html.replace(/기절/, `기절 ${wrap((skill.stunDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         if (skill.tauntDuration) html = html.replace(/도발/, `도발 ${wrap((skill.tauntDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
+        if (skill.buffDuration) html = html.replace(/일정 시간/, wrap((skill.buffDuration[starIdx] * 0.1).toFixed(1) + '초간', COLORS.def));
         
         if (healBase) html = html.replace(/회복|전체 힐|힐(?! \+)/, `$& ${wrap(Math.round(healBase[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')}`);
-        if (skill.extraHealPct) html = html.replace(/추가 힐|추가 회복/, `$& ${wrap(Math.round(skill.extraHealPct[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')}`);
+        if (skill.extraHealPct) html = html.replace(/추가 힐|추가 회복/, `대상 최대 체력의 ${wrap(Math.round(skill.extraHealPct[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')} 추가 회복`);
         
         if (skill.shieldPct) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.shieldPct[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
         else if (skill.shieldFlat || skill.teamShield) html = html.replace(/보호막/, `${wrap(Math.round((skill.shieldFlat || skill.teamShield)[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
@@ -1490,12 +1491,19 @@ class GameApp {
         if (skill.teamMana) html = html.replace(/마나 회복/, `마나 ${wrap('+' + skill.teamMana[starIdx], COLORS.def)} 회복`);
         if (skill.manaBurnPct) html = html.replace(/마나 소멸/, `마나 ${wrap(Math.round(skill.manaBurnPct[starIdx] * 100) + '%', COLORS.def)} 소멸`);
         if (skill.rangeBuff) html = html.replace(/사거리 증가/, `사거리 ${wrap('+' + skill.rangeBuff[starIdx], COLORS.def)} 증가`);
-        if (skill.bonusTrueDmg) html = html.replace(/추가 고정 피해/, `추가 고정 피해 ${wrap('+' + skill.bonusTrueDmg[starIdx], COLORS.def)}`);
+        if (skill.charges) html = html.replace(/수회/, wrap(skill.charges[starIdx] + '회', COLORS.def));
+        if (skill.bonusTrueDmg) {
+            let bDmgStr = skill.bonusTrueDmg[starIdx].toString();
+            if (skill.asRatio) {
+                bDmgStr += ' + ' + wrap(Math.round(unit.stats.as * skill.asRatio[starIdx]), COLORS.as, '⚡');
+            }
+            html = html.replace(/추가 고정 피해/, `추가 고정 ${wrap(bDmgStr, COLORS.def)} 피해`);
+        }
         
         if (skill.statBuffPct || skill.teamStatBuff) {
             const statPct = (skill.statBuffPct || skill.teamStatBuff)[starIdx];
             const statScaled = Math.round(statPct * (currAp / 100) * 100);
-            html = html.replace(/공격력 및 주문력 증가|스탯 증가/, `공격력 및 주문력 🔮 ${wrap('+' + statScaled + '%', COLORS.ap)} 증가`);
+            html = html.replace(/공격력 및 주문력 증가|스탯 증가|스탯 영구 버프/, `공격력 및 주문력 🔮 ${wrap('+' + statScaled + '%', COLORS.ap)} 증가`);
         }
         
         if (skill.manaReducPct) html = html.replace(/마나 봉인|마나 획득 감소/, `$& ${wrap(Math.round(skill.manaReducPct[starIdx] * 100) + '%', COLORS.def)} `);
