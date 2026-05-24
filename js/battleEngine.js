@@ -173,7 +173,7 @@ export class BattleEngine {
                     enemies.forEach(e => {
                         if (this.getDist(center.gridIndex, e.gridIndex) <= s.aoeRange) {
                             targets.push(e);
-                            applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
+                            applyDmg(e, getBaseDmg(s, starIdx), 'magic');
                             if (s.stunDuration) addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
                         }
                     });
@@ -315,11 +315,18 @@ export class BattleEngine {
             case 'aoe_magic':
             case 'aoe_magic_cluster':
                 if (enemies[0]) {
-                    const center = s.type === 'aoe_magic' ? enemies[0] : enemies[0]; // 단순화: 가장 가까운 적 기준
+                    let center = enemies[0];
+                    if (s.type === 'aoe_magic_cluster') {
+                        let bestCount = -1;
+                        enemies.forEach(e => {
+                            let count = enemies.filter(o => this.getDist(e.gridIndex, o.gridIndex) <= s.aoeRange).length;
+                            if (count > bestCount) { bestCount = count; center = e; }
+                        });
+                    }
                     enemies.forEach(e => {
                         if (this.getDist(center.gridIndex, e.gridIndex) <= s.aoeRange) {
                             targets.push(e);
-                            applyDmg(e, unit.stats.ap * s.apRatio[starIdx], 'magic');
+                            applyDmg(e, getBaseDmg(s, starIdx), 'magic');
                         }
                     });
                 }
@@ -375,7 +382,7 @@ export class BattleEngine {
                         addBuff(e, 'debuff', 'armor', -e.stats.armor * reduc, s.debuffDuration[starIdx]);
                         addBuff(e, 'debuff', 'mr', -e.stats.mr * reduc, s.debuffDuration[starIdx]);
                     }
-                    applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
+                    applyDmg(e, getBaseDmg(s, starIdx), 'magic');
                 });
                 if (s.teamMana) allies.forEach(a => a.currMana = Math.min(a.stats.maxMana, a.currMana + s.teamMana[starIdx]));
                 if (s.teamShield || s.teamStatBuff) allies.forEach(a => {
