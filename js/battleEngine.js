@@ -35,7 +35,7 @@ export class BattleEngine {
         allies.sort((a,b) => (a.currHp/a.stats.maxHp) - (b.currHp/b.stats.maxHp));
 
         const applyDmg = (target, dmg, type = 'magic', isCrit = false) => {
-            let finalDmg = dmg;
+            let finalDmg = Math.max(1, dmg);
             
             let currentDmgAmp = unit.combat.dmgAmp || 0;
             if (unit.combat.isSniper && target) {
@@ -122,7 +122,13 @@ export class BattleEngine {
             case 'single_damage_buff':
                 if (enemies[0]) {
                     targets.push(enemies[0]);
-                    let baseDmg = unit.stats.ad * s.adRatio[starIdx];
+                    let baseDmg = 0;
+                    if (s.adRatio) baseDmg += ad * s.adRatio[starIdx];
+                    if (s.apRatio) baseDmg += unit.stats.ap * s.apRatio[starIdx];
+                    if (s.hpRatio || s.hpRatioDmg) baseDmg += maxHp * (s.hpRatio || s.hpRatioDmg)[starIdx];
+                    if (s.armorRatio) baseDmg += armor * s.armorRatio[starIdx];
+                    if (s.mrRatio) baseDmg += mr * s.mrRatio[starIdx];
+                    if (s.defMrRatio) baseDmg += (armor + mr) * s.defMrRatio[starIdx];
                     if (s.armorPen) {
                         let tempArmor = enemies[0].stats.armor;
                         enemies[0].stats.armor *= (1 - s.armorPen[starIdx]);
@@ -140,7 +146,9 @@ export class BattleEngine {
                     }
                     // 스킬에 정의된 광역 스플래시 피해 (예: 골목대장 주먹이 운다)
                     if (s.splashAdRatio) {
-                        const splashDmg = unit.stats.ad * s.splashAdRatio[starIdx];
+                        let splashDmg = 0;
+                        if (s.splashAdRatio) splashDmg += ad * s.splashAdRatio[starIdx];
+                        if (s.hpRatioSplash) splashDmg += maxHp * s.hpRatioSplash[starIdx];
                         const splashRange = s.splashRange || 1;
                         enemies.forEach(e => {
                             if (e !== enemies[0] && this.getDist(enemies[0].gridIndex, e.gridIndex) <= splashRange) {
@@ -159,12 +167,14 @@ export class BattleEngine {
                     enemies.forEach(e => {
                         if (this.getDist(center.gridIndex, e.gridIndex) <= s.aoeRange) {
                             targets.push(e);
-                            applyDmg(e, unit.stats.ad * s.adRatio[starIdx], 'physical');
+                            applyDmg(e, ad * s.adRatio[starIdx], 'physical');
                             if (s.stunDuration) addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
                         }
                     });
                     if (s.selfDefBuff) addBuff(unit, 'buff', 'armor', unit.stats.armor * s.selfDefBuff[starIdx], s.buffDuration[starIdx]);
                     if (s.shieldFlat) addBuff(unit, 'shield', 'shield', s.shieldFlat[starIdx], 9999);
+                    if (s.hpRatioShield) addBuff(unit, 'shield', 'shield', maxHp * s.hpRatioShield[starIdx], 9999);
+                    if (s.adRatio && s.type.includes('shield')) addBuff(unit, 'shield', 'shield', ad * s.adRatio[starIdx], 9999);
                 }
                 break;
 
@@ -172,7 +182,7 @@ export class BattleEngine {
                 const farthest = enemies[enemies.length - 1];
                 if (farthest) {
                     targets.push(farthest);
-                    applyDmg(farthest, unit.stats.ad * s.adRatio[starIdx], 'physical');
+                    applyDmg(farthest, ad * s.adRatio[starIdx], 'physical');
                     if (s.stunDuration) addBuff(farthest, 'stun', null, 0, s.stunDuration[starIdx]);
                     
                     const p1 = unit.gridIndex;
@@ -228,15 +238,17 @@ export class BattleEngine {
             case 'self_buff':
             case 'self_buff_hyper':
                 if (s.buffType === 'guaranteedCrit') addBuff(unit, 'guaranteedCrit', null, s.charges[starIdx], 9999);
-                if (s.buffType === 'attackSpeed') addBuff(unit, 'buff', 'as', s.asBuff[starIdx], s.buffDuration[starIdx]);
+                if (s.buffType === 'attackSpeed') addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
                 if (s.buffType === 'precision') {
                     addBuff(unit, 'precision', null, 0, s.buffDuration[starIdx]);
-                    if (s.asBuff) addBuff(unit, 'buff', 'as', s.asBuff[starIdx], s.buffDuration[starIdx]);
+                    if (s.asBuff) addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
                 }
                 if (s.type === 'self_buff_hyper') {
-                    addBuff(unit, 'buff', 'as', s.asBuff[starIdx], s.buffDuration[starIdx]);
+                    addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
                     addBuff(unit, 'buff', 'range', s.rangeBuff[starIdx], s.buffDuration[starIdx]);
-                    addBuff(unit, 'bonusTrueDmg', 'ad', s.bonusTrueDmg[starIdx], s.buffDuration[starIdx]);
+                    let bDmg = s.bonusTrueDmg[starIdx];
+                    if (s.asRatio) bDmg += as * s.asRatio[starIdx];
+                    addBuff(unit, 'bonusTrueDmg', 'ad', bDmg, s.buffDuration[starIdx]);
                 }
                 break;
 
@@ -254,11 +266,21 @@ export class BattleEngine {
             case 'team_heal_buff':
             case 'team_heal_plus':
                 allies.forEach(a => {
-                    let healAmt = a.stats.maxHp * (s.healPct ? s.healPct[starIdx] : s.teamHealPct[starIdx]) * (unit.stats.ap / 100);
-                    addBuff(a, 'heal', 'hp', healAmt, 1);
+                    let healAmt = 0;
+                    if (s.healPct || s.teamHealPct) {
+                        healAmt += a.stats.maxHp * (s.healPct ? s.healPct[starIdx] : s.teamHealPct[starIdx]);
+                    }
+                    if (s.defMrRatio) {
+                        healAmt += (unit.stats.armor + unit.stats.mr) * s.defMrRatio[starIdx];
+                    }
+                    if (s.hpRatio) {
+                        healAmt += unit.stats.maxHp * s.hpRatio[starIdx];
+                    }
+                    healAmt *= (unit.stats.ap / 100);
+                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1);
                     if (s.asBuff) addBuff(a, 'buff', 'as', s.asBuff[starIdx] * (unit.stats.ap / 100), s.buffDuration[starIdx]);
                 });
-                if (s.type === 'team_heal_plus' && allies[0]) {
+                if (s.type === 'team_heal_plus' && allies[0] && s.extraHealPct) {
                     addBuff(allies[0], 'heal', 'hp', allies[0].stats.maxHp * s.extraHealPct[starIdx] * (unit.stats.ap / 100), 1);
                 }
                 break;
@@ -268,7 +290,8 @@ export class BattleEngine {
                 break;
 
             case 'taunt':
-                addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx], s.tauntDuration[starIdx]);
+                if (s.dmgReduc) addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx], s.tauntDuration[starIdx]);
+                if (s.selfMrBuff) addBuff(unit, 'buff', 'mr', unit.stats.mr * s.selfMrBuff[starIdx], s.tauntDuration[starIdx]);
                 enemies.forEach(e => {
                     if (this.getDist(unit.gridIndex, e.gridIndex) <= 3) addBuff(e, 'taunt', null, 0, s.tauntDuration[starIdx], unit.gridIndex);
                 });
@@ -302,7 +325,8 @@ export class BattleEngine {
             case 'aoe_debuff':
                 enemies.forEach(e => {
                     if (this.getDist(unit.gridIndex, e.gridIndex) <= s.aoeRange) {
-                        addBuff(e, 'debuff', 'ad', -e.stats.ad * s.adReducPct[starIdx], s.debuffDuration[starIdx]);
+                        if (s.adReducPct) addBuff(e, 'debuff', 'ad', -e.stats.ad * s.adReducPct[starIdx], s.debuffDuration[starIdx]);
+                        if (s.armorRatio) addBuff(e, 'debuff', 'ad', -(armor * s.armorRatio[starIdx]), s.debuffDuration[starIdx]);
                     }
                 });
                 break;
@@ -345,20 +369,33 @@ export class BattleEngine {
                 break;
 
             case 'global_cc_heal':
+            case 'global_cc_dmg_debuff':
                 enemies.forEach(e => {
                     targets.push(e);
                     addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
                     addBuff(e, 'debuff', 'ad', -e.stats.ad * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
                     addBuff(e, 'debuff', 'ap', -e.stats.ap * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
+                    if (s.type === 'global_cc_dmg_debuff' && s.defMrRatio) {
+                        applyDmg(e, (unit.stats.armor + unit.stats.mr) * s.defMrRatio[starIdx], 'magic');
+                    }
                 });
-                allies.forEach(a => addBuff(a, 'heal', 'hp', a.stats.maxHp * s.teamHealPct[starIdx], 1));
+                if (s.type === 'global_cc_heal') {
+                    allies.forEach(a => {
+                        let th = 0;
+                        if (s.teamHealPct) th += a.stats.maxHp * s.teamHealPct[starIdx];
+                        if (s.hpRatio) th += maxHp * s.hpRatio[starIdx];
+                        if (s.defMrRatio) th += (armor + mr) * s.defMrRatio[starIdx];
+                        addBuff(a, 'heal', 'hp', th, 1);
+                        if (s.extraHealPct) addBuff(a, 'heal', 'hp', a.stats.maxHp * s.extraHealPct[starIdx], 1);
+                    });
+                }
                 break;
 
             case 'bounce_damage': {
                 // 주 대상 타격 후 가까운 적으로 튕기며 추가 물리 피해 (수학천재 피타고라스의 일격)
                 if (enemies[0]) {
                     targets.push(enemies[0]);
-                    applyDmg(enemies[0], unit.stats.ad * s.adRatio[starIdx], 'physical');
+                    applyDmg(enemies[0], ad * s.adRatio[starIdx], 'physical');
                     let bounceFrom = enemies[0];
                     const hit = new Set([enemies[0].gridIndex]);
                     for (let i = 0; i < (s.charges[starIdx] || 3); i++) {
@@ -368,7 +405,7 @@ export class BattleEngine {
                         if (!nextTarget) break;
                         hit.add(nextTarget.gridIndex);
                         targets.push(nextTarget);
-                        applyDmg(nextTarget, unit.stats.ad * s.adRatio[starIdx] * 0.6, 'physical');
+                        applyDmg(nextTarget, ad * s.adRatio[starIdx] * 0.6, 'physical');
                         bounceFrom = nextTarget;
                     }
                 }
@@ -465,6 +502,21 @@ export class BattleEngine {
                         }
                     });
                 }
+            }
+
+            // 1초마다 (10틱) 마나 재생
+            if (this.tick > 0 && this.tick % 10 === 0) {
+                activeUnits.forEach(u => {
+                    if (u.currHp <= 0) return;
+                    let regen = 0;
+                    if (u.manaType === '집중') regen += 2;
+                    if (u.combat && u.combat.teamManaRegen) regen += u.combat.teamManaRegen;
+                    if (u.combat && u.combat.artManaRegen && u.subject === '미술') regen += u.combat.artManaRegen;
+                    
+                    if (regen > 0) {
+                        u.currMana = Math.min(u.stats.maxMana, u.currMana + regen);
+                    }
+                });
             }
 
             // 글로벌 틱 이벤트 (예: 30틱 = 약 3초마다 화염단 체력 회복)
@@ -588,12 +640,10 @@ export class BattleEngine {
                     }
                     target.currHp -= totalDmg;
                     
-                    let gainMana = 10;
-                    if(unit.combat.isVisionary) gainMana += unit.combat.bonusMana;
+                    let gainMana = unit.manaType === '전투' ? 10 : unit.manaType === '집중' ? 5 : 0;
                     unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + gainMana);
                     
-                    let targetGainMana = Math.min(50, totalDmg * 0.1);
-                    if(target.combat.isVisionary) targetGainMana += target.combat.bonusMana;
+                    let targetGainMana = target.manaType === '근성' ? Math.min(50, totalDmg * 0.15) : 0; // 10% -> 15% as per plan
                     target.currMana = Math.min(target.stats.maxMana, target.currMana + targetGainMana);
                     
                     // 흡혈 (과학탐구원 스킬 vampBuff, 아이템 vamp 등 combat.vamp > 0 이면 적용)

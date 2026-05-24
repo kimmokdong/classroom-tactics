@@ -1133,7 +1133,8 @@ class GameApp {
                 }
                 if(u.subject === '체육') { u.stats.hp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); }
                 if(u.subject === '음악') { u.combat.isFirelight = true; u.combat.tickHeal = subjEff.tickHeal; u.combat.bonusMagicDmg = subjEff.bonusMagicDmg; }
-                if(u.subject === '미술') { u.combat.isVisionary = true; u.combat.bonusMana = subjEff.bonusMana; }
+                if(subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
+                if(u.subject === '미술' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
                 if(u.subject === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
             }
 
@@ -1324,7 +1325,28 @@ class GameApp {
             return `<span style="color:${color}; font-weight:bold;">${prefix}${strVal}</span> <span style="color:#888; font-size:0.7rem;">(${strArr})</span>`;
         };
 
-        if (skill.adRatio) details.push(`물리 피해량: ${formatArr(skill.adRatio, true, '', COLORS.ad, '⚔️')}`);
+        if (skill.adRatio) {
+            if (skill.type.includes('shield') && !skill.type.includes('damage') && !skill.type.includes('magic')) {
+                details.push(`보호막: ${formatArr(skill.adRatio, true, '', COLORS.ad, '⚔️')}`);
+            } else if (skill.type.includes('magic')) {
+                details.push(`마법 피해량: ${formatArr(skill.adRatio, true, '', COLORS.ad, '⚔️')}`);
+            } else {
+                details.push(`물리 피해량: ${formatArr(skill.adRatio, true, '', COLORS.ad, '⚔️')}`);
+            }
+        }
+        if (skill.hpRatio || skill.hpRatioDmg) {
+            const label = skill.type.includes('heal') ? '회복량' : '물리 피해량';
+            details.push(`${label}: ${formatArr(skill.hpRatio || skill.hpRatioDmg, true, '', COLORS.hp, '❤️')}`);
+        }
+        if (skill.hpRatioShield) details.push(`보호막: ${formatArr(skill.hpRatioShield, true, '', COLORS.hp, '❤️')}`);
+        if (skill.hpRatioSplash) details.push(`스플래시 피해: ${formatArr(skill.hpRatioSplash, true, '', COLORS.hp, '❤️')}`);
+        if (skill.armorRatio) details.push(`감소량/피해량: ${formatArr(skill.armorRatio, true, '', COLORS.armor, '🛡️')}`);
+        if (skill.mrRatio) details.push(`회복/보호막: ${formatArr(skill.mrRatio, true, '', COLORS.mr, '🌀')}`);
+        if (skill.defMrRatio) {
+            const label = skill.type.includes('heal') ? '회복량' : '방/마저 비례 피해량';
+            details.push(`${label}: ${formatArr(skill.defMrRatio, true, '', COLORS.def, '🛡️🌀')}`);
+        }
+        if (skill.asRatio) details.push(`추가 수치: ${formatArr(skill.asRatio, true, '', COLORS.as, '⚡')}`);
         
         if (skill.apRatio) {
             if (skill.type.includes('shield') && !skill.type.includes('damage') && !skill.type.includes('magic')) {
@@ -1335,11 +1357,11 @@ class GameApp {
         }
         
         const healBase = skill.healPct || skill.teamHealPct;
-        if (healBase) details.push(`체력 회복: ${formatArr(healBase, true, '', COLORS.hp, '❤️')}`);
-        if (skill.extraHealPct) details.push(`추가 체력 회복: ${formatArr(skill.extraHealPct, true, '', COLORS.hp, '❤️')}`);
+        if (healBase) details.push(`체력 회복: ${formatArr(healBase, true, '', COLORS.ap, '🔮')}`);
+        if (skill.extraHealPct) details.push(`추가 체력 회복: ${formatArr(skill.extraHealPct, true, '', COLORS.ap, '🔮')}`);
         
-        if (skill.shieldPct) details.push(`보호막: ${formatArr(skill.shieldPct, true, '', COLORS.def, '🛡️')}`);
-        if (skill.shieldFlat || skill.teamShield) details.push(`보호막: ${formatArr(skill.shieldFlat || skill.teamShield, false, '', COLORS.def, '🛡️')}`);
+        if (skill.shieldPct) details.push(`보호막: ${formatArr(skill.shieldPct, true, '', COLORS.ap, '🔮')}`);
+        if (skill.shieldFlat || skill.teamShield) details.push(`보호막: ${formatArr(skill.shieldFlat || skill.teamShield, false, '', COLORS.ap, '🔮')}`);
         
         if (skill.stunDuration) details.push(`기절 지속시간: ${formatArr(skill.stunDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.tauntDuration) details.push(`도발 지속시간: ${formatArr(skill.tauntDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
@@ -1348,11 +1370,12 @@ class GameApp {
         if (skill.charges) details.push(`적용 횟수: ${formatArr(skill.charges, false, '회', COLORS.def, '')}`);
         
         if (skill.selfDefBuff) details.push(`방어력 증가: ${formatArr(skill.selfDefBuff, true, '', COLORS.armor, '🛡️')}`);
+        if (skill.selfMrBuff) details.push(`마법저항력 증가: ${formatArr(skill.selfMrBuff, true, '', COLORS.mr, '🌀')}`);
         if (skill.permAdBuff) details.push(`영구 공격력 증가: ${formatArr(skill.permAdBuff, true, '', COLORS.ad, '⚔️')}`);
         if (skill.vampBuff) details.push(`피해 흡혈: ${formatArr(skill.vampBuff, true, '', COLORS.def, '')}`);
-        if (skill.dmgReduc || skill.dmgReducPct) details.push(`피해 감소: ${formatArr(skill.dmgReduc || skill.dmgReducPct, true, '', COLORS.def, '🛡️')}`);
+        if (skill.dmgReduc || skill.dmgReducPct) details.push(`피해 감소: ${formatArr(skill.dmgReduc || skill.dmgReducPct, true, '', COLORS.def, '')}`);
         
-        if (skill.asBuff) details.push(`공격 속도 증가: ${formatArr(skill.asBuff, true, '', COLORS.as, '⚡')}`);
+        if (skill.asBuff) details.push(`공격 속도 증가(🔮비례): ${formatArr(skill.asBuff, true, '', COLORS.as, '⚡')}`);
         if (skill.allyApFlat) details.push(`아군 주문력 증가: ${formatArr(skill.allyApFlat, false, '', COLORS.ap, '🔮')}`);
         if (skill.enemyMrReduc) details.push(`적 마저 감소: ${formatArr(skill.enemyMrReduc, false, '', COLORS.mr, '🌀')}`);
         if (skill.adReducPct) details.push(`적 공격력 감소: ${formatArr(skill.adReducPct, true, '', COLORS.ad, '⚔️')}`);
@@ -1401,28 +1424,66 @@ class GameApp {
             }
         }
 
-        if (skill.trueDmgPct) html = html.replace(/고정 피해/, `고정 ${wrap(Math.round(skill.trueDmgPct[starIdx] * 100) + '%', COLORS.def)} 피해`);
+        if (skill.trueDmgPct) {
+            let basePct = Math.round(skill.trueDmgPct[starIdx] * 100);
+            if (skill.apRatio) {
+                let apBonus = Math.round(skill.apRatio[starIdx] * (currAp / 100) * 100);
+                let coloredBonus = `<span style="color:${COLORS.ap}; font-weight:bold;">🔮${apBonus}</span>`;
+                html = html.replace(/고정 피해/, `고정 <span style="color:${COLORS.def}; font-weight:bold;">(${basePct} + ${coloredBonus})%</span> 피해`);
+            } else {
+                html = html.replace(/고정 피해/, `고정 ${wrap(basePct + '%', COLORS.def)} 피해`);
+            }
+        }
         
-        if (skill.adRatio) html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')}피해`);
-        else if (skill.apRatio && !skill.type.includes('shield')) html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAp * skill.apRatio[starIdx]), COLORS.ap, '🔮')}피해`);
+        if (skill.adRatio) {
+            if (skill.type.includes('shield') && !skill.type.includes('damage') && !skill.type.includes('magic')) {
+                html = html.replace(/보호막/, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')} 보호막`);
+            } else {
+                html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')}피해`);
+            }
+        }
+        else if (skill.apRatio && !skill.type.includes('shield') && !skill.trueDmgPct) html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAp * skill.apRatio[starIdx]), COLORS.ap, '🔮')}피해`);
+        
+        if (skill.hpRatio || skill.hpRatioDmg) {
+            html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currMaxHp * (skill.hpRatio || skill.hpRatioDmg)[starIdx]), COLORS.hp, '❤️')}피해`);
+            html = html.replace(/회복/, `${wrap(Math.round(currMaxHp * (skill.hpRatio || skill.hpRatioDmg)[starIdx]), COLORS.hp, '❤️')} 회복`);
+        }
+        if (skill.hpRatioShield) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.hpRatioShield[starIdx]), COLORS.hp, '❤️')} 보호막`);
+        if (skill.hpRatioSplash) html = html.replace(/스플래시 피해/, `${wrap(Math.round(currMaxHp * skill.hpRatioSplash[starIdx]), COLORS.hp, '❤️')} 스플래시 피해`);
+        if (skill.armorRatio) {
+            html = html.replace(/공격력 감소/, `공격력 ${wrap(Math.round(unit.stats.armor * skill.armorRatio[starIdx]), COLORS.armor, '🛡️')} 감소`);
+            html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(unit.stats.armor * skill.armorRatio[starIdx]), COLORS.armor, '🛡️')}피해`);
+        }
+        if (skill.mrRatio) {
+            html = html.replace(/보호막/, `${wrap(Math.round(unit.stats.mr * skill.mrRatio[starIdx]), COLORS.mr, '🌀')} 보호막`);
+            html = html.replace(/회복/, `${wrap(Math.round(unit.stats.mr * skill.mrRatio[starIdx]), COLORS.mr, '🌀')} 회복`);
+        }
+        if (skill.defMrRatio) html = html.replace(/회복/, `${wrap(Math.round((unit.stats.armor + unit.stats.mr) * skill.defMrRatio[starIdx]), COLORS.def, '🛡️🌀')} 회복`);
+        if (skill.asRatio) html = html.replace(/추가 고정 피해/, `추가 고정 ${wrap('+' + Math.round(unit.stats.as * skill.asRatio[starIdx]), COLORS.as, '⚡')} 피해`);
         
         if (skill.stunDuration) html = html.replace(/기절/, `기절 ${wrap((skill.stunDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         if (skill.tauntDuration) html = html.replace(/도발/, `도발 ${wrap((skill.tauntDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         
-        if (healBase) html = html.replace(/회복|전체 힐|힐(?! \+)/, `$& ${wrap(Math.round(healBase[starIdx] * (currAp / 100) * 100) + '%', COLORS.hp)}`);
-        if (skill.extraHealPct) html = html.replace(/추가 힐|추가 회복/, `$& ${wrap(Math.round(skill.extraHealPct[starIdx] * (currAp / 100) * 100) + '%', COLORS.hp)}`);
+        if (healBase) html = html.replace(/회복|전체 힐|힐(?! \+)/, `$& ${wrap(Math.round(healBase[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')}`);
+        if (skill.extraHealPct) html = html.replace(/추가 힐|추가 회복/, `$& ${wrap(Math.round(skill.extraHealPct[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')}`);
         
-        if (skill.shieldPct) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.shieldPct[starIdx] * (currAp / 100)), COLORS.def)} 보호막`);
-        else if (skill.shieldFlat || skill.teamShield) html = html.replace(/보호막/, `${wrap(Math.round((skill.shieldFlat || skill.teamShield)[starIdx] * (currAp / 100)), COLORS.def)} 보호막`);
+        if (skill.shieldPct) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.shieldPct[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
+        else if (skill.shieldFlat || skill.teamShield) html = html.replace(/보호막/, `${wrap(Math.round((skill.shieldFlat || skill.teamShield)[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
         else if (skill.apRatio && skill.type.includes('shield')) html = html.replace(/보호막/, `주문력 ${wrap(Math.round(skill.apRatio[starIdx] * 100) + '%', COLORS.ap, '🔮')} 비례 보호막`);
         
         if (skill.adReducPct) html = html.replace(/공격력 감소/, `공격력 ${wrap(Math.round(skill.adReducPct[starIdx] * 100) + '%', COLORS.def)} 감소`);
         if (skill.permAdBuff) html = html.replace(/공격력 영구 증가/, `공격력 ${wrap('+' + Math.round(currAd * skill.permAdBuff[starIdx]), COLORS.ad, '⚔️')} 영구 증가`);
         
-        if (skill.selfDefBuff) html = html.replace(/방어력 증가/, `방어력 ${wrap('+' + Math.round(unit.stats.armor * skill.selfDefBuff[starIdx] * (currAp / 100)), COLORS.armor)} 증가`);
+        if (skill.selfDefBuff) html = html.replace(/방어력 증가/, `방어력 ${wrap('+' + Math.round(unit.stats.armor * skill.selfDefBuff[starIdx] * (currAp / 100)), COLORS.armor, '🛡️')} 증가`);
+        if (skill.selfMrBuff) html = html.replace(/마법저항력 증가/, `마법저항력 ${wrap('+' + Math.round(unit.stats.mr * skill.selfMrBuff[starIdx] * (currAp / 100)), COLORS.mr, '🌀')} 증가`);
+        if (skill.defMrRatio) html = html.replace(/마법 피해/, `${wrap(Math.round((unit.stats.armor + unit.stats.mr) * skill.defMrRatio[starIdx]), COLORS.def, '🛡️🌀')} 마법 피해`);
         if (skill.vampBuff) html = html.replace(/피해 흡혈/, `피해 흡혈 ${wrap(Math.round(skill.vampBuff[starIdx] * 100) + '%', COLORS.def)} `);
         if (skill.armorPen) html = html.replace(/방어력 관통/, `방어력 관통 ${wrap(Math.round(skill.armorPen[starIdx] * 100) + '%', COLORS.def)} `);
-        if (skill.asBuff) html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가/, `$& ${wrap('+' + Math.round(skill.asBuff[starIdx] * (currAp / 100) * 100) + '%', COLORS.as)}`);
+        
+        if (skill.asBuff) {
+            let asVal = Math.round(skill.asBuff[starIdx] * (currAp / 100) * 100);
+            html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가/, `공격 속도 ${wrap('+' + asVal + '% 🔮', COLORS.as, '⚡')} 증가`);
+        }
         
         if (skill.allyApFlat) html = html.replace(/주문력 증가/, `주문력 ${wrap('+' + skill.allyApFlat[starIdx], COLORS.def)} 증가`);
         if (skill.enemyMrReduc) html = html.replace(/마저 감소/, `마저 ${wrap('-' + skill.enemyMrReduc[starIdx], COLORS.def)} 감소`);
@@ -1515,6 +1576,9 @@ class GameApp {
             <div style="color: #666; font-size: 0.85rem; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
                 📚 <span class="unit-info-synergy" data-type="subjects" data-name="${unit.subject}" style="cursor:help; font-weight:bold; border-bottom: 1px dotted #888;">${unit.subject}</span> &nbsp;|&nbsp; 
                 🏷️ <span class="unit-info-synergy" data-type="clubs" data-name="${unit.club}" style="cursor:help; font-weight:bold; border-bottom: 1px dotted #888;">${unit.club}</span>
+                <span class="mana-type-tag" data-type="${unit.manaType}" style="cursor:help; float:right; border-radius: 4px; padding: 2px 6px; background: #eee; font-weight:bold; font-size: 0.75rem;">
+                    ${unit.manaType === '근성' ? '🛡️ 근성 마나' : unit.manaType === '전투' ? '⚔️ 전투 마나' : '🔮 집중 마나'}
+                </span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; font-weight: 600; color: #444;">
                 <div>❤️ 체력: <span id="info-hp" style="color:#4caf50">${Math.max(0, currHp)}</span><span style="color:#888; font-size:0.75rem;">/${unit.stats.maxHp || unit.stats.hp}</span></div>
@@ -1531,10 +1595,24 @@ class GameApp {
                 <div>📈 피해 증폭: <span style="color:#ef5350">+${Math.round((unit.combat?.dmgAmp || 0)*100)}%</span></div>
                 <div>📉 피해 감소: <span style="color:#29b6f6">${Math.round((unit.combat?.dmgReduc || 0)*100)}%</span></div>
                 <div>🩸 흡혈률: <span style="color:#ec407a">${Math.round((unit.combat?.vamp || 0)*100)}%</span></div>
-                <div>🌱 마나 재생: <span style="color:#42a5f5">+${unit.combat?.bonusMana || 0}</span></div>
+                <div>🌱 추가 재생: <span style="color:#42a5f5">+${((unit.combat?.teamManaRegen || 0) + (unit.subject === '미술' ? (unit.combat?.artManaRegen || 0) : 0))}</span></div>
             </div>
             ${skillHtml}
         `;
+
+        const manaTag = infoEl.querySelector('.mana-type-tag');
+        if (manaTag) {
+            manaTag.onmouseover = (e) => {
+                const type = manaTag.dataset.type;
+                let text = '';
+                if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 피해를 입을 때마다 <b>받은 피해의 10%</b>만큼 마나를 회복합니다. (최대 50)';
+                else if (type === '전투') text = '⚔️ <b>전투 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>대신 평타 공격 시 마나를 <b>10</b> 회복합니다.';
+                else text = '🔮 <b>집중 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>평타 공격 시 마나를 5 회복하며, <b>초당 2의 마나</b>가 지속적으로 차오릅니다.';
+                
+                this.showCustomTooltip(e, text, false);
+            };
+            manaTag.onmouseout = () => this.hideCustomTooltip();
+        }
 
         const itemsContainer = infoEl.querySelector('.unit-items-container');
         if (itemsContainer) {
@@ -1971,7 +2049,12 @@ window.addEventListener('DOMContentLoaded', () => {
                 <div style="font-size: 2.2rem; margin-bottom: 5px;">${u.icon}</div>
                 <strong style="font-size: 1rem; color:#334155;">${u.name}</strong>
                 <span style="color:var(--gold-color); font-weight:900; font-size:0.9rem;">${u.tier}G</span>
-                <div style="font-size: 0.75rem; color:#64748b; margin-top: 8px;">📚 ${u.subject} | 🏷️ ${u.club}</div>
+                <div style="font-size: 0.75rem; color:#64748b; margin-top: 8px;">
+                    📚 ${u.subject} | 🏷️ ${u.club}
+                    <span class="mana-type-tag" data-type="${u.manaType}" style="cursor:help; float:right; border-radius: 4px; padding: 2px 6px; background: #e2e8f0; font-weight:bold; font-size: 0.75rem;">
+                        ${u.manaType === '근성' ? '🛡️ 근성 마나' : u.manaType === '전투' ? '⚔️ 전투 마나' : '🔮 집중 마나'}
+                    </span>
+                </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.75rem; color:#475569; margin-top: 10px; text-align:left; width: 100%; background:#f1f5f9; padding:8px; border-radius:5px; font-weight:600;">
                     <div>❤️ 체력: <span style="color:#4caf50">${u.stats.hp}</span></div>
                     <div>💧 마나: <span style="color:#1e88e5">${u.stats.mana}/${u.stats.maxMana}</span></div>
@@ -1992,6 +2075,25 @@ window.addEventListener('DOMContentLoaded', () => {
                 ${skillHtml}
             `;
             body.appendChild(card);
+            const manaTag = card.querySelector('.mana-type-tag');
+            if (manaTag) {
+                manaTag.onmouseover = (e) => {
+                    const type = manaTag.dataset.type;
+                    let text = '';
+                    if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 피해를 입을 때마다 <b>받은 피해의 15%</b>만큼 마나를 회복합니다. (최대 50)';
+                    else if (type === '전투') text = '⚔️ <b>전투 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>대신 평타 공격 시 마나를 <b>10</b> 회복합니다.';
+                    else text = '🔮 <b>집중 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>평타 공격 시 마나를 5 회복하며, <b>초당 2의 마나</b>가 지속적으로 차오릅니다.';
+                    
+                    const tooltip = document.getElementById('tooltip');
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY - 15) + 'px';
+                    tooltip.innerHTML = text;
+                };
+                manaTag.onmouseout = () => {
+                    document.getElementById('tooltip').style.display = 'none';
+                };
+            }
         });
     }
 
