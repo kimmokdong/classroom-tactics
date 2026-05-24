@@ -682,10 +682,14 @@ export class BattleEngine {
                         });
                     }
                     
-                    let gainMana = unit.manaType === '전투' ? 10 : unit.manaType === '집중' ? 5 : 0;
+                    let baseGainMana = unit.manaType === '전투' ? 10 : unit.manaType === '집중' ? 5 : 0;
+                    let manaGainMult = Math.max(0, 1 + (unit.combat.manaGain || 0)); // 디버프가 -1.1 이면 0으로 막음
+                    let gainMana = baseGainMana * manaGainMult;
                     unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + gainMana);
                     
-                    let targetGainMana = target.manaType === '근성' ? Math.min(50, totalDmg * 0.15) : 0; // 10% -> 15% as per plan
+                    let baseTargetGainMana = target.manaType === '근성' ? Math.min(50, totalDmg * 0.15) : 0;
+                    let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
+                    let targetGainMana = baseTargetGainMana * targetManaGainMult;
                     target.currMana = Math.min(target.stats.maxMana, target.currMana + targetGainMana);
                     
                     // 흡혈 (과학탐구원 스킬 vampBuff, 아이템 vamp 등 combat.vamp > 0 이면 적용)
