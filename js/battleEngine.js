@@ -540,7 +540,8 @@ export class BattleEngine {
                     if (u.combat && u.combat.artManaRegen && u.subject === '미술') regen += u.combat.artManaRegen;
                     
                     if (regen > 0) {
-                        u.currMana = Math.min(u.stats.maxMana, u.currMana + regen);
+                        let manaGainMult = Math.max(0, 1 + (u.combat.manaGain || 0));
+                        u.currMana = Math.min(u.stats.maxMana, u.currMana + (regen * manaGainMult));
                     }
                 });
             }
