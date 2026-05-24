@@ -1415,12 +1415,13 @@ class GameApp {
         if (skill.buffPct) {
             if (skill.buffStat === 'ap') {
                 const apScaled = Math.round(skill.buffPct[starIdx] * (currAp / 100) * 100);
-                html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + apScaled + '%', COLORS.ap, '🔮')} 증가`);
+                html = html.replace(/(주문력|공격 속도|공격력|스탯) (증가|버프)/, `$1 ${wrap('+' + apScaled + '%', COLORS.ap, '🔮')} $2`);
             } else if (skill.buffStat === 'as') {
                 const asScaled = Math.round(skill.buffPct[starIdx] * (currAp / 100) * 100);
-                html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + asScaled + '% 🔮', COLORS.as, '⚡')} 증가`);
+                // 문학소녀의 경우: 공속 증가지만 '주문력'에 의해 스케일링되므로 🔮 아이콘 사용
+                html = html.replace(/(주문력|공격 속도|공격력|스탯) (증가|버프)/, `$1 ${wrap('+' + asScaled + '%', COLORS.ap, '🔮')} $2`);
             } else {
-                html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + Math.round(skill.buffPct[starIdx] * 100) + '%', COLORS.def)} 증가`);
+                html = html.replace(/(주문력|공격 속도|공격력|스탯) (증가|버프)/, `$1 ${wrap('+' + Math.round(skill.buffPct[starIdx] * 100) + '%', COLORS.def)} $2`);
             }
         }
 
