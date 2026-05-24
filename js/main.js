@@ -1418,7 +1418,7 @@ class GameApp {
                 html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + apScaled + '%', COLORS.ap, '🔮')} 증가`);
             } else if (skill.buffStat === 'as') {
                 const asScaled = Math.round(skill.buffPct[starIdx] * (currAp / 100) * 100);
-                html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + asScaled + '%', COLORS.as, '⚡')} 증가`);
+                html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + asScaled + '% 🔮', COLORS.as, '⚡')} 증가`);
             } else {
                 html = html.replace(/(주문력|공격 속도|공격력) 증가/, `$1 ${wrap('+' + Math.round(skill.buffPct[starIdx] * 100) + '%', COLORS.def)} 증가`);
             }
@@ -1470,7 +1470,7 @@ class GameApp {
         
         if (skill.shieldPct) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.shieldPct[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
         else if (skill.shieldFlat || skill.teamShield) html = html.replace(/보호막/, `${wrap(Math.round((skill.shieldFlat || skill.teamShield)[starIdx] * (currAp / 100)), COLORS.ap, '🔮')} 보호막`);
-        else if (skill.apRatio && skill.type.includes('shield')) html = html.replace(/보호막/, `주문력 ${wrap(Math.round(skill.apRatio[starIdx] * 100) + '%', COLORS.ap, '🔮')} 비례 보호막`);
+        else if (skill.apRatio && skill.type.includes('shield')) html = html.replace(/보호막/, `${wrap(Math.round(skill.apRatio[starIdx] * currAp), COLORS.ap, '🔮')} 보호막`);
         
         if (skill.adReducPct) html = html.replace(/공격력 감소/, `공격력 ${wrap(Math.round(skill.adReducPct[starIdx] * 100) + '%', COLORS.def)} 감소`);
         if (skill.permAdBuff) html = html.replace(/공격력 영구 증가/, `공격력 ${wrap('+' + Math.round(currAd * skill.permAdBuff[starIdx]), COLORS.ad, '⚔️')} 영구 증가`);
