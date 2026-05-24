@@ -35,6 +35,7 @@ export class BattleEngine {
         allies.sort((a,b) => (a.currHp/a.stats.maxHp) - (b.currHp/b.stats.maxHp));
         
         const { ad, ap, armor, mr, maxHp, as } = unit.stats;
+        const apMult = ap / 100;
         
         const getBaseDmg = (s, starIdx) => {
             let d = 0;
@@ -221,7 +222,6 @@ export class BattleEngine {
             case 'team_buff_shield':
             case 'team_buff_enemy_debuff':
                 allies.forEach(a => {
-                    let apMult = (unit.stats.ap / 100);
                     if (s.buffStat) {
                         let val = s.buffPct[starIdx];
                         if (s.buffStat === 'ap') val = a.stats.ap * val * apMult;
@@ -301,7 +301,11 @@ export class BattleEngine {
                 break;
 
             case 'self_shield':
-                addBuff(unit, 'shield', 'shield', unit.stats.maxHp * s.shieldPct[starIdx] * (unit.stats.ap / 100), 9999);
+                let shieldAmt = 0;
+                if (s.shieldFlat) shieldAmt += s.shieldFlat[starIdx];
+                if (s.shieldPct) shieldAmt += maxHp * s.shieldPct[starIdx];
+                if (s.adRatio) shieldAmt += ad * s.adRatio[starIdx];
+                addBuff(unit, 'shield', 'shield', shieldAmt * apMult, 9999);
                 break;
 
             case 'taunt':
