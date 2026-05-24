@@ -127,7 +127,7 @@ export const UNIT_POOL = [
     { id: 'u3_8', name: '오케스트라 단장', subject: '음악', club: '급식부', tier: 3, icon: '🎼', manaType: '집중', stats: { hp: 650, mana: 50, maxMana: 120, ad: 40, ap: 100, armor: 25, mr: 30, as: 0.65, range: 3 },
       skill: { name: '교향곡', desc: '아군 전체 힐 + 공속 증가', type: 'team_heal_buff', vfx: 'heal_white', healPct: [0.165, 0.242, 0.385], asBuff: [0.165, 0.275, 0.44], buffDuration: [50, 60, 80] } },
     { id: 'u3_9', name: '수채화 장인', subject: '미술', club: '선도부', tier: 3, icon: '🎨', manaType: '집중', stats: { hp: 750, mana: 30, maxMana: 100, ad: 45, ap: 100, armor: 40, mr: 30, as: 0.6, range: 2 },
-      skill: { name: '색의 마법', desc: '랜덤 적에게 마법 피해 + 마나 봉인', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 4, apRatio: [2.0, 3.0, 5.0], manaReducPct: [1.1, 1.1, 1.1], debuffDuration: [30, 40, 50] } },
+      skill: { name: '색의 마법', desc: '랜덤 적에게 마법 피해 + 마나 봉인', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 4, apRatio: [2.0, 3.0, 5.0], manaReducPct: [1.0, 1.0, 1.0], debuffDuration: [30, 40, 50] } },
 
     // 4-Cost (7 units)
     { id: 'u4_1', name: '전교 체육부장', subject: '체육', club: '선도부', tier: 4, icon: '🦍', manaType: '근성', stats: { hp: 1150, mana: 0, maxMana: 100, ad: 80, ap: 100, armor: 65, mr: 65, as: 0.7, range: 1 },
