@@ -1400,8 +1400,8 @@ class GameApp {
                 icon = '🔮';
             } else if (skill.buffStat === 'as') {
                 label = '공속 버프량';
-                color = COLORS.as;
-                icon = '⚡';
+                color = COLORS.ap; // 주문력 스케일링이므로 보라색 적용
+                icon = '🔮'; // 번개 대신 주문력 계수 아이콘 표기
             }
             details.push(`${label}: ${formatArr(skill.buffPct, true, '', color, icon)}`);
         }
