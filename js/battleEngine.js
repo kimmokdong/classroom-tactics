@@ -104,6 +104,10 @@ export class BattleEngine {
                     dmg: Math.round(finalDmg), dmgType: type, isCrit: isCrit,
                     currHp: target.currHp, maxHp: target.stats.maxHp, currShield: target.currShield
                 });
+                
+                if (unit.combat.vamp > 0) {
+                    unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + finalDmg * unit.combat.vamp);
+                }
             }
 
             if (finalDmg > 0 && unit.combat.itemEffects) {
