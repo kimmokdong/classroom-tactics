@@ -1503,7 +1503,7 @@ class GameApp {
         if (skill.statBuffPct || skill.teamStatBuff) {
             const statPct = (skill.statBuffPct || skill.teamStatBuff)[starIdx];
             const statScaled = Math.round(statPct * (currAp / 100) * 100);
-            html = html.replace(/공격력 및 주문력 증가|스탯 증가|스탯 영구 버프/, `공격력 및 주문력 🔮 ${wrap('+' + statScaled + '%', COLORS.ap)} 증가`);
+            html = html.replace(/공격력 및 주문력 증가|스탯 증가|전투 중 스탯 증가 버프/, `공격력 및 주문력 🔮 ${wrap('+' + statScaled + '%', COLORS.ap)} 증가`);
         }
         
         if (skill.manaReducPct) html = html.replace(/마나 봉인|마나 획득 감소/, `$& ${wrap(Math.round(skill.manaReducPct[starIdx] * 100) + '%', COLORS.def)} `);
