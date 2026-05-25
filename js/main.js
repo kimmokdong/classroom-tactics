@@ -77,7 +77,7 @@ class GameApp {
             stage: [1, 1], // [World, Round]
             board: Array(24).fill(null), // 3x8 Player
             enemyBoard: Array(24).fill(null), // 3x8 Enemy
-            bench: Array(8).fill(null),
+            bench: Array(10).fill(null),
             shop: Array(5).fill(null),
             inventory: Array(12).fill(null), // 아이템 인벤토리
             augments: [],
@@ -196,7 +196,7 @@ class GameApp {
             boardEl.appendChild(cell);
         }
 
-        for(let i=0; i<8; i++) {
+        for(let i=0; i<10; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell bench-cell';
             cell.dataset.index = i;
@@ -1377,6 +1377,7 @@ class GameApp {
         if (skill.stunDuration) details.push(`기절 지속시간: ${formatArr(skill.stunDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.tauntDuration) details.push(`도발 지속시간: ${formatArr(skill.tauntDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.buffDuration) details.push(`버프 지속시간: ${formatArr(skill.buffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
+        if (skill.dotDuration) details.push(`지속시간: ${formatArr(skill.dotDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.debuffDuration) details.push(`디버프 지속: ${formatArr(skill.debuffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.charges) details.push(`적용 횟수: ${formatArr(skill.charges, false, '회', COLORS.def, '')}`);
         
@@ -1476,6 +1477,7 @@ class GameApp {
         if (skill.stunDuration) html = html.replace(/기절/, `기절 ${wrap((skill.stunDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         if (skill.tauntDuration) html = html.replace(/도발/, `도발 ${wrap((skill.tauntDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         if (skill.buffDuration) html = html.replace(/일정 시간/, wrap((skill.buffDuration[starIdx] * 0.1).toFixed(1) + '초간', COLORS.def));
+        if (skill.dotDuration) html = html.replace(/일정 시간/, wrap((skill.dotDuration[starIdx] * 0.1).toFixed(1) + '초간', COLORS.def));
         
         if (healBase) html = html.replace(/회복|전체 힐|힐(?! \+)/, `$& ${wrap(Math.round(healBase[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')}`);
         if (skill.extraHealPct) html = html.replace(/추가 힐|추가 회복/, `대상 최대 체력의 ${wrap(Math.round(skill.extraHealPct[starIdx] * (currAp / 100) * 100) + '%', COLORS.ap, '🔮')} 추가 회복`);
@@ -2184,6 +2186,18 @@ window.addEventListener('DOMContentLoaded', () => {
         const buffedPlayerBoard = window.gameApp.applySynergyStats(window.gameApp.state.board, playerSynergies, false);
         const buffedEnemyBoard = window.gameApp.applySynergyStats(window.gameApp.state.enemyBoard, enemySynergies, true);
 
+        // 극후반 아이템 격차 보정 (적 스탯 버프)
+        if (app.state.stage[0] >= 5) {
+            buffedEnemyBoard.forEach(u => {
+                if (u) {
+                    u.stats.maxHp = Math.round(u.stats.maxHp * 1.15);
+                    u.stats.hp = Math.round(u.stats.hp * 1.15);
+                    u.stats.armor += 15;
+                    u.stats.mr += 15;
+                }
+            });
+        }
+
         // --- 학사일정(증강체) 전투 시작 연출 ---
         const g = app.state.globalBuffs;
         if (g) {
@@ -2250,7 +2264,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const logs = engine.run();
         
         // 3. 리플레이 시각화 재생
-        const renderer = new BattleRenderer(logs, document.getElementById('battle-board'));
+        const fxCanvas = document.getElementById('fx-canvas');
+        const renderer = new BattleRenderer(logs, document.getElementById('battle-board'), fxCanvas);
         renderer.play((winner, endLog) => {
             const currentGold = window.gameApp.state.gold;
             const st = window.gameApp.state;

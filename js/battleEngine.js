@@ -54,7 +54,7 @@ export class BattleEngine {
             let currentDmgAmp = unit.combat.dmgAmp || 0;
             if (unit.combat.isSniper && target) {
                 const dist = this.getDist(unit.gridIndex, target.gridIndex);
-                currentDmgAmp += Math.max(0, dist - 1) * (unit.combat.distAmp || 0);
+                currentDmgAmp += dist * (unit.combat.distAmp || 0);
             }
             if (currentDmgAmp > 0 && type !== 'true') finalDmg *= (1 + currentDmgAmp);
             if (unit.combat.itemEffects?.giantSlayer && target.stats.maxHp > 1500) finalDmg *= 1.25;
@@ -134,6 +134,15 @@ export class BattleEngine {
 
         // 스킬 타입별 처리 분기
         switch(s.type) {
+            case 'single_dot':
+                if (enemies[0]) {
+                    targets.push(enemies[0]);
+                    let totalDmg = unit.stats.ap * s.apRatio[starIdx];
+                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10틱(1초)당 데미지
+                    addBuff(enemies[0], 'dot', null, tickDmg, s.dotDuration[starIdx], unit.gridIndex);
+                }
+                break;
+
             case 'single_damage':
             case 'single_damage_stack':
             case 'single_damage_cc':
@@ -144,10 +153,10 @@ export class BattleEngine {
                     if (s.armorPen) {
                         let tempArmor = enemies[0].stats.armor;
                         enemies[0].stats.armor *= (1 - s.armorPen[starIdx]);
-                        applyDmg(enemies[0], baseDmg, 'physical');
+                        applyDmg(enemies[0], baseDmg, s.apRatio ? 'magic' : 'physical');
                         enemies[0].stats.armor = tempArmor;
                     } else {
-                        applyDmg(enemies[0], baseDmg, 'physical');
+                        applyDmg(enemies[0], baseDmg, s.apRatio ? 'magic' : 'physical');
                     }
                     
                     if (s.stunDuration) addBuff(enemies[0], 'stun', null, 0, s.stunDuration[starIdx]);
@@ -425,11 +434,15 @@ export class BattleEngine {
                 }
                 break;
 
-            case 'bounce_damage': {
-                // 주 대상 타격 후 가까운 적으로 튕기며 추가 물리 피해 (수학천재 피타고라스의 일격)
+            case 'bounce_damage':
+            case 'bounce_magic': {
                 if (enemies[0]) {
                     targets.push(enemies[0]);
-                    applyDmg(enemies[0], ad * s.adRatio[starIdx], 'physical');
+                    let dmg = s.type === 'bounce_magic' ? unit.stats.ap * s.apRatio[starIdx] : ad * s.adRatio[starIdx];
+                    let dtype = s.type === 'bounce_magic' ? 'magic' : 'physical';
+                    applyDmg(enemies[0], dmg, dtype);
+                    if (s.antiHealDuration) addBuff(enemies[0], 'antiHeal', null, 0, s.antiHealDuration[starIdx]);
+                    
                     let bounceFrom = enemies[0];
                     const hit = new Set([enemies[0].gridIndex]);
                     for (let i = 0; i < (s.charges[starIdx] || 3); i++) {
@@ -439,7 +452,8 @@ export class BattleEngine {
                         if (!nextTarget) break;
                         hit.add(nextTarget.gridIndex);
                         targets.push(nextTarget);
-                        applyDmg(nextTarget, ad * s.adRatio[starIdx] * 0.6, 'physical');
+                        applyDmg(nextTarget, dmg * (s.bounceRatio || 0.6), dtype);
+                        if (s.antiHealDuration) addBuff(nextTarget, 'antiHeal', null, 0, s.antiHealDuration[starIdx]);
                         bounceFrom = nextTarget;
                     }
                 }
@@ -451,9 +465,20 @@ export class BattleEngine {
                 break;
         }
 
+        let fxType = 'single_hit';
+        let hitStop = unit.tier >= 4;
+        let screenFlash = unit.tier >= 4 && s.type.includes('global');
+
+        if (s.type.includes('aoe') || s.type.includes('global')) fxType = 'aoe_ripple';
+        else if (s.type.includes('bounce')) fxType = 'chain_bounce';
+        else if (s.type.includes('dash')) fxType = 'dash_slash';
+        else if (s.type.includes('heal') || s.type.includes('buff') || s.type.includes('shield')) fxType = 'heal_particle';
+        else if (unit.stats.range > 1) fxType = 'projectile';
+
         this.logs.push({
             tick: this.tick, type: 'skill', caster: unit.gridIndex,
-            unitName: unit.name, skillName: s.name, skillDesc: s.desc, team: unit.team, vfx: s.vfx, targets: targets.map(t => t.gridIndex)
+            unitName: unit.name, skillName: s.name, skillDesc: s.desc, team: unit.team, vfx: s.vfx, targets: targets.map(t => t.gridIndex),
+            fxType: fxType, hitStop: hitStop, screenFlash: screenFlash
         });
     }
 
@@ -521,6 +546,29 @@ export class BattleEngine {
                 if (this.tick % 10 === 0) {
                     activeUnits.forEach(u => {
                         if (u.currHp <= 0) return;
+                        
+                        const dotBuffs = u.buffs ? u.buffs.filter(b => b.type === 'dot') : [];
+                        if (dotBuffs.length > 0) {
+                            let totalDotDmg = 0;
+                            let lastSourceIdx = null;
+                            dotBuffs.forEach(b => {
+                                totalDotDmg += b.val;
+                                if (b.sourceIdx !== undefined) lastSourceIdx = b.sourceIdx;
+                            });
+                            let actualDmg = totalDotDmg * (100 / (100 + u.stats.mr));
+                            u.currHp -= actualDmg;
+                            
+                            this.logs.push({
+                                tick: this.tick, type: 'damage',
+                                target: u.gridIndex, source: lastSourceIdx !== null ? lastSourceIdx : u.gridIndex,
+                                dmg: Math.round(actualDmg), dmgType: 'magic', isCrit: false,
+                                currHp: u.currHp, targetMana: u.mana, targetStats: { ...u.stats }
+                            });
+                            
+                            this.checkHpThresholds(u, activeUnits);
+                            if (u.currHp <= 0) this.logs.push({ tick: this.tick, type: 'die', target: u.gridIndex, unitName: u.name, team: u.team });
+                        }
+
                         if (u.combat.itemEffects?.ionic) {
                             activeUnits.forEach(e => {
                                 if (e.team !== u.team && this.getDist(u.gridIndex, e.gridIndex) <= 2) {
@@ -622,7 +670,7 @@ export class BattleEngine {
                     
                     let currentDmgAmp = unit.combat.dmgAmp || 0;
                     if (unit.combat.isSniper) {
-                        currentDmgAmp += Math.max(0, dist - 1) * (unit.combat.distAmp || 0);
+                        currentDmgAmp += dist * (unit.combat.distAmp || 0);
                     }
                     if (currentDmgAmp > 0) dmg *= (1 + currentDmgAmp);
                     if (unit.combat.itemEffects?.giantSlayer && target.stats.maxHp > 1500) dmg *= 1.25;
@@ -726,6 +774,7 @@ export class BattleEngine {
                         }
                     }
 
+                    let atkFx = dist > 1 ? 'projectile' : 'dash_slash';
                     this.logs.push({ 
                         tick: this.tick, type: 'attack', from: unit.gridIndex, to: target.gridIndex, 
                         dmg: Math.round(totalDmg), dmgType: 'physical', isCrit: isCrit,
@@ -834,6 +883,8 @@ export class BattleEngine {
         target.buffs.push({ type, stat, val, duration, sourceIdx });
         // 즉시 스탯 적용
         if (stat === 'hp') {
+            const hasAntiHeal = target.buffs.some(b => b.type === 'antiHeal');
+            if (hasAntiHeal && val > 0) val *= 0.5;
             const oldHp = target.currHp;
             target.currHp = Math.min(target.stats.maxHp, target.currHp + val);
             const healed = target.currHp - oldHp;

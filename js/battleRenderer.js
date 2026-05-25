@@ -1,10 +1,60 @@
 export class BattleRenderer {
-    constructor(logs, boardEl) {
+    constructor(logs, boardEl, fxCanvas = null) {
         this.logs = logs;
         this.boardEl = boardEl;
         this.currentTick = 0;
         this.timer = null;
         this.cells = Array.from(boardEl.children);
+        
+        this.fxCanvas = fxCanvas;
+        this.ctx = fxCanvas ? fxCanvas.getContext('2d') : null;
+        this.particles = [];
+        this.unitTransforms = {};
+        for(let i=0; i<this.cells.length; i++) this.unitTransforms[i] = {x:0, y:0, vx:0, vy:0};
+        this.screenFlash = 0;
+        this.hitStopUntil = 0;
+        
+        this.resizeCanvas = this.resizeCanvas.bind(this);
+        this.animate = this.animate.bind(this);
+        
+        if (this.fxCanvas) {
+            window.addEventListener('resize', this.resizeCanvas);
+            this.resizeCanvas();
+        }
+    }
+
+    resizeCanvas() {
+        if (!this.fxCanvas || !this.boardEl) return;
+        const rect = this.boardEl.getBoundingClientRect();
+        this.fxCanvas.width = rect.width;
+        this.fxCanvas.height = rect.height;
+        this.fxCanvas.style.width = rect.width + 'px';
+        this.fxCanvas.style.height = rect.height + 'px';
+    }
+
+    getCellCenter(index) {
+        const cell = this.cells[index];
+        if (!cell || !this.boardEl) return {x: 0, y: 0};
+        const cRect = cell.getBoundingClientRect();
+        const bRect = this.boardEl.getBoundingClientRect();
+        return {
+            x: cRect.left - bRect.left + cRect.width / 2,
+            y: cRect.top - bRect.top + cRect.height / 2
+        };
+    }
+
+    spawnFx(type, x, y, options = {}) {
+        this.particles.push({
+            type: type,
+            x: x, y: y,
+            vx: options.vx || 0, vy: options.vy || 0,
+            life: options.life || 0.5,
+            maxLife: options.life || 0.5,
+            size: options.size || 20,
+            color: options.color || '#fff',
+            angle: options.angle || 0,
+            history: [{x:x, y:y}]
+        });
     }
     
     play(onEnd) {
@@ -15,7 +65,13 @@ export class BattleRenderer {
         
         let logIndex = 0;
         
+        if (this.fxCanvas) {
+            this.animId = requestAnimationFrame(this.animate);
+        }
+
         this.timer = setInterval(() => {
+            if (performance.now() < this.hitStopUntil) return; // Hit-stop
+
             while (logIndex < this.logs.length && this.logs[logIndex].tick <= this.currentTick) {
                 const action = this.logs[logIndex];
                 this.executeAction(action);
@@ -24,12 +80,137 @@ export class BattleRenderer {
             
             if (logIndex >= this.logs.length) {
                 clearInterval(this.timer);
+                if (this.fxCanvas) {
+                    setTimeout(() => {
+                        cancelAnimationFrame(this.animId);
+                        window.removeEventListener('resize', this.resizeCanvas);
+                        this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
+                    }, 2000);
+                }
                 const lastLog = this.logs[this.logs.length - 1];
                 setTimeout(() => onEnd(lastLog.winner, lastLog), 1500);
             }
             
             this.currentTick++;
         }, 100);
+    }
+
+    animate(time) {
+        this.animId = requestAnimationFrame(this.animate);
+        if (!this.ctx) return;
+        
+        this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
+        
+        const SPRING_K = 0.3;
+        const DAMPING = 0.7;
+        for (let i = 0; i < this.cells.length; i++) {
+            let t = this.unitTransforms[i];
+            let ax = -t.x * SPRING_K;
+            let ay = -t.y * SPRING_K;
+            t.vx = (t.vx + ax) * DAMPING;
+            t.vy = (t.vy + ay) * DAMPING;
+            t.x += t.vx;
+            t.y += t.vy;
+            
+            const cell = this.cells[i];
+            if (cell) {
+                const uDiv = cell.querySelector('.unit-character');
+                if (uDiv) {
+                    let scale = uDiv.dataset.fxScale || 1;
+                    uDiv.style.transform = `translate(${t.x}px, ${t.y}px) scale(${scale})`;
+                }
+            }
+            
+            // 상태이상 오라(버프/실드) 캔버스 드로잉
+            if (t.buffs && t.buffs.length > 0) {
+                const center = this.getCellCenter(i);
+                this.ctx.save();
+                this.ctx.translate(center.x + t.x, center.y + t.y);
+                
+                if (t.buffs.includes('shield')) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 35, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = 'rgba(176, 190, 197, 0.6)';
+                    this.ctx.lineWidth = 4;
+                    this.ctx.stroke();
+                }
+                if (t.buffs.includes('buff') || t.buffs.includes('heal')) {
+                    const angle = performance.now() / 300;
+                    this.ctx.fillStyle = '#4caf50';
+                    this.ctx.beginPath();
+                    this.ctx.arc(Math.cos(angle) * 30, Math.sin(angle) * 30, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                if (t.buffs.includes('stun') || t.buffs.includes('debuff') || t.buffs.includes('manaSeal')) {
+                    this.ctx.strokeStyle = 'rgba(231, 76, 60, 0.5)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(-25, -25, 50, 50);
+                }
+                this.ctx.restore();
+            }
+        }
+        
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= 0.016; 
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            this.ctx.save();
+            this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+            
+            if (p.type === 'single_hit') {
+                this.ctx.translate(p.x, p.y);
+                this.ctx.rotate(p.angle || 0);
+                this.ctx.strokeStyle = p.color;
+                this.ctx.lineWidth = 4 * (p.life / p.maxLife);
+                this.ctx.beginPath();
+                this.ctx.moveTo(-p.size, -p.size);
+                this.ctx.lineTo(p.size, p.size);
+                this.ctx.moveTo(p.size, -p.size);
+                this.ctx.lineTo(-p.size, p.size);
+                this.ctx.stroke();
+            } else if (p.type === 'projectile') {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.history.push({x: p.x, y: p.y});
+                if(p.history.length > 5) p.history.shift();
+                
+                this.ctx.beginPath();
+                for(let j=0; j<p.history.length; j++) {
+                    const pt = p.history[j];
+                    if(j===0) this.ctx.moveTo(pt.x, pt.y);
+                    else this.ctx.lineTo(pt.x, pt.y);
+                }
+                this.ctx.strokeStyle = p.color;
+                this.ctx.lineWidth = p.size;
+                this.ctx.lineCap = 'round';
+                this.ctx.stroke();
+            } else if (p.type === 'aoe_ripple') {
+                const radius = p.size * (1 - p.life / p.maxLife);
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = p.color;
+                this.ctx.lineWidth = 4;
+                this.ctx.stroke();
+            } else if (p.type === 'heal_particle') {
+                p.y -= 1;
+                this.ctx.fillStyle = p.color;
+                this.ctx.font = '20px sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('+', p.x, p.y);
+            }
+            
+            this.ctx.restore();
+        }
+        
+        if (this.screenFlash > 0) {
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${this.screenFlash})`;
+            this.ctx.fillRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
+            this.screenFlash -= 0.05;
+        }
     }
 
     executeAction(action) {
@@ -90,6 +271,36 @@ export class BattleRenderer {
             
             // 실시간 유닛 정보 업데이트 (현재 보고 있는 유닛이면 갱신)
             const targetDiv = toCell.querySelector('.unit-character');
+            
+            // --- Canvas VFX: 타격 반동(Recoil & Dash) 및 이펙트 ---
+            const targetIdx = action.to !== undefined ? action.to : action.target;
+            const fromIdx = action.from !== undefined ? action.from : action.source;
+            if (this.fxCanvas && targetIdx !== undefined && fromIdx !== undefined && targetIdx !== fromIdx) {
+                const c1 = this.getCellCenter(fromIdx);
+                const c2 = this.getCellCenter(targetIdx);
+                const dx = c2.x - c1.x;
+                const dy = c2.y - c1.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 0) {
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    if (this.unitTransforms[targetIdx]) {
+                        this.unitTransforms[targetIdx].vx += nx * 6; // 뒤로 넉백
+                        this.unitTransforms[targetIdx].vy += ny * 6;
+                    }
+                    if (this.unitTransforms[fromIdx] && action.type === 'attack') {
+                        this.unitTransforms[fromIdx].vx += nx * 8; // 앞으로 대시
+                        this.unitTransforms[fromIdx].vy += ny * 8;
+                    }
+                    let color = action.dmgType === 'magic' ? '#9c27b0' : action.dmgType === 'true' ? '#ffffff' : '#d32f2f';
+                    if (action.fxType === 'projectile') {
+                        this.spawnFx('projectile', c1.x, c1.y, {vx: nx*15, vy: ny*15, life: 1, color: color, size: 4});
+                    } else if (action.fxType === 'dash_slash' || action.fxType === 'single_hit') {
+                        this.spawnFx('single_hit', c2.x, c2.y, {life: 0.3, color: color, size: 20, angle: Math.atan2(ny, nx)});
+                    }
+                }
+            }
+            // -----------------------------------------------------
             if (targetDiv) {
                 targetDiv.dataset.currHp = action.currHp;
                 targetDiv.dataset.currMana = action.targetMana;
@@ -236,17 +447,35 @@ export class BattleRenderer {
             casterCell.appendChild(nameText);
             setTimeout(() => { if(nameText.parentNode) nameText.parentNode.removeChild(nameText); }, 800);
 
-            if (action.targets && action.vfx) {
+            if (action.targets && action.fxType && this.fxCanvas) {
+                const casterCenter = this.getCellCenter(action.caster);
+                let color = '#9c27b0';
+                if (action.fxType === 'heal_particle') color = '#4caf50';
+
                 action.targets.forEach(tIdx => {
-                    const tCell = this.cells[tIdx];
-                    if(tCell) {
-                        const vfxDiv = document.createElement('div');
-                        vfxDiv.className = `vfx ${action.vfx}`;
-                        tCell.appendChild(vfxDiv);
-                        setTimeout(() => { if(vfxDiv.parentNode) vfxDiv.parentNode.removeChild(vfxDiv); }, 600);
+                    const tCenter = this.getCellCenter(tIdx);
+                    if (action.fxType === 'single_hit' || action.fxType === 'dash_slash') {
+                        this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.4, color: color, size: 30});
+                    } else if (action.fxType === 'projectile') {
+                        const dx = tCenter.x - casterCenter.x;
+                        const dy = tCenter.y - casterCenter.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist > 0) this.spawnFx('projectile', casterCenter.x, casterCenter.y, {vx: (dx/dist)*15, vy: (dy/dist)*15, life: 1, color: color, size: 6});
+                    } else if (action.fxType === 'aoe_ripple') {
+                        this.spawnFx('aoe_ripple', tCenter.x, tCenter.y, {life: 0.6, color: color, size: 80});
+                    } else if (action.fxType === 'heal_particle') {
+                        for(let i=0; i<3; i++) {
+                            this.spawnFx('heal_particle', tCenter.x + (Math.random()*20-10), tCenter.y + (Math.random()*20-10), {life: 0.8, color: color});
+                        }
+                    } else if (action.fxType === 'chain_bounce') {
+                        this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.3, color: color, size: 40});
                     }
                 });
             }
+            
+            if (action.hitStop && this.fxCanvas) this.hitStopUntil = performance.now() + 150;
+            if (action.screenFlash && this.fxCanvas) this.screenFlash = 0.5;
+
         } else if (action.type === 'buff_update') {
             const cell = this.cells[action.target];
             if(cell) {
@@ -254,6 +483,10 @@ export class BattleRenderer {
                 if(iconContainer) {
                     iconContainer.innerHTML = '';
                     const uniqueBuffs = [...new Set(action.buffs)];
+                    
+                    if (this.unitTransforms[action.target]) {
+                        this.unitTransforms[action.target].buffs = uniqueBuffs;
+                    }
                     uniqueBuffs.forEach(bType => {
                         let icon = '', bg = '';
                         if(bType === 'stun') { icon = '💫'; bg = '#f1c40f'; }

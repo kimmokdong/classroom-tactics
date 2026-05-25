@@ -224,7 +224,7 @@ body {
 }
 .grid-bench {
   display: grid;
-  grid-template-columns: repeat(8, 80px);
+  grid-template-columns: repeat(10, 80px);
   gap: 10px;
 }
 .bench-cell {
