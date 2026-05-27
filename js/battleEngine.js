@@ -157,6 +157,12 @@ export class BattleEngine {
                                     dmg: Math.round(actualDmg + trueDmg), dmgType: actualDmg > trueDmg ? 'magic' : 'true', isCrit: false,
                                     currHp: u.currHp, targetMana: u.mana, targetStats: { ...u.stats }, targetCombat: { ...u.combat }
                                 });
+                                
+                                if (u.manaType === '근성') {
+                                    let targetManaGainMult = Math.max(0, 1 + (u.combat.manaGain || 0));
+                                    u.currMana = Math.min(u.stats.maxMana, (u.currMana || 0) + (10 * targetManaGainMult));
+                                }
+                                
                                 this.checkHpThresholds(u, activeUnits);
                                 if (u.currHp <= 0) this.handleDeath(u, activeUnits);
                             }
@@ -346,6 +352,8 @@ export class BattleEngine {
                         trueDmg = bTrue.val;
                     }
 
+                    let preShieldDmg = totalDmg + trueDmg;
+
                     if (target.currShield > 0) {
                         if (target.currShield >= totalDmg) {
                             target.currShield -= totalDmg;
@@ -385,7 +393,7 @@ export class BattleEngine {
                     let gainMana = baseGainMana * manaGainMult;
                     unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + gainMana);
                     
-                    let baseTargetGainMana = target.manaType === '근성' ? Math.min(50, totalDmg * 0.15) : 0;
+                    let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
                     let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
                     let targetGainMana = baseTargetGainMana * targetManaGainMult;
                     target.currMana = Math.min(target.stats.maxMana, target.currMana + targetGainMana);

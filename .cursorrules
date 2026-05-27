@@ -1,0 +1,181 @@
+# 📚 교실 택틱스 (Classroom Tactics) — AI 프로젝트 컨텍스트
+
+> **이 파일의 목적**: 새 세션/계정에서 작업할 때, 전체 파일을 다 읽지 않고도 프로젝트 구조와 현재 상태를 즉시 파악하기 위한 AI 전용 컨텍스트 문서입니다.
+> **마지막 업데이트**: 2026-05-27
+
+---
+
+## 1. 프로젝트 정체성
+- **장르**: TFT(팀파이트 택틱스) 클론 PvE 오토배틀러 웹 게임
+- **세계관**: 한국 학교/교실 (시너지=과목/동아리, 증강체=생기부, 아이템=학용품)
+- **기술 스택**: Vanilla JS (ES Modules) + Vanilla CSS + Vite 8.x + Canvas 2D API
+- **외부 의존성**: 없음 (100% 순수 구현). 폰트만 Google Fonts (Inter, Noto Sans KR)
+- **언어**: 코드 주석/UI/문서 모두 한국어
+
+---
+
+## 2. 핵심 아키텍처
+
+### 진입점
+- `index.html` → `js/main.js` (GameApp 클래스) — 메인 게임
+- `sandbox.html` → `js/sandbox.js` — 자유 배치 테스트 (독립 구현, 본게임과 코드 중복 있음)
+
+### 전투 흐름 (핵심!)
+```
+준비 단계 → 전투 버튼 → StageManager.handleBattleStart()
+  → SynergyManager.applySynergyStats() (시너지+아이템+증강체 적용)
+  → BattleEngine.run() (틱 기반 동기 시뮬, 로그 배열 생성)
+  → BattleRenderer.play() (로그를 시간순 재생 + Canvas VFX)
+  → 결과 모달 → 골드/경험치 지급 → 다음 라운드
+```
+
+### 전투 엔진 설계
+- **사전 계산 → 리플레이** 방식: run() 호출 시 모든 틱이 즉시 계산되어 로그 배열 반환
+- 100ms = 1틱, 최대 600틱(60초), tick -20~-10은 전투 전 아이템/증강 효과
+- 로그 포맷: `{tick, type, ...data}` — type: attack, damage, move, skill, die, heal, buff_update 등
+
+---
+
+## 3. 파일 맵 (역할별)
+
+### 데이터 (수정 빈도 높음)
+| 파일 | 역할 | 핵심 export |
+|------|------|------------|
+| `js/data.js` | 유닛 40종 + 시너지 15종 + 증강체 37종 | UNIT_POOL, SYNERGIES, AUGMENTS, EXP_TABLE |
+| `js/items.js` | 기본 아이템 8종 + 완성 아이템 36종 | ITEMS |
+| `js/core/constants.js` | 상점 확률표, 스탯 한글명 | SHOP_PROBABILITIES, STAT_NAMES_KO |
+
+### 핵심 엔진 (수정 주의)
+| 파일 | 크기 | 역할 |
+|------|------|------|
+| `js/battleEngine.js` | 42KB/751줄 | 전투 시뮬레이션 (틱 루프, 공격, 이동, 버프, 아이템 트리거) |
+| `js/battle/SkillEngine.js` | 29KB | 40종 유닛 스킬 실행 로직 (15+ 스킬 타입) |
+| `js/battle/FxSystem.js` | 34KB | 파티클/이펙트 생성 (스킬별 VFX 스폰) |
+| `js/battle/FxRenderer.js` | 72KB ⭐최대 | Canvas 렌더링 (파티클, 투사체, 데미지 텍스트, 특수 이펙트) |
+| `js/battleRenderer.js` | 42KB | 전투 로그 재생 + DOM/Canvas 동기화 + DPS UI |
+
+### 시스템 매니저
+| 파일 | 역할 |
+|------|------|
+| `js/systems/UnitManager.js` (45KB) | 유닛 DOM 생성, 드래그앤드롭, 판매, 진화(checkForUpgrade), 정보창 |
+| `js/systems/SynergyManager.js` (19KB) | 시너지 계산, 전투 스탯 적용(applySynergyStats), 시너지 UI |
+| `js/systems/ItemManager.js` (16KB) | 아이템 인벤토리, 조합, 장착, 스탯 반영 |
+| `js/systems/StageManager.js` (18KB) | 라운드 진행, 전투 시작/종료, 골드/경험치 지급, 증강체 타이밍 |
+| `js/systems/ShopManager.js` (8KB) | 상점 리롤, 유닛 구매, 레벨업 |
+| `js/systems/AugmentManager.js` (9KB) | 증강체 선택 UI, 효과 적용, 매점 타임 |
+
+### UI
+| 파일 | 역할 |
+|------|------|
+| `js/ui/SkillPreviewer.js` (44KB) | 유닛 도감에서 스킬 Canvas 애니메이션 프리뷰 |
+| `js/ui/GuideRenderer.js` (11KB) | 교무수첩 (인게임 가이드) |
+| `js/ui/BoardRenderer.js` | 6x8 보드 그리드 생성 및 드롭존 설정 |
+| `js/ui/HudRenderer.js` | 상단 HUD (스테이지, 체력, 타임라인) |
+
+### 기타
+| 파일 | 역할 |
+|------|------|
+| `js/enemyAi.js` | 적 보드 생성 (가상 플레이어 시뮬레이션) |
+| `js/core/GameState.js` | 초기 상태 객체 정의 (board, bench, shop, inventory 등) |
+| `js/core/EventBus.js` | pub/sub 이벤트 시스템 (현재 미사용에 가까움) |
+| `게임정보.md` | 기획 통합 문서 (수치, 공식, 아이템 효과 전수 목록) |
+| `유닛_스킬_정보.md` | 유닛별 스킬 상세 |
+
+---
+
+## 4. 게임 콘텐츠 현황
+
+### 유닛 (40종)
+- 1코 10종, 2코 10종, 3코 9종, 4코 7종, 5코 4종
+- 마나 타입 3종: 전투(평타→마나), 근성(피격→마나), 집중(초당+평타→마나)
+- 스킬 타입 15종+: aoe_damage_buff, dash_damage, single_damage, single_dot, random_aoe, bounce_damage, bounce_magic, cross_magic, heal, team_heal, team_buff_shield, global_magic_debuff, passive, self_buff, mana_burn, farthest_magic 등
+
+### 시너지 (15종)
+- 과목 9종: 국어, 수학, 사회(exactMatch), 과학, 영어(조커), 체육, 음악, 미술, 도덕
+- 동아리 6종: 선도부, 방송부(거리증폭), 육상부(잃은체력공속), 보건부(피해감소), 급식부(스택), 장난꾸러기(AD)
+
+### 아이템 (44종)
+- 기본 8종(AD/AS/AP/Mana/Armor/MR/HP/Crit) → 완성 36종
+- 아이콘: 이모지 기반 (ICONS 객체로 매핑)
+- ✅ 36종 전투 효과 100% 구현 완료 (게임정보.md에서 전수 검증됨)
+
+### 증강체 (37종)
+- 실버 11종(2-1), 골드 11종(3-1), 프리즘 15종(4-1)
+- 프리즘 중 시너지 특화 4종: p12(보건부), p13(방송부7), p14(육상부), p15(도덕)
+
+### 스테이지 구조
+- World 1~7+, 각 World 5라운드 (x-1 ~ x-5)
+- x-5는 PVE 보상 라운드 (기본 아이템 2개)
+- 증강체: 2-1(실버), 3-1(골드), 4-1(프리즘)
+- 매점 타임: x-3 라운드마다
+
+---
+
+## 5. 기능 완성도
+
+### ✅ 완성 (100%)
+- 전투 엔진 (틱 시뮬레이션 + 모든 스킬/아이템/시너지/증강체 동작)
+- 유닛 진화 시스템 (1→2→3성, 스탯 배율 1.5x/1.8x)
+- 상점/리롤/레벨/이자/연승연패 경제 시스템
+- 아이템 조합 및 전투 효과 36종
+- 유닛 도감 (필터, 스탯, 스킬 프리뷰)
+- DPS 미터 (피해/탱킹/힐링)
+- 샌드박스 모드
+- 드래그앤드롭 유닛/아이템 배치
+- 영구 성장 시스템 (패시브 유닛 전투 중 스탯 이월)
+- 4~5코스트 스킬 VFX (포물선 투사체, 서예 마법진, 십자 장판 등)
+
+### ⚠️ 미구현
+- ❌ 사운드 시스템 (BGM/SFX 없음)
+- ❌ 세이브/로드 (localStorage 미사용, 새로고침=초기화)
+- ❌ 진화(Star-up) 시각 연출 (조용히 교체됨)
+- ❌ 전투 결과 MVP 표시
+- ❌ 모바일/터치 대응
+- ❌ 라운드 히스토리/전적 기록
+- ⚠️ 저티어(1~3코) 스킬 VFX는 기본 수준
+
+---
+
+## 6. 코딩 컨벤션 & 주의사항
+
+### 스타일
+- 주석은 한국어로 작성
+- 인라인 스타일이 HTML에 많이 사용됨 (레거시, 신규는 CSS 클래스 권장)
+- 이모지를 아이콘으로 적극 활용 (유닛, 아이템, UI 전반)
+
+### 전투 관련 필수 규칙
+- **Canvas save()/restore()**: FxRenderer에서 translate/rotate 사용 시 반드시 짝지어야 좌표계 오염 방지
+- **requestAnimationFrame 루프**: 반드시 try...catch로 감싸서 엔진 마비 방지
+- **시너지 적용 순서**: applySynergyStats() → 아이템 효과 → 증강체 효과 → 전투 엔진 순
+- **로그 기반 렌더링**: 전투 로직과 시각 효과는 완전 분리. 엔진이 로그를 생성하고, 렌더러가 재생
+
+### 유닛/스킬 추가 시 체크리스트
+1. `data.js`의 UNIT_POOL에 유닛 데이터 추가
+2. `SkillEngine.js`에 해당 스킬 타입 실행 로직 추가
+3. `FxSystem.js`에 VFX 스폰 로직 추가
+4. `FxRenderer.js`에 렌더링 함수 추가
+5. `SkillPreviewer.js`에 프리뷰 애니메이션 추가
+6. `게임정보.md` 문서 갱신
+
+### 아이템 추가 시 체크리스트
+1. `items.js`에 아이템 데이터 추가
+2. `battleEngine.js`에 전투 효과 로직 추가
+3. `SynergyManager.applySynergyStats()`에 스탯 적용 로직 추가
+4. `sandbox.js`의 ICONS 객체에 아이콘 추가
+5. `게임정보.md` 문서 갱신
+
+---
+
+## 7. 관련 문서
+- `게임정보.md` — 모든 수치/공식/아이템 효과 상세 (기획자용)
+- `유닛_스킬_정보.md` — 유닛별 스킬 상세
+- `오토배틀러 장르의 출시 전 밸런스 시뮬레이션 방법론 분석.md` — 밸런스 방법론
+- `prompt_history.md` — 개발 중 축적된 노하우/골든 프롬프트
+
+---
+
+## 8. 밸런스 시뮬레이션 가이드라인
+- **스마트 덱 메이킹 & 노템전 원칙**: 향후 AI가 시너지 및 기물 밸런스를 측정하기 위해 시뮬레이터(`run_synergy_sim.mjs`)를 돌릴 때는 **반드시** 아래 규칙이 적용된 상태로 가동해야 합니다.
+  1. **스마트 덱 메이킹 (Smart Fill)**: 덱의 남는 빈자리를 채울 때 완전 무작위가 아닌, 시너지의 성향(탱커형/딜러형)을 파악해 이를 보완하는 기물(딜러/탱커)을 사거리 기준으로 영입합니다.
+  2. **노템전 통제 (No Items)**: 아이템이 만들어내는 승률 거품(예: 선도부, 과학 등)을 배제하기 위해, 모든 기물에게 완성 아이템을 0개 지급합니다.
+  - 이를 통해 아이템 운에 의존하지 않는 "기물의 순수 체급 + 시너지 밸런스"를 객관적으로 평가합니다.

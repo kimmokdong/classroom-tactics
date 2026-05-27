@@ -262,7 +262,20 @@ export class FxSystem {
         }
         
         if (type === 'school_beaker') {
-            this.particles.push({ type: 'school_beaker_proj', x, y, tx: options.targetX, ty: options.targetY, vy: -6, t: 0, rot: 0, done: false, life: 3.5, maxLife: 3.5 });
+            this.particles.push({
+                type: 'school_beaker_proj',
+                x: x,
+                y: y,
+                startX: x,
+                startY: y,
+                tx: options.targetX !== undefined ? options.targetX : x,
+                ty: options.targetY !== undefined ? options.targetY : y,
+                t: 0,
+                rot: 0,
+                done: false,
+                life: 1.0,
+                maxLife: 1.0
+            });
             return;
         } else if (type === 'school_beaker_splash') {
             const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
@@ -297,12 +310,78 @@ export class FxSystem {
         } else if (type === 'school_pen') {
             const tx = options.targetX !== undefined ? options.targetX : x;
             const ty = options.targetY !== undefined ? options.targetY : y;
-            this.particles.push({ type: 'school_pen_proj', x: tx, y: ty-100, targetY: ty, vy: 0, done: false, rot: -0.3 });
+            
+            // 타겟 발밑에 회전하는 서예 마법진 생성
+            this.particles.push({
+                type: 'school_pen_circle',
+                x: tx,
+                y: ty,
+                rot: 0,
+                life: 0.6,
+                maxLife: 0.6,
+                targetY: ty
+            });
+            
+            // 350ms 후 하늘 높은 곳에서 거대한 붓펜이 떨어지도록 딜레이 소환
+            setTimeout(() => {
+                if (this.renderer && (this.renderer.canvas || this.renderer.fxCanvas) && this.particles) {
+                    this.particles.push({
+                        type: 'school_pen_proj',
+                        x: tx,
+                        y: ty - 300,
+                        targetY: ty,
+                        vy: 8,
+                        done: false,
+                        rot: -0.4,
+                        life: 1.5,
+                        maxLife: 1.5
+                    });
+                }
+            }, 350);
+            return;
         } else if (type === 'school_pen_splash') {
+            // 강렬한 화면 흔들림 및 플래시 작동
+            this.particles.push({ type: 'school_principal_shake', power: 15, life: 0.6, maxLife: 0.6 });
+            if (this.renderer) {
+                this.renderer.screenFlash = 0.55;
+            }
+            
+            // 붓글씨 파열 마크 생성
             this.particles.push({ type: 'school_pen_mark', x, y, progress: 0, life: 3.5, maxLife: 3.5 });
-            for (let i = 0; i < 30; i++) {
-                const a = R(0, TAU), spd = R(1,5);
-                this.particles.push({ type: 'school_pen_ink', x, y, vx: Math.cos(a)*spd, vy: Math.sin(a)*spd-R(0,3), life: R(0.8,2.0), maxLife: 2.0, size: R(1,5) });
+            
+            // 황금빛 및 붉은색 충격파 고리 생성
+            this.particles.push({ type: 'low_aoe_ring', x, y, r: 0, maxR: 120, life: 1.0, maxLife: 1.0, color: '#ff2233' });
+            this.particles.push({ type: 'low_aoe_ring', x, y, r: 0, maxR: 70, life: 0.7, maxLife: 0.7, color: '#ffaa44' });
+
+            // 잉크 및 불꽃 파티클 대량 분사
+            for (let i = 0; i < 45; i++) {
+                const a = R(0, TAU);
+                const spd = R(3, 10);
+                this.particles.push({
+                    type: 'school_pen_ink',
+                    x,
+                    y,
+                    vx: Math.cos(a) * spd,
+                    vy: Math.sin(a) * spd - R(2, 6),
+                    life: R(1.0, 2.5),
+                    maxLife: 2.5,
+                    size: R(3, 9)
+                });
+            }
+            for (let i = 0; i < 20; i++) {
+                const a = R(0, TAU);
+                const spd = R(2, 6);
+                this.particles.push({
+                    type: 'school_beaker_part',
+                    x,
+                    y,
+                    vx: Math.cos(a) * spd,
+                    vy: Math.sin(a) * spd - R(1, 4),
+                    life: R(0.5, 1.5),
+                    maxLife: 1.5,
+                    size: R(2, 4),
+                    color: '#ffdd00'
+                });
             }
             return;
         } else if (type === 'school_shield') {

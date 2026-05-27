@@ -57,6 +57,7 @@ export class StageManager {
         this.app.state.dpsStats = {}; // 다음 전투를 위해 리셋
 
         this.app.isBattlePhase = true; // 전투 상태 플래그 활성화
+        window.isBattlePhase = true; // 글로벌 플래그 동기화 (렌더러 혼선 방지)
 
         // 보드의 유닛들은 드래그만 불가능하게 하고 클릭(정보 보기)은 가능하게 유지
         document.querySelectorAll('.board-cell .unit-character').forEach(u => u.draggable = false);
@@ -231,6 +232,35 @@ export class StageManager {
                 msg += `<br><br><div style="background:rgba(241,196,15,0.15); padding:12px; border-radius:12px; border:1px solid rgba(241,196,15,0.4);"><span style="font-size:1.5rem;">🎉</span> <strong style="color:#d35400;">기말고사(PVE) 완료!</strong><br><span style="color:#34495e; font-size:0.95rem;">무작위 기본 아이템 2개를 획득했습니다!</span></div>`;
             }
 
+            // --- 전투 MVP 계산 ---
+            if (this.app.state.dpsStats && type !== 'gameover' && type !== 'save') {
+                let mvp = null;
+                let maxScore = 0;
+                
+                for (let idx in this.app.state.dpsStats) {
+                    const stat = this.app.state.dpsStats[idx];
+                    if (stat.team === 'player') {
+                        const score = stat.damage + stat.tank + stat.heal;
+                        if (score > maxScore) {
+                            maxScore = score;
+                            mvp = stat;
+                        }
+                    }
+                }
+                
+                if (mvp && maxScore > 0) {
+                    msg += `<div style="background:rgba(255,255,255,0.9); padding:10px; border-radius:8px; text-align:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #ffd700; margin-top: 15px;">
+                        <div style="font-size:0.85rem; color:#64748b; font-weight:bold; margin-bottom:4px;">🏆 우수 학생 (MVP)</div>
+                        <div style="font-size:1.2rem; color:#1e293b; font-weight:900;">${mvp.name}</div>
+                        <div style="font-size:0.85rem; margin-top:4px;">
+                            <span style="color:#ef4444">⚔️${Math.round(mvp.damage)}</span> &nbsp; <span style="color:#64748b">🛡️${Math.round(mvp.tank)}</span> &nbsp; <span style="color:#10b981">💉${Math.round(mvp.heal)}</span>
+                        </div>
+                        <div style="font-size:0.9rem; color:#d81b60; font-weight:bold; margin-top:4px;">종합 점수: ${Math.round(maxScore)}점</div>
+                    </div>`;
+                }
+            }
+            // ------------------
+
             this.app.showResultModal(title, msg, type, onConfirm);
 
             if (type === 'gameover') return;
@@ -292,6 +322,8 @@ export class StageManager {
 
             // UI/보드 복구
             this.app.isBattlePhase = false; // 전투 상태 플래그 해제
+            window.isBattlePhase = false; // 글로벌 플래그 동기화
+            
             this.app.spawnEnemyBoard(); // 다음 라운드 적 사전 배치
             this.app.updateHeader();
 

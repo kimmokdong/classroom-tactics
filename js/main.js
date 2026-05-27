@@ -374,7 +374,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 manaTag.onmouseover = (e) => {
                     const type = manaTag.dataset.type;
                     let text = '';
-                    if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 피해를 입을 때마다 <b>받은 피해의 15%</b>만큼 마나를 회복합니다. (최대 50)';
+                    if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 공격(도트딜 포함)을 받을 때마다 <b>고정 10</b>의 마나를 회복합니다.';
                     else if (type === '전투') text = '⚔️ <b>전투 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>대신 평타 공격 시 마나를 <b>10</b> 회복합니다.';
                     else text = '🔮 <b>집중 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>평타 공격 시 마나를 5 회복하며, <b>초당 2의 마나</b>가 지속적으로 차오릅니다.';
 

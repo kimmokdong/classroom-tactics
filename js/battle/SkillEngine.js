@@ -90,7 +90,10 @@ export class SkillEngine {
             if (target.combat.itemEffects?.bramble && isCrit) {
                 finalDmg /= (unit.combat.critDmg || 1.5); // negate crit dmg
             }
-if (target.currShield > 0) {
+
+            let preShieldDmg = finalDmg;
+
+            if (target.currShield > 0) {
                 if (target.currShield >= finalDmg) {
                     target.currShield -= finalDmg;
                     finalDmg = 0;
@@ -100,6 +103,11 @@ if (target.currShield > 0) {
                 }
             }
             target.currHp -= finalDmg;
+
+            // 스킬 피해도 근성 마나 획득 적용 (고정 10)
+            let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
+            let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
+            target.currMana = Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult));
 
             // [p15] 바른 생활의 분노 (평타 피격 시 반사)
             if (engine.playerAugments.includes('p15') && target.team === 'player' && target.subject === '도덕' && unit.team === 'enemy' && finalDmg > 0) {

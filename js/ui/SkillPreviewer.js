@@ -72,13 +72,24 @@ export class SkillPreviewer {
         // 프레임 루프 가동
         this.lastTime = performance.now();
         this.loop = (timestamp) => {
-            const dt = (timestamp - this.lastTime) / 1000;
-            this.lastTime = timestamp;
-            
-            // 너무 큰 dt 방지 (백그라운드 탭 진입 시)
-            this.update(Math.min(dt, 0.1));
-            this.draw();
-            
+            try {
+                const dt = (timestamp - this.lastTime) / 1000;
+                this.lastTime = timestamp;
+                
+                // 너무 큰 dt 방지 (백그라운드 탭 진입 시)
+                this.update(Math.min(dt, 0.1));
+                this.draw();
+            } catch (error) {
+                console.error("Error in SkillPreviewer animation loop:", error);
+                if (this.ctx && this.canvas) {
+                    this.ctx.fillStyle = '#0f1f15';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '14px sans-serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('시뮬레이션 로딩 중...', this.canvas.width / 2, this.canvas.height / 2);
+                }
+            }
             this.animationFrameId = requestAnimationFrame(this.loop);
         };
         this.animationFrameId = requestAnimationFrame(this.loop);
@@ -91,6 +102,10 @@ export class SkillPreviewer {
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
+        }
+        if (this.ctx && this.canvas) {
+            this.ctx.fillStyle = '#0f1f15';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
         this.canvas = null;
         this.ctx = null;

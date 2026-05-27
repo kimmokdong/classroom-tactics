@@ -1,3 +1,5 @@
+import { formatStat } from '../core/constants.js';
+
 export class UnitManager {
     constructor(gameApp) {
         this.app = gameApp;
@@ -47,6 +49,13 @@ export class UnitManager {
         const uDiv = document.createElement('div');
         uDiv.className = `unit-character tier-${unit.tier} star-${unit.star || 1}`;
         uDiv.draggable = true;
+
+        if (unit.justUpgraded) {
+            uDiv.classList.add('star-up-anim');
+            requestAnimationFrame(() => {
+                if (unit.justUpgraded) delete unit.justUpgraded;
+            });
+        }
 
         const starText = '⭐'.repeat(unit.star || 1);
 
@@ -204,15 +213,16 @@ export class UnitManager {
                 // 순수 기본 스탯에만 별 배율 적용 (permGrowth 제외)
                 newUnit.stats.hp = Math.round(newUnit.stats.hp * 1.8);
                 newUnit.stats.ad = Math.round(newUnit.stats.ad * 1.5);
-                newUnit.stats.ap = Math.round(newUnit.stats.ap * 1.5);
+                // AP는 진화 시 오르지 않음 (스킬 고유 계수로만 성장)
 
-                // [신규 기획] 1~3코스트 3성 달성 시 강력한 보너스 깡스탯 부여
+                // [신규 기획] 1~3코스트 3성 달성 시 보너스 깡스탯 부여 (밸런스를 위해 절반 하향)
                 if (newUnit.star === 3 && newUnit.tier <= 3) {
-                    newUnit.stats.armor += Math.round(50 - (newUnit.tier * 10)); // 1코:+40, 2코:+30, 3코:+20
-                    newUnit.stats.mr += Math.round(50 - (newUnit.tier * 10));
-                    newUnit.stats.hp += Math.round(500 - (newUnit.tier * 100)); // 1코:+400, 2코:+300, 3코:+200
+                    newUnit.stats.armor += Math.round(25 - (newUnit.tier * 5)); // 1코:+20, 2코:+15, 3코:+10
+                    newUnit.stats.mr += Math.round(25 - (newUnit.tier * 5));
+                    newUnit.stats.hp += Math.round(250 - (newUnit.tier * 50)); // 1코:+200, 2코:+150, 3코:+100
                 }
                 newUnit.permGrowth = summedPermGrowth;
+                newUnit.justUpgraded = true;
 
                 // 3번째 유닛 위치에 새 유닛 배치
                 const targetSlot = toMerge[2];
@@ -573,7 +583,7 @@ export class UnitManager {
             manaTag.onmouseover = (e) => {
                 const type = manaTag.dataset.type;
                 let text = '';
-                if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 피해를 입을 때마다 <b>받은 피해의 10%</b>만큼 마나를 회복합니다. (최대 50)';
+                if (type === '근성') text = '🛡️ <b>근성 마나</b><br>평타 공격 시 마나를 회복하지 못합니다.<br>대신 적에게 공격(도트딜 포함)을 받을 때마다 <b>고정 10</b>의 마나를 회복합니다.';
                 else if (type === '전투') text = '⚔️ <b>전투 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>대신 평타 공격 시 마나를 <b>10</b> 회복합니다.';
                 else text = '🔮 <b>집중 마나</b><br>적에게 피해를 입을 때 마나를 회복하지 못합니다.<br>평타 공격 시 마나를 5 회복하며, <b>초당 2의 마나</b>가 지속적으로 차오릅니다.';
 

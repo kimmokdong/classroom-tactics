@@ -135,8 +135,6 @@ export class ItemManager {
                     };
 
                     itemDiv.ondragstart = (e) => {
-                        console.log("아이템 드래그 시작!", itemId, "isBattlePhase:", window.isBattlePhase);
-                        if (window.isBattlePhase) { e.preventDefault(); return; }
                         this.app.hideCustomTooltip();
                         e.dataTransfer.setData('itemIdx', i);
                         e.dataTransfer.setData('itemId', itemId);
