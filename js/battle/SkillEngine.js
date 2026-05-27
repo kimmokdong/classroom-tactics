@@ -282,11 +282,10 @@ if (target.currShield > 0) {
                     if (s.asBuff) addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
                 }
                 if (s.type === 'self_buff_hyper') {
-                    addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
-                    addBuff(unit, 'buff', 'range', s.rangeBuff[starIdx], s.buffDuration[starIdx]);
-                    let bDmg = s.bonusTrueDmg[starIdx];
-                    if (s.asRatio) bDmg += as * s.asRatio[starIdx];
-                    addBuff(unit, 'bonusTrueDmg', 'ad', bDmg, s.buffDuration[starIdx]);
+                    let bTrue = s.bonusTrueDmg ? s.bonusTrueDmg[starIdx] : 0;
+                    addBuff(unit, 'hyper', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
+                    if (s.rangeBuff) addBuff(unit, 'hyper_range', 'range', s.rangeBuff[starIdx], s.buffDuration[starIdx]);
+                    if (s.bonusTrueDmg) addBuff(unit, 'bonusTrueDmg', null, bTrue, s.buffDuration[starIdx]);
                 }
                 break;
 
@@ -419,7 +418,15 @@ if (target.currShield > 0) {
                     }
                     applyDmg(e, getBaseDmg(s, starIdx), 'magic');
                 });
-                if (s.teamMana) allies.forEach(a => a.currMana = Math.min(a.stats.maxMana, a.currMana + s.teamMana[starIdx]));
+                if (s.teamMana) allies.forEach(a => {
+                    let diff = Math.min(a.stats.maxMana - a.currMana, s.teamMana[starIdx]);
+                    a.currMana += diff;
+                    engine.logs.push({
+                        tick: engine.tick, type: 'heal', target: a.gridIndex,
+                        amount: Math.round(diff), healType: 'mana',
+                        currHp: a.currHp, maxHp: a.stats.maxHp
+                    });
+                });
                 if (s.teamShield || s.teamStatBuff) allies.forEach(a => {
                     if (s.teamShield) addBuff(a, 'shield', 'shield', s.teamShield[starIdx], 9999);
                     if (s.teamStatBuff) {

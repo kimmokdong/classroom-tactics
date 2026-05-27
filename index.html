@@ -196,6 +196,65 @@
             <div id="dict-body" class="modal-body"></div>
         </div>
     </div>
+    
+    <!-- Unit Detail Modal (스킬 프리뷰 및 상세 스탯) -->
+    <div id="unit-detail-modal" class="modal-overlay" style="display: none; z-index: 6000;">
+        <div class="modal-content" style="max-width: 680px; width: 95%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border: 2px solid rgba(255, 255, 255, 0.6); padding: 0; overflow: hidden; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="background: rgba(248, 250, 252, 0.8); border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding: 15px 25px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span id="detail-unit-icon" style="font-size: 2.2rem;">🧹</span>
+                    <div>
+                        <h2 id="detail-unit-name" style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 800;">칠판닦이 당번</h2>
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <span id="detail-unit-tier" style="font-size: 0.8rem; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold;">★1</span>
+                            <span id="detail-unit-synergy" style="font-size: 0.8rem; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 12px; font-weight: bold;">도덕 / 선도부</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-close-detail" class="close-btn" style="font-size: 2rem;">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- 캔버스 영역 -->
+                <div class="preview-canvas-container" style="position: relative; width: 100%; height: 340px; background: #0f172a; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 4px 20px rgba(0,0,0,0.5);">
+                    <canvas id="preview-canvas" width="640" height="340" style="width: 100%; height: 100%; display: block;"></canvas>
+                    <div style="position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(96, 165, 250, 0.3); pointer-events: none; display: flex; align-items: center; gap: 6px;">
+                        <span style="display:inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                        🎬 실시간 스킬 전술 시뮬레이션
+                    </div>
+                </div>
+                
+                <!-- 스킬 정보 -->
+                <div style="background: rgba(255, 255, 255, 0.6); border-radius: 12px; padding: 15px; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">
+                        🎯 스킬: <span id="detail-skill-name" style="color: #3b82f6; font-weight: 800;">일벌백계</span>
+                    </h4>
+                    <p id="detail-skill-desc" style="margin: 0; color: #475569; font-size: 0.95rem; line-height: 1.5; min-height: 45px;">주변 1칸 적에게 피해를 입히고 자신의 방어력을 증가시킵니다.</p>
+                </div>
+                
+                <!-- 기본 스탯 정보 -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div style="background: rgba(255,255,255,0.4); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(226,232,240,0.5);">
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">❤️ 체력</span>
+                        <div id="detail-stat-hp" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; margin-top: 2px;">500</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.4); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(226,232,240,0.5);">
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">💧 마나</span>
+                        <div id="detail-stat-mana" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; margin-top: 2px;">50/100 (근성)</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.4); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(226,232,240,0.5);">
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">⚔️ 공격력</span>
+                        <div id="detail-stat-ad" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; margin-top: 2px;">40</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.4); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(226,232,240,0.5);">
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">🏹 사거리 / 공속</span>
+                        <div id="detail-stat-range-as" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; margin-top: 2px;">1칸 / 0.60</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Guide Modal (교무수첩) -->
     <div id="guide-modal" class="modal-overlay" style="display: none; z-index: 5000;">
         <div class="modal-content" style="max-width: 900px; width: 90%; height: 80vh; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border: 2px solid rgba(255,255,255,0.8); padding: 0; overflow: hidden;">

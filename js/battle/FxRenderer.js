@@ -746,12 +746,14 @@ export class FxRenderer {
                     ctx.restore();
                 }
             } else if (p.type === 'school_beaker_proj') {
-                p.vy += 0.2; p.x += p.tx > p.x ? 3 : -3; p.y += p.vy;
+                ctx.save();
+                p.vy += 0.4; p.x += p.tx > p.x ? 5 : -5; p.y += p.vy;
                 if(p.y >= p.ty) { p.life = 0; this.fxSystem.spawnFx('school_beaker_splash', p.x, p.ty); }
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rot += 0.2);
                 ctx.font = '24px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
                 ctx.fillText('🧪', 0, 0);
+                ctx.restore();
             } else if (p.type === 'school_beaker_puddle') {
                 p.t = Math.min(p.t + 0.016, p.maxT);
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (p.t / p.maxT), 0, Math.PI * 2);
@@ -954,9 +956,16 @@ export class FxRenderer {
                     ctx.fillStyle = `rgba(255, 50, 50, ${p.eyeGlow * 0.6})`; ctx.fill();
                 }
             } else if (p.type === 'school_principal_text') {
-                p.vy += 1.2; p.y += p.vy;
+                if (!p.landed) {
+                    p.vy += 1.2; p.y += p.vy;
+                }
                 const H = fxCanvas.height || 600;
-                if(!p.landed && p.y >= H * 0.42) { p.landed = true; this.fxSystem.spawnFx('school_principal_splash', 0, 0); }
+                if(!p.landed && p.y >= H * 0.42) { 
+                    p.landed = true; 
+                    p.y = H * 0.42;
+                    p.vy = 0;
+                    this.fxSystem.spawnFx('school_principal_splash', 0, 0); 
+                }
                 const t = p.life / p.maxLife;
                 ctx.textAlign='center'; ctx.textBaseline='middle';
                 ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 20;

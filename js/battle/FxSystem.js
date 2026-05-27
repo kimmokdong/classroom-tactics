@@ -27,6 +27,7 @@ export class FxSystem {
             const targets = options.targets || [];
             switch(type) {
                 case 'u1_1':
+                    this.particles.push({ type: 'low_aoe_ring', x: x, y: y, r: 0, maxR: 80, life: 2.0, maxLife: 2.0, color: '#ffaa44' });
                     targets.forEach(tIdx => {
                         const t = this.getCellCenter(tIdx);
                         this.particles.push({ type: 'low_aoe_ring', x: t.x, y: t.y, r: 0, maxR: 32, life: 2.0, maxLife: 2.0, color: '#ff8844' });
@@ -36,7 +37,6 @@ export class FxSystem {
                 case 'u1_2':
                     if (targets.length > 0) {
                         const t = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_dash', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ffcc44', done: false, trail: [] });
                         setTimeout(() => {
                             this.particles.push({ type: 'low_taunt', x: t.x, y: t.y, life: 2.5, maxLife: 2.5 });
                         }, 800);
@@ -63,7 +63,7 @@ export class FxSystem {
                 case 'u1_6':
                     if (targets.length > 0) {
                         const t = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_dash', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ff9944', done: false, trail: [] });
+                        this.particles.push({ type: 'low_hit', x: t.x, y: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ff9944' });
                     }
                     break;
                 case 'u1_7':
@@ -98,7 +98,7 @@ export class FxSystem {
                 case 'u2_1':
                     if (targets.length > 0) {
                         const centerTarget = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_aoe_ring', x: centerTarget.x, y: centerTarget.y, r: 0, maxR: 45, life: 2.2, maxLife: 2.2, color: '#aa66ff' });
+                        this.particles.push({ type: 'low_aoe_ring', x: centerTarget.x, y: centerTarget.y, r: 0, maxR: 90, life: 2.2, maxLife: 2.2, color: '#aa66ff' });
                         targets.forEach((tIdx, i) => {
                             setTimeout(() => {
                                 const t = this.getCellCenter(tIdx);
@@ -110,7 +110,6 @@ export class FxSystem {
                 case 'u2_2':
                     if (targets.length > 0) {
                         const t = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_dash', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ff8833', done: false, trail: [] });
                         setTimeout(() => {
                             this.particles.push({ type: 'low_taunt', x: t.x, y: t.y, life: 2.5, maxLife: 2.5 });
                         }, 800);
@@ -158,11 +157,10 @@ export class FxSystem {
                 case 'u2_8':
                     if (targets.length > 0) {
                         const t = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_dash', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ff6622', done: false, trail: [] });
                         setTimeout(() => {
                             this.particles.push({ type: 'low_aoe_ring', x: t.x, y: t.y, r: 0, maxR: 30, life: 2.0, maxLife: 2.0, color: '#ff6622' });
                             this.particles.push({ type: 'low_passive', x: x, y: y, life: 3.0, maxLife: 3.0, text: '⚔️↑' });
-                        }, 800);
+                        }, 200);
                     }
                     break;
                 case 'u2_9':
@@ -185,10 +183,9 @@ export class FxSystem {
                 case 'u3_1':
                     if (targets.length > 0) {
                         const t = this.getCellCenter(targets[0]);
-                        this.particles.push({ type: 'low_dash', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.0, maxLife: 2.0, color: '#ffdd44', done: false, trail: [] });
                         setTimeout(() => {
                             this.particles.push({ type: 'low_aoe_ring', x: t.x, y: t.y, r: 0, maxR: 20, life: 2.0, maxLife: 2.0, color: '#ffdd44' });
-                        }, 800);
+                        }, 200);
                     }
                     break;
                 case 'u3_2':
@@ -209,7 +206,7 @@ export class FxSystem {
                         const centerTarget = this.getCellCenter(targets[0]);
                         this.particles.push({ type: 'low_projectile', x: x, y: y, tx: centerTarget.x, ty: centerTarget.y, t: 0, life: 2.5, maxLife: 2.5, color: '#ff8833', size: 5, hitType: 'low_hit' });
                         setTimeout(() => {
-                            this.particles.push({ type: 'low_aoe_ring', x: centerTarget.x, y: centerTarget.y, r: 0, maxR: 45, life: 2.2, maxLife: 2.2, color: '#ff8833' });
+                            this.particles.push({ type: 'low_aoe_ring', x: centerTarget.x, y: centerTarget.y, r: 0, maxR: 90, life: 2.2, maxLife: 2.2, color: '#ff8833' });
                         }, 800);
                     }
                     break;
@@ -265,7 +262,7 @@ export class FxSystem {
         }
         
         if (type === 'school_beaker') {
-            this.particles.push({ type: 'school_beaker_proj', x, y, tx: options.targetX, ty: options.targetY, t: 0, rot: 0, done: false });
+            this.particles.push({ type: 'school_beaker_proj', x, y, tx: options.targetX, ty: options.targetY, vy: -6, t: 0, rot: 0, done: false, life: 3.5, maxLife: 3.5 });
             return;
         } else if (type === 'school_beaker_splash') {
             const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
@@ -298,8 +295,9 @@ export class FxSystem {
             this.particles.push({ type: 'school_slam_char', x, y, phase: 'jump', jumpT: 0, life: 2.2, maxLife: 2.2 });
             return;
         } else if (type === 'school_pen') {
-            this.particles.push({ type: 'school_pen_proj', x, y: y-100, targetY: y, vy: 0, done: false, rot: -0.3 });
-            return;
+            const tx = options.targetX !== undefined ? options.targetX : x;
+            const ty = options.targetY !== undefined ? options.targetY : y;
+            this.particles.push({ type: 'school_pen_proj', x: tx, y: ty-100, targetY: ty, vy: 0, done: false, rot: -0.3 });
         } else if (type === 'school_pen_splash') {
             this.particles.push({ type: 'school_pen_mark', x, y, progress: 0, life: 3.5, maxLife: 3.5 });
             for (let i = 0; i < 30; i++) {
@@ -383,19 +381,21 @@ export class FxSystem {
             }
             return;
         } else if (type === 'school_blackhole') {
+            const tx = options.targetX !== undefined && options.targetX !== null ? options.targetX : x;
+            const ty = options.targetY !== undefined && options.targetY !== null ? options.targetY : y;
             const debris = [];
             const TAU = Math.PI * 2;
             const R = (a, b) => Math.random() * (b - a) + a;
-            for(let i=0; i<60; i++) {
-                const a = R(0, TAU), dist = R(20, 90);
+            for(let i=0; i<120; i++) {
+                const a = R(0, TAU), dist = R(40, 200);
                 debris.push({
-                    x: x + Math.cos(a)*dist, y: y + Math.sin(a)*dist,
+                    x: tx + Math.cos(a)*dist, y: ty + Math.sin(a)*dist,
                     angle: a, dist, orbitSpd: R(0.015, 0.05) * (Math.random()>0.5?1:-1),
-                    inSpd: R(0.15, 0.5), life: 3.5, maxLife: 3.5,
-                    size: R(1, 4), hue: R(240, 310)
+                    inSpd: R(0.4, 1.2), life: 3.5, maxLife: 3.5,
+                    size: R(2, 6), hue: R(240, 310)
                 });
             }
-            this.particles.push({ type: 'school_blackhole', x, y, r: 0, maxR: 35, phase: 0, life: 3.5, maxLife: 3.5, debris, nova: null, exploded: false });
+            this.particles.push({ type: 'school_blackhole', x: tx, y: ty, r: 0, maxR: 120, phase: 0, life: 3.5, maxLife: 3.5, debris, nova: null, exploded: false });
             return;
         } else if (type === 'school_foreign') {
             const TAU = Math.PI * 2;

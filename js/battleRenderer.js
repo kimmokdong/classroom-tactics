@@ -486,8 +486,13 @@ export class BattleRenderer {
             }
             
             const healText = document.createElement('div');
-            healText.className = 'dmg-text heal';
+            healText.className = action.healType === 'mana' ? 'dmg-text heal mana-heal' : 'dmg-text heal';
             healText.innerText = `+${action.amount}`;
+            if (action.healType === 'mana') {
+                healText.innerText += ' 마나';
+                healText.style.color = '#3b82f6';
+                healText.style.textShadow = '0 0 4px #000';
+            }
             // 힐 텍스트 겹침 방지를 위한 랜덤 오프셋
             const scatterX = Math.floor(Math.random() * 40 - 20);
             const scatterY = Math.floor(Math.random() * 30 - 15);

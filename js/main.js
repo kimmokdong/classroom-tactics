@@ -4,6 +4,7 @@ import { HudRenderer } from './ui/HudRenderer.js';
 import { ModalManager } from './ui/ModalManager.js';
 import { BoardRenderer } from './ui/BoardRenderer.js';
 import { GuideRenderer } from './ui/GuideRenderer.js';
+import { skillPreviewer } from './ui/SkillPreviewer.js';
 
 import { UNIT_POOL, SYNERGIES, EXP_TABLE, AUGMENTS } from './data.js';
 import { ITEMS } from './items.js';
@@ -166,8 +167,66 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // 유닛 도감 모달 기능 연동
     const dictModal = document.getElementById('dict-modal');
+    const detailModal = document.getElementById('unit-detail-modal');
+    const btnCloseDetail = document.getElementById('btn-close-detail');
     const filterSelect = document.getElementById('filter-synergy');
     const infoDiv = document.getElementById('dict-synergy-info');
+
+    if (btnCloseDetail && detailModal) {
+        btnCloseDetail.onclick = () => {
+            detailModal.classList.remove('active');
+            detailModal.style.display = 'none';
+            skillPreviewer.stop();
+        };
+        detailModal.onclick = (e) => {
+            if (e.target === detailModal) {
+                detailModal.classList.remove('active');
+                detailModal.style.display = 'none';
+                skillPreviewer.stop();
+            }
+        };
+    }
+
+    function showUnitDetailModal(unit) {
+        if (!detailModal) return;
+
+        document.getElementById('detail-unit-icon').innerText = unit.icon;
+        document.getElementById('detail-unit-name').innerText = unit.name;
+        document.getElementById('detail-unit-tier').innerText = `★${unit.tier} (${unit.tier}G)`;
+        
+        const tierBadge = document.getElementById('detail-unit-tier');
+        const tierColors = {
+            1: '#90a4ae',
+            2: '#81c784',
+            3: '#64b5f6',
+            4: '#ba68c8',
+            5: '#ffb74d'
+        };
+        tierBadge.style.background = tierColors[unit.tier] || '#3b82f6';
+        
+        document.getElementById('detail-unit-synergy').innerText = `${unit.subject} / ${unit.club}`;
+        document.getElementById('detail-skill-name').innerText = unit.skill ? unit.skill.name : '없음';
+        
+        const desc = unit.skill ? window.gameApp.formatSkillDesc(unit.skill, unit) : '스킬 정보가 없습니다.';
+        document.getElementById('detail-skill-desc').innerHTML = desc;
+
+        document.getElementById('detail-stat-hp').innerText = `${unit.stats.hp}`;
+        
+        const manaTypeKo = unit.manaType === '근성' ? '근성' : unit.manaType === '전투' ? '전투' : '집중';
+        document.getElementById('detail-stat-mana').innerText = `${unit.stats.mana}/${unit.stats.maxMana} (${manaTypeKo})`;
+        document.getElementById('detail-stat-ad').innerText = `${unit.stats.ad} (주문력: ${unit.stats.ap}%)`;
+        document.getElementById('detail-stat-range-as').innerText = `${unit.stats.range}칸 / ${unit.stats.as.toFixed(2)}`;
+
+        detailModal.style.display = 'flex';
+        setTimeout(() => {
+            detailModal.classList.add('active');
+        }, 10);
+
+        const canvas = document.getElementById('preview-canvas');
+        if (canvas) {
+            skillPreviewer.start(canvas, unit);
+        }
+    }
 
     // 상점 확률 툴팁 연동
     const levelBox = document.querySelector('.shop-level-box');
@@ -307,6 +366,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${skillHtml}
             `;
+            card.style.cursor = 'pointer';
+            card.onclick = () => showUnitDetailModal(u);
             body.appendChild(card);
             const manaTag = card.querySelector('.mana-type-tag');
             if (manaTag) {

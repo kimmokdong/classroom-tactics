@@ -380,20 +380,20 @@ export class UnitManager {
             if (skill.type.includes('shield') && !skill.type.includes('damage') && !skill.type.includes('magic')) {
                 html = html.replace(/보호막/, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')} 보호막`);
             } else {
-                html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')}피해`);
+                html = html.replace(/(?<!스플래시\s*|고정\s*)피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAd * skill.adRatio[starIdx]), COLORS.ad, '⚔️')}피해`);
             }
         }
-        else if (skill.apRatio && !skill.type.includes('shield') && !skill.trueDmgPct) html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAp * skill.apRatio[starIdx]), COLORS.ap, '🔮')}피해`);
+        else if (skill.apRatio && !skill.type.includes('shield') && !skill.trueDmgPct) html = html.replace(/(?<!스플래시\s*|고정\s*)피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currAp * skill.apRatio[starIdx]), COLORS.ap, '🔮')}피해`);
 
         if (skill.hpRatio || skill.hpRatioDmg) {
-            html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currMaxHp * (skill.hpRatio || skill.hpRatioDmg)[starIdx]), COLORS.hp, '❤️')}피해`);
+            html = html.replace(/(?<!스플래시\s*|고정\s*)피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(currMaxHp * (skill.hpRatio || skill.hpRatioDmg)[starIdx]), COLORS.hp, '❤️')}피해`);
             html = html.replace(/회복/, `${wrap(Math.round(currMaxHp * (skill.hpRatio || skill.hpRatioDmg)[starIdx]), COLORS.hp, '❤️')} 회복`);
         }
         if (skill.hpRatioShield) html = html.replace(/보호막/, `${wrap(Math.round(currMaxHp * skill.hpRatioShield[starIdx]), COLORS.hp, '❤️')} 보호막`);
         if (skill.hpRatioSplash) html = html.replace(/스플래시 피해/, `${wrap(Math.round(currMaxHp * skill.hpRatioSplash[starIdx]), COLORS.hp, '❤️')} 스플래시 피해`);
         if (skill.armorRatio) {
             html = html.replace(/공격력 감소/, `공격력 ${wrap(Math.round(unit.stats.armor * skill.armorRatio[starIdx]), COLORS.armor, '🛡️')} 감소`);
-            html = html.replace(/피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(unit.stats.armor * skill.armorRatio[starIdx]), COLORS.armor, '🛡️')}피해`);
+            html = html.replace(/(?<!스플래시\s*|고정\s*)피해(?!\s*(흡혈|감소))/g, `${wrap(Math.round(unit.stats.armor * skill.armorRatio[starIdx]), COLORS.armor, '🛡️')}피해`);
         }
         if (skill.mrRatio) {
             html = html.replace(/보호막/, `${wrap(Math.round(unit.stats.mr * skill.mrRatio[starIdx]), COLORS.mr, '🌀')} 보호막`);

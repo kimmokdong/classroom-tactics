@@ -188,7 +188,7 @@ export const UNIT_POOL = [
   },
   {
     id: 'u3_9', name: '수채화 장인', subject: '미술', club: '선도부', tier: 3, icon: '🎨', manaType: '집중', stats: { hp: 750, mana: 30, maxMana: 100, ad: 45, ap: 100, armor: 40, mr: 30, as: 0.6, range: 2 },
-    skill: { name: '색의 마법', desc: '랜덤 적에게 마법 피해 + 마나 봉인', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 4, apRatio: [1.5, 2.5, 4.0], manaReducPct: [1.0, 1.0, 1.0], debuffDuration: [30, 40, 50] }
+    skill: { name: '색의 마법', desc: '랜덤 적 3명에게 마법 피해 + 마나 봉인', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 3, apRatio: [1.5, 2.5, 4.0], manaReducPct: [1.0, 1.0, 1.0], debuffDuration: [30, 40, 50] }
   },
 
   // 4-Cost (7 units)
