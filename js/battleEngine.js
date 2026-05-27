@@ -1,6 +1,8 @@
+import { SkillEngine } from './battle/SkillEngine.js';
 export class BattleEngine {
-    constructor(playerBoard, enemyBoard) {
+    constructor(playerBoard, enemyBoard, playerAugments = []) {
         this.board = Array(48).fill(null);
+        this.playerAugments = playerAugments;
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
@@ -16,6 +18,7 @@ export class BattleEngine {
         this.logs = [];
         this.tick = 0;
         this.maxTicks = 600;
+        this.skillEngine = new SkillEngine();
     }
 
     getDist(i1, i2) {
@@ -24,467 +27,39 @@ export class BattleEngine {
         return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
     }
 
-    castSkill(unit, activeUnits) {
-        const s = unit.skill;
-        const starIdx = (unit.star || 1) - 1;
-        const enemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0);
-        const allies = activeUnits.filter(u => u.team === unit.team && u.currHp > 0);
-        
-        let targets = [];
-        enemies.sort((a,b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex));
-        allies.sort((a,b) => (a.currHp/a.stats.maxHp) - (b.currHp/b.stats.maxHp));
-        
-        const { ad, ap, armor, mr, maxHp, as } = unit.stats;
-        const apMult = ap / 100;
-        
-        const getBaseDmg = (s, starIdx) => {
-            let d = 0;
-            if (s.adRatio) d += ad * s.adRatio[starIdx];
-            if (s.apRatio) d += ap * s.apRatio[starIdx];
-            if (s.hpRatio || s.hpRatioDmg) d += maxHp * (s.hpRatio || s.hpRatioDmg)[starIdx];
-            if (s.armorRatio) d += armor * s.armorRatio[starIdx];
-            if (s.mrRatio) d += mr * s.mrRatio[starIdx];
-            if (s.defMrRatio) d += (armor + mr) * s.defMrRatio[starIdx];
-            return d;
-        };
-
-        const applyDmg = (target, dmg, type = 'magic', isCrit = false) => {
-            let finalDmg = Math.max(1, dmg);
-            
-            let currentDmgAmp = unit.combat.dmgAmp || 0;
-            if (unit.combat.isSniper && target) {
-                const dist = this.getDist(unit.gridIndex, target.gridIndex);
-                currentDmgAmp += dist * (unit.combat.distAmp || 0);
-            }
-            if (currentDmgAmp > 0 && type !== 'true') finalDmg *= (1 + currentDmgAmp);
-            if (unit.combat.itemEffects?.giantSlayer && target.stats.maxHp > 1500) finalDmg *= 1.25;
-            if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) finalDmg *= 1.25;
-            if ((unit.combat.itemEffects?.skillCrit || unit.combat.skillCrit) && type !== 'true') {
-                if (Math.random() < (unit.combat.critChance || 0)) {
-                    finalDmg *= (unit.combat.critDmg || 1.5);
-                    isCrit = true;
-                }
-            }
-
-            if (type === 'physical') {
-                let dr = target.combat?.dmgReduc || 0;
-                let armor = target.stats.armor;
-                if (unit.buffs.some(b => b.type === 'precision')) armor = 0;
-                finalDmg *= (1 - dr) * (100 / (100 + armor));
-            } else if (type === 'magic') {
-                let shred = target.buffs.some(b => b.type === 'ionicShred') ? 0.5 : 1;
-                let statikkShred = target.buffs.some(b => b.type === 'statikkShred') ? 0.5 : 1;
-                let actualMr = target.stats.mr * shred * statikkShred;
-                finalDmg *= (100 / (100 + actualMr));
-            } else if (type === 'true') {
-                finalDmg = dmg;
-            }
-
-            if (target.combat.itemEffects?.bramble && isCrit) {
-                finalDmg /= (unit.combat.critDmg || 1.5); // negate crit dmg
-            }
-            if (target.combat.itemEffects?.dclaw && type === 'magic') {
-                target.currHp = Math.min(target.stats.maxHp, target.currHp + target.stats.maxHp * 0.02);
-            }
-
-            if (target.currShield > 0) {
-                if (target.currShield >= finalDmg) {
-                    target.currShield -= finalDmg;
-                    finalDmg = 0;
-                } else {
-                    finalDmg -= target.currShield;
-                    target.currShield = 0;
-                }
-            }
-            target.currHp -= finalDmg;
-
-            if (finalDmg > 0) {
-                this.logs.push({
-                    tick: this.tick, type: 'damage', target: target.gridIndex, 
-                    dmg: Math.round(finalDmg), dmgType: type, isCrit: isCrit,
-                    currHp: target.currHp, maxHp: target.stats.maxHp, currShield: target.currShield
-                });
-                
-                if (unit.combat.vamp > 0) {
-                    unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + finalDmg * unit.combat.vamp);
-                }
-            }
-
-            if (finalDmg > 0 && unit.combat.itemEffects) {
-                if (unit.combat.itemEffects.gunbladeHeal) {
-                    const lowestAlly = allies.sort((a,b)=>(a.currHp/a.stats.maxHp)-(b.currHp/b.stats.maxHp))[0];
-                    if(lowestAlly) lowestAlly.currHp = Math.min(lowestAlly.stats.maxHp, lowestAlly.currHp + finalDmg * 0.22);
-                }
-                if (unit.combat.itemEffects.lastWhisper && type === 'physical') {
-                    addBuff(target, 'debuff', 'armorPct', -0.5, 30);
-                }
-                if (unit.combat.itemEffects.morello && type === 'magic') {
-                    addBuff(target, 'morello', null, target.stats.maxHp*0.1, 100);
-                }
-            }
-
-            this.checkHpThresholds(target, activeUnits);
-
-            if(target.currHp <= 0) this.logs.push({ tick: this.tick, type: 'die', target: target.gridIndex, unitName: target.name, team: target.team });
-        };
-
-        const addBuff = (target, type, stat, val, duration, sourceIdx) => {
-            this.addBuff(target, type, stat, val, duration, sourceIdx);
-        };
-
-        // 스킬 타입별 처리 분기
-        switch(s.type) {
-            case 'single_dot':
-                if (enemies[0]) {
-                    targets.push(enemies[0]);
-                    let totalDmg = unit.stats.ap * s.apRatio[starIdx];
-                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10틱(1초)당 데미지
-                    addBuff(enemies[0], 'dot', null, tickDmg, s.dotDuration[starIdx], unit.gridIndex);
-                }
-                break;
-
-            case 'single_damage':
-            case 'single_damage_stack':
-            case 'single_damage_cc':
-            case 'single_damage_buff':
-                if (enemies[0]) {
-                    targets.push(enemies[0]);
-                    let baseDmg = getBaseDmg(s, starIdx);
-                    if (s.armorPen) {
-                        let tempArmor = enemies[0].stats.armor;
-                        enemies[0].stats.armor *= (1 - s.armorPen[starIdx]);
-                        applyDmg(enemies[0], baseDmg, s.apRatio ? 'magic' : 'physical');
-                        enemies[0].stats.armor = tempArmor;
-                    } else {
-                        applyDmg(enemies[0], baseDmg, s.apRatio ? 'magic' : 'physical');
-                    }
-                    
-                    if (s.stunDuration) addBuff(enemies[0], 'stun', null, 0, s.stunDuration[starIdx]);
-                    if (s.vampBuff) {
-                        unit.combat.vamp = (unit.combat.vamp || 0) + s.vampBuff[starIdx];
-                        unit.combat.vampBuffTimer = s.buffDuration[starIdx];
-                    }
-                    // 스플래시 로직 수정 (hpRatioSplash도 발동 조건에 포함)
-                    if (s.splashAdRatio || s.hpRatioSplash) {
-                        let splashDmg = 0;
-                        if (s.splashAdRatio) splashDmg += ad * s.splashAdRatio[starIdx];
-                        if (s.hpRatioSplash) splashDmg += maxHp * s.hpRatioSplash[starIdx];
-                        const splashRange = s.splashRange || 1;
-                        enemies.forEach(e => {
-                            if (e !== enemies[0] && this.getDist(enemies[0].gridIndex, e.gridIndex) <= splashRange) {
-                                applyDmg(e, splashDmg, 'physical');
-                            }
-                        });
-                    }
-                    if (s.permAdBuff) unit.stats.ad *= (1 + s.permAdBuff[starIdx]);
-                }
-                break;
-                
-            case 'aoe_damage_buff':
-            case 'aoe_damage_cc_shield':
-                if (enemies[0]) {
-                    const center = s.type === 'aoe_damage_buff' ? unit : enemies[0];
-                    enemies.forEach(e => {
-                        if (this.getDist(center.gridIndex, e.gridIndex) <= s.aoeRange) {
-                            targets.push(e);
-                            applyDmg(e, getBaseDmg(s, starIdx), 'magic');
-                            if (s.stunDuration) addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
-                        }
-                    });
-                    if (s.selfDefBuff) addBuff(unit, 'buff', 'armor', unit.stats.armor * s.selfDefBuff[starIdx], s.buffDuration[starIdx]);
-                    if (s.shieldFlat) addBuff(unit, 'shield', 'shield', s.shieldFlat[starIdx], 9999);
-                    if (s.hpRatioShield) addBuff(unit, 'shield', 'shield', maxHp * s.hpRatioShield[starIdx], 9999);
-                    if (s.adRatio && s.type.includes('shield')) addBuff(unit, 'shield', 'shield', ad * s.adRatio[starIdx], 9999);
-                }
-                break;
-
-            case 'dash_damage':
-                const farthest = enemies[enemies.length - 1];
-                if (farthest) {
-                    targets.push(farthest);
-                    applyDmg(farthest, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
-                    if (s.stunDuration) addBuff(farthest, 'stun', null, 0, s.stunDuration[starIdx]);
-                    
-                    const p1 = unit.gridIndex;
-                    const p2 = farthest.gridIndex;
-                    const dirs = [-1, 1, -8, 8, -9, -7, 7, 9];
-                    for(let d of dirs) {
-                        const ni = p2 + d;
-                        if (ni >= 0 && ni < 48 && !activeUnits.some(u => u.gridIndex === ni && u.currHp > 0)) {
-                            unit.gridIndex = ni;
-                            this.logs.push({ tick: this.tick, type: 'move', unit: p1, to: ni });
-                            break;
-                        }
-                    }
-                }
-                break;
-
-            case 'random_aoe':
-            case 'random_aoe_debuff':
-                const shuffled = [...enemies].sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, s.targetCount);
-                selected.forEach(e => {
-                    targets.push(e);
-                    applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
-                    if (s.manaReducPct) addBuff(e, 'debuff', 'manaGain', -s.manaReducPct[starIdx], s.debuffDuration[starIdx]);
-                    if (s.name === '색의 마법') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
-                });
-                break;
-
-            case 'team_buff':
-            case 'team_buff_shield':
-            case 'team_buff_enemy_debuff':
-                allies.forEach(a => {
-                    if (s.buffStat) {
-                        let val = s.buffPct[starIdx];
-                        if (s.buffStat === 'ap') val = a.stats.ap * val * apMult;
-                        else if (s.buffStat === 'ad') val = a.stats.ad * val * apMult;
-                        else if (s.buffStat === 'as') val = a.stats.as * val * apMult;
-                        addBuff(a, 'buff', s.buffStat, val, s.buffDuration[starIdx]);
-                    }
-                    if (s.statBuffPct) {
-                        let val = s.statBuffPct[starIdx] * apMult;
-                        addBuff(a, 'buff', 'ad', a.stats.ad * val, s.buffDuration[starIdx]);
-                        addBuff(a, 'buff', 'ap', a.stats.ap * val, s.buffDuration[starIdx]);
-                    }
-                    if (s.shieldFlat) addBuff(a, 'shield', 'shield', s.shieldFlat[starIdx] * apMult, s.buffDuration[starIdx]);
-                    if (s.dmgReducPct) addBuff(a, 'buff', 'dmgReduc', s.dmgReducPct[starIdx], s.buffDuration[starIdx]);
-                });
-                if (s.enemyMrReduc) {
-                    enemies.forEach(e => addBuff(e, 'debuff', 'mr', -s.enemyMrReduc[starIdx], s.buffDuration[starIdx]));
-                }
-                break;
-                
-            case 'self_buff':
-            case 'self_buff_hyper':
-                if (s.buffType === 'guaranteedCrit') addBuff(unit, 'guaranteedCrit', null, s.charges[starIdx], 9999);
-                if (s.buffType === 'attackSpeed') addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
-                if (s.buffType === 'precision') {
-                    addBuff(unit, 'precision', null, 0, s.buffDuration[starIdx]);
-                    if (s.asBuff) addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
-                }
-                if (s.type === 'self_buff_hyper') {
-                    addBuff(unit, 'buff', 'as', s.asBuff[starIdx] * apMult, s.buffDuration[starIdx]);
-                    addBuff(unit, 'buff', 'range', s.rangeBuff[starIdx], s.buffDuration[starIdx]);
-                    let bDmg = s.bonusTrueDmg[starIdx];
-                    if (s.asRatio) bDmg += as * s.asRatio[starIdx];
-                    addBuff(unit, 'bonusTrueDmg', 'ad', bDmg, s.buffDuration[starIdx]);
-                }
-                break;
-
-            case 'heal':
-            case 'heal_shield':
-                if (allies[0]) {
-                    targets.push(allies[0]);
-                    let healAmt = 0;
-                    if (s.healPct) healAmt += allies[0].stats.maxHp * s.healPct[starIdx];
-                    if (s.mrRatio) healAmt += mr * s.mrRatio[starIdx];
-                    healAmt *= (unit.stats.ap / 100);
-                    if (healAmt > 0) addBuff(allies[0], 'heal', 'hp', healAmt, 1);
-                    
-                    let shieldAmt = 0;
-                    if (s.shieldFlat) shieldAmt += s.shieldFlat[starIdx];
-                    if (s.mrRatio) shieldAmt += mr * s.mrRatio[starIdx];
-                    shieldAmt *= (unit.stats.ap / 100);
-                    if (shieldAmt > 0) addBuff(allies[0], 'shield', 'shield', shieldAmt, 9999);
-                }
-                break;
-                
-            case 'team_heal':
-            case 'team_heal_buff':
-            case 'team_heal_plus':
-                allies.forEach(a => {
-                    let healAmt = 0;
-                    if (s.healPct || s.teamHealPct) {
-                        healAmt += a.stats.maxHp * (s.healPct ? s.healPct[starIdx] : s.teamHealPct[starIdx]);
-                    }
-                    if (s.defMrRatio) {
-                        healAmt += (unit.stats.armor + unit.stats.mr) * s.defMrRatio[starIdx];
-                    }
-                    if (s.hpRatio) {
-                        healAmt += unit.stats.maxHp * s.hpRatio[starIdx];
-                    }
-                    healAmt *= (unit.stats.ap / 100);
-                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1);
-                    if (s.asBuff) addBuff(a, 'buff', 'as', s.asBuff[starIdx] * (unit.stats.ap / 100), s.buffDuration[starIdx]);
-                });
-                if (s.type === 'team_heal_plus' && allies[0] && s.extraHealPct) {
-                    addBuff(allies[0], 'heal', 'hp', allies[0].stats.maxHp * s.extraHealPct[starIdx] * (unit.stats.ap / 100), 1);
-                }
-                break;
-
-            case 'self_shield':
-                let shieldAmt = 0;
-                if (s.shieldFlat) shieldAmt += s.shieldFlat[starIdx];
-                if (s.shieldPct) shieldAmt += maxHp * s.shieldPct[starIdx];
-                if (s.adRatio) shieldAmt += ad * s.adRatio[starIdx];
-                addBuff(unit, 'shield', 'shield', shieldAmt * apMult, 9999);
-                break;
-
-            case 'taunt':
-                if (s.dmgReduc) addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx], s.tauntDuration[starIdx]);
-                if (s.selfMrBuff) addBuff(unit, 'buff', 'mr', unit.stats.mr * s.selfMrBuff[starIdx], s.tauntDuration[starIdx]);
-                enemies.forEach(e => {
-                    if (this.getDist(unit.gridIndex, e.gridIndex) <= 3) addBuff(e, 'taunt', null, 0, s.tauntDuration[starIdx], unit.gridIndex);
-                });
-                break;
-
-            case 'aoe_magic':
-            case 'aoe_magic_cluster':
-                if (enemies[0]) {
-                    let center = enemies[0];
-                    if (s.type === 'aoe_magic_cluster') {
-                        let bestCount = -1;
-                        enemies.forEach(e => {
-                            let count = enemies.filter(o => this.getDist(e.gridIndex, o.gridIndex) <= s.aoeRange).length;
-                            if (count > bestCount) { bestCount = count; center = e; }
-                        });
-                    }
-                    enemies.forEach(e => {
-                        if (this.getDist(center.gridIndex, e.gridIndex) <= s.aoeRange) {
-                            targets.push(e);
-                            applyDmg(e, getBaseDmg(s, starIdx), 'magic');
-                        }
-                    });
-                }
-                break;
-
-            case 'true_damage':
-                if (enemies[0]) {
-                    targets.push(enemies[0]);
-                    let tdPct = s.trueDmgPct[starIdx];
-                    if (s.apRatio) tdPct += s.apRatio[starIdx] * (unit.stats.ap / 100);
-                    applyDmg(enemies[0], enemies[0].stats.maxHp * tdPct, 'true');
-                }
-                break;
-
-            case 'ally_shield':
-                const closeAllies = [...allies].sort((a,b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex));
-                closeAllies.slice(0, s.targetCount).forEach(a => addBuff(a, 'shield', 'shield', unit.stats.ap * s.apRatio[starIdx], 9999));
-                break;
-
-            case 'aoe_debuff':
-                enemies.forEach(e => {
-                    if (this.getDist(unit.gridIndex, e.gridIndex) <= s.aoeRange) {
-                        if (s.adReducPct) addBuff(e, 'debuff', 'ad', -e.stats.ad * s.adReducPct[starIdx], s.debuffDuration[starIdx]);
-                        if (s.armorRatio) addBuff(e, 'debuff', 'ad', -(armor * s.armorRatio[starIdx]), s.debuffDuration[starIdx]);
-                    }
-                });
-                break;
-
-            case 'farthest_magic':
-                const fTarget = enemies[enemies.length - 1];
-                if (fTarget) {
-                    targets.push(fTarget);
-                    applyDmg(fTarget, unit.stats.ap * s.apRatio[starIdx], 'magic');
-                }
-                break;
-
-            case 'mana_burn':
-                if (enemies[0]) {
-                    targets.push(enemies[0]);
-                    enemies[0].currMana *= (1 - s.manaBurnPct[starIdx]);
-                    applyDmg(enemies[0], unit.stats.ap * s.apRatio[starIdx], 'magic');
-                }
-                break;
-
-            case 'global_magic':
-            case 'global_magic_mana':
-            case 'global_magic_debuff':
-            case 'global_magic_team_buff':
-                enemies.forEach(e => {
-                    targets.push(e);
-                    if (s.defReducPct || s.statReducPct) {
-                        let reduc = (s.defReducPct || s.statReducPct)[starIdx];
-                        addBuff(e, 'debuff', 'armor', -e.stats.armor * reduc, s.debuffDuration[starIdx]);
-                        addBuff(e, 'debuff', 'mr', -e.stats.mr * reduc, s.debuffDuration[starIdx]);
-                    }
-                    applyDmg(e, getBaseDmg(s, starIdx), 'magic');
-                });
-                if (s.teamMana) allies.forEach(a => a.currMana = Math.min(a.stats.maxMana, a.currMana + s.teamMana[starIdx]));
-                if (s.teamShield || s.teamStatBuff) allies.forEach(a => {
-                    if (s.teamShield) addBuff(a, 'shield', 'shield', s.teamShield[starIdx], 9999);
-                    if (s.teamStatBuff) {
-                        addBuff(a, 'buff', 'ad', a.stats.ad * s.teamStatBuff[starIdx], 99999);
-                        addBuff(a, 'buff', 'ap', a.stats.ap * s.teamStatBuff[starIdx], 99999);
-                    }
-                });
-                break;
-
-            case 'global_cc_heal':
-            case 'global_cc_dmg_debuff':
-                enemies.forEach(e => {
-                    targets.push(e);
-                    addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
-                    addBuff(e, 'debuff', 'ad', -e.stats.ad * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
-                    addBuff(e, 'debuff', 'ap', -e.stats.ap * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
-                    if (s.type === 'global_cc_dmg_debuff' && s.defMrRatio) {
-                        applyDmg(e, (unit.stats.armor + unit.stats.mr) * s.defMrRatio[starIdx], 'magic');
-                    }
-                });
-                if (s.type === 'global_cc_heal') {
-                    allies.forEach(a => {
-                        let th = 0;
-                        if (s.teamHealPct) th += a.stats.maxHp * s.teamHealPct[starIdx];
-                        if (s.hpRatio) th += maxHp * s.hpRatio[starIdx];
-                        if (s.defMrRatio) th += (armor + mr) * s.defMrRatio[starIdx];
-                        addBuff(a, 'heal', 'hp', th, 1);
-                        if (s.extraHealPct) addBuff(a, 'heal', 'hp', a.stats.maxHp * s.extraHealPct[starIdx], 1);
-                    });
-                }
-                break;
-
-            case 'bounce_damage':
-            case 'bounce_magic': {
-                if (enemies[0]) {
-                    targets.push(enemies[0]);
-                    let dmg = s.type === 'bounce_magic' ? unit.stats.ap * s.apRatio[starIdx] : ad * s.adRatio[starIdx];
-                    let dtype = s.type === 'bounce_magic' ? 'magic' : 'physical';
-                    applyDmg(enemies[0], dmg, dtype);
-                    if (s.antiHealDuration) addBuff(enemies[0], 'antiHeal', null, 0, s.antiHealDuration[starIdx]);
-                    
-                    let bounceFrom = enemies[0];
-                    const hit = new Set([enemies[0].gridIndex]);
-                    for (let i = 0; i < (s.charges[starIdx] || 3); i++) {
-                        const nextTarget = enemies
-                            .filter(e => !hit.has(e.gridIndex))
-                            .sort((a, b) => this.getDist(bounceFrom.gridIndex, a.gridIndex) - this.getDist(bounceFrom.gridIndex, b.gridIndex))[0];
-                        if (!nextTarget) break;
-                        hit.add(nextTarget.gridIndex);
-                        targets.push(nextTarget);
-                        applyDmg(nextTarget, dmg * (s.bounceRatio || 0.6), dtype);
-                        if (s.antiHealDuration) addBuff(nextTarget, 'antiHeal', null, 0, s.antiHealDuration[starIdx]);
-                        bounceFrom = nextTarget;
-                    }
-                }
-                break;
-            }
-
-            case 'passive':
-                // 패시브 스킬은 평타 루프에서 처리, 여기서는 아무 동작 없음
-                break;
-        }
-
-        let fxType = 'single_hit';
-        let hitStop = unit.tier >= 4;
-        let screenFlash = unit.tier >= 4 && s.type.includes('global');
-
-        if (s.type.includes('aoe') || s.type.includes('global')) fxType = 'aoe_ripple';
-        else if (s.type.includes('bounce')) fxType = 'chain_bounce';
-        else if (s.type.includes('dash')) fxType = 'dash_slash';
-        else if (s.type.includes('heal') || s.type.includes('buff') || s.type.includes('shield')) fxType = 'heal_particle';
-        else if (unit.stats.range > 1) fxType = 'projectile';
-
-        this.logs.push({
-            tick: this.tick, type: 'skill', caster: unit.gridIndex,
-            unitName: unit.name, skillName: s.name, skillDesc: s.desc, team: unit.team, vfx: s.vfx, targets: targets.map(t => t.gridIndex),
-            fxType: fxType, hitStop: hitStop, screenFlash: screenFlash
-        });
-    }
+    
 
     run() {
         let activeUnits = this.board.filter(u => u !== null);
+
+        this.tick = -20;
+        // [p13] 긴급 속보 (방송부 7 시너지) - 전투 시작 직후 아이템(서풍, 침묵장막) 효과보다 먼저 적용 및 로그 기록
+        if (this.playerAugments.includes('p13')) {
+            const broadcastUnits = activeUnits.filter(u => u.team === 'player' && (u.subject === '방송부' || u.club === '방송부'));
+            const uniqueBroadcast = new Set(broadcastUnits.map(u => u.name)).size;
+            if (uniqueBroadcast >= 7) {
+                const enemies = activeUnits.filter(u => u.team === 'enemy');
+                enemies.forEach(e => {
+                    this.addBuff(e, 'stun', null, 0, 50); // 50틱 스턴으로 침묵/이동불가 구현
+                });
+                broadcastUnits.forEach(u => {
+                    this.addBuff(u, 'buff', 'range', 1, 9999);
+                });
+                // 가장 먼저 재생되도록 -20틱 시작 시점에 긴급 속보 로그 기록
+                this.logs.push({
+                    tick: this.tick,
+                    type: 'broadcast_silence',
+                    fxType: 'aug_mass_silence',
+                    targets: enemies.map(e => e.gridIndex)
+                });
+            }
+        }
+
+        this.tick = -10;
         this.initItemEffects(activeUnits);
+
+        this.tick = 0;
+
         while (this.tick < this.maxTicks) {
             const playerAlive = activeUnits.some(u => u.team === 'player' && u.currHp > 0);
             const enemyAlive = activeUnits.some(u => u.team === 'enemy' && u.currHp > 0);
@@ -520,15 +95,24 @@ export class BattleEngine {
             
             // 글로벌 아이템 틱 이벤트
             if (this.tick > 0) {
+                
+                if (this.tick % 20 === 0) {
+                    activeUnits.forEach(u => {
+                        if (u.currHp <= 0) return;
+                        if (u.combat.itemEffects?.dclaw) {
+                            u.currHp = Math.min(u.stats.maxHp, u.currHp + u.stats.maxHp * 0.05 * u.combat.itemEffects.dclaw);
+                        }
+                    });
+                }
                 if (this.tick % 50 === 0) {
                     activeUnits.forEach(u => {
                         if (u.currHp <= 0) return;
-                        if (u.combat.itemEffects?.archangel) u.stats.ap += 25;
+                        if (u.combat.itemEffects?.archangel) u.stats.ap += 25 * u.combat.itemEffects.archangel;
                         if (u.combat.itemEffects?.redemption) {
                             activeUnits.forEach(a => {
                                 if (a.team === u.team && this.getDist(u.gridIndex, a.gridIndex) <= 1) {
-                                    a.currHp = Math.min(a.stats.maxHp, a.currHp + (a.stats.maxHp - a.currHp) * 0.15);
-                                    this.addBuff(a, 'dmgReduc25', null, 0, 50);
+                                    a.currHp = Math.min(a.stats.maxHp, a.currHp + (a.stats.maxHp - a.currHp) * 0.10 * u.combat.itemEffects.redemption);
+                                    this.addBuff(a, 'dmgReduc25', null, 0, 30);
                                 }
                             });
                         }
@@ -539,7 +123,10 @@ export class BattleEngine {
                         if (u.currHp <= 0) return;
                         if (u.combat.itemEffects?.sunfire) {
                             const enemy = activeUnits.find(e => e.team !== u.team && this.getDist(u.gridIndex, e.gridIndex) <= 2 && e.currHp > 0);
-                            if (enemy) this.addBuff(enemy, 'morello', null, enemy.stats.maxHp * 0.1, 100);
+                            if (enemy) {
+                                this.addBuff(enemy, 'morello', null, enemy.stats.maxHp * 0.1, 100);
+                                this.addBuff(enemy, 'antiHeal', null, 0, 100);
+                            }
                         }
                     });
                 }
@@ -548,39 +135,46 @@ export class BattleEngine {
                         if (u.currHp <= 0) return;
                         
                         const dotBuffs = u.buffs ? u.buffs.filter(b => b.type === 'dot') : [];
-                        if (dotBuffs.length > 0) {
-                            let totalDotDmg = 0;
+                        const morelloBuffs = u.buffs ? u.buffs.filter(b => b.type === 'morello') : [];
+                        if (dotBuffs.length > 0 || morelloBuffs.length > 0) {
+                            let actualDmg = 0;
+                            let trueDmg = 0;
                             let lastSourceIdx = null;
                             dotBuffs.forEach(b => {
-                                totalDotDmg += b.val;
+                                actualDmg += b.val * (100 / (100 + u.stats.mr));
                                 if (b.sourceIdx !== undefined) lastSourceIdx = b.sourceIdx;
                             });
-                            let actualDmg = totalDotDmg * (100 / (100 + u.stats.mr));
-                            u.currHp -= actualDmg;
-                            
-                            this.logs.push({
-                                tick: this.tick, type: 'damage',
-                                target: u.gridIndex, source: lastSourceIdx !== null ? lastSourceIdx : u.gridIndex,
-                                dmg: Math.round(actualDmg), dmgType: 'magic', isCrit: false,
-                                currHp: u.currHp, targetMana: u.mana, targetStats: { ...u.stats }
+                            morelloBuffs.forEach(b => {
+                                trueDmg += b.val / 10; // 100틱(10초) 동안 10번 틱 발생하므로 1회 틱당 1/10
+                                if (b.sourceIdx !== undefined) lastSourceIdx = b.sourceIdx;
                             });
                             
-                            this.checkHpThresholds(u, activeUnits);
-                            if (u.currHp <= 0) this.logs.push({ tick: this.tick, type: 'die', target: u.gridIndex, unitName: u.name, team: u.team });
+                            if (actualDmg + trueDmg > 0) {
+                                u.currHp -= (actualDmg + trueDmg);
+                                this.logs.push({
+                                    tick: this.tick, type: 'damage',
+                                    target: u.gridIndex, source: lastSourceIdx !== null ? lastSourceIdx : u.gridIndex,
+                                    dmg: Math.round(actualDmg + trueDmg), dmgType: actualDmg > trueDmg ? 'magic' : 'true', isCrit: false,
+                                    currHp: u.currHp, targetMana: u.mana, targetStats: { ...u.stats }, targetCombat: { ...u.combat }
+                                });
+                                this.checkHpThresholds(u, activeUnits);
+                                if (u.currHp <= 0) this.handleDeath(u, activeUnits);
+                            }
                         }
 
                         if (u.combat.itemEffects?.ionic) {
                             activeUnits.forEach(e => {
-                                if (e.team !== u.team && this.getDist(u.gridIndex, e.gridIndex) <= 2) {
-                                    this.addBuff(e, 'ionicShred', null, 0, 15);
+                                if (e.team !== u.team && this.getDist(u.gridIndex, e.gridIndex) <= 1) { // 반경 1칸
+                                    this.addBuff(e, 'mrShred', null, 0.3, 15);
                                 }
                             });
                         }
                         if (u.combat.itemEffects?.gargoyle) {
                             // count enemies targeting me
                             let targetingMe = activeUnits.filter(e => e.team !== u.team && this.getDist(e.gridIndex, u.gridIndex) <= e.stats.range).length;
-                            u.stats.armor += targetingMe * 15;
-                            u.stats.mr += targetingMe * 15;
+                            const count = u.combat.itemEffects.gargoyle;
+                            u.stats.armor += targetingMe * 15 * count;
+                            u.stats.mr += targetingMe * 15 * count;
                         }
                     });
                 }
@@ -613,6 +207,12 @@ export class BattleEngine {
                 });
             }
 
+            // 전투 시작 후 1초(10틱) 동안은 행동(이동/공격) 대기 (이펙트 연출 시간 확보)
+            if (this.tick < 10) {
+                this.tick++;
+                continue;
+            }
+
             // 유닛별 행동 순서를 매 틱마다 무작위로 섞어 공정한 전투 보장
             const actionOrder = [...activeUnits].sort(() => Math.random() - 0.5);
             
@@ -626,8 +226,13 @@ export class BattleEngine {
                 // 마나 만충 시 스킬 발동 (마나 봉인 디버프 체크)
                 const isManaSealed = unit.buffs.some(b => b.type === 'manaSeal');
                 if (unit.stats.maxMana > 0 && unit.currMana >= unit.stats.maxMana && unit.skill && !isStunned && !isManaSealed) {
-                    this.castSkill(unit, activeUnits);
+                    this.skillEngine.execute(unit, activeUnits, this);
                     unit.currMana = unit.combat.itemEffects?.blueBuff ? 10 : 0; // 마나 리셋 (블루 버프 시 10 회복)
+                    if (unit.combat.shroudPenalty) {
+                        unit.stats.maxMana -= unit.combat.shroudPenalty;
+                        unit.combat.shroudPenalty = 0;
+                        this.logs.push({ tick: this.tick, type: 'mana_update', target: unit.gridIndex, currMana: unit.currMana, maxMana: unit.stats.maxMana });
+                    }
                     unit.cooldown = Math.max(1, Math.round(10 / unit.stats.as)); // 스킬 사용 후 쿨다운
                     return;
                 }
@@ -638,20 +243,21 @@ export class BattleEngine {
                     return;
                 }
 
-                const enemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0);
-                if (enemies.length === 0) return;
+                let targetableEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.buffs.some(b=>b.type==='invincible' || b.type==='zephyr'));
+                if (targetableEnemies.length === 0) targetableEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0); // fallback
+                if (targetableEnemies.length === 0) return;
                 
                 // 도발 처리
                 const tauntedBy = unit.buffs.find(b => b.type === 'taunt');
                 let target = null;
                 if (tauntedBy) {
-                    const tauntTarget = activeUnits.find(u => u.gridIndex === tauntedBy.sourceIdx && u.currHp > 0);
+                    const tauntTarget = targetableEnemies.find(u => u.gridIndex === tauntedBy.sourceIdx);
                     if (tauntTarget) target = tauntTarget;
                 }
                 
                 if (!target) {
-                    enemies.sort((a,b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex));
-                    target = enemies[0];
+                    targetableEnemies.sort((a,b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex));
+                    target = targetableEnemies[0];
                 }
                 const dist = this.getDist(unit.gridIndex, target.gridIndex);
                 
@@ -673,7 +279,10 @@ export class BattleEngine {
                         currentDmgAmp += dist * (unit.combat.distAmp || 0);
                     }
                     if (currentDmgAmp > 0) dmg *= (1 + currentDmgAmp);
-                    if (unit.combat.itemEffects?.giantSlayer && target.stats.maxHp > 1500) dmg *= 1.25;
+                    if (unit.combat.itemEffects?.giantSlayer) {
+                        dmg *= 1.1;
+                        if (target.stats.maxHp > 1500) dmg *= 1.25;
+                    }
                     if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) dmg *= 1.25;
                     
                     let isCrit = false;
@@ -683,21 +292,39 @@ export class BattleEngine {
                     }
                     
                     if (unit.combat.itemEffects?.guinsoo) {
-                        unit.stats.as *= 1.04;
-                        unit.stats.ap += 2;
+                        const count = unit.combat.itemEffects.guinsoo;
+                        unit.stats.as *= Math.pow(1.04, count);
+                        unit.stats.ap += 2 * count;
                     }
-                    if (unit.combat.itemEffects?.titans && (unit.combat.titansStack||0) < 25) {
-                        unit.combat.titansStack = (unit.combat.titansStack||0) + 1;
-                        unit.stats.ad *= 1.02;
-                        unit.stats.ap *= 1.02;
+                    if (unit.combat.itemEffects?.titans) {
+                        const count = unit.combat.itemEffects.titans;
+                        if ((unit.combat.titansStack||0) < 25) {
+                            unit.combat.titansStack = (unit.combat.titansStack||0) + 1;
+                            unit.stats.ad += 2 * count;
+                            unit.stats.ap += 2 * count;
+                            if (unit.combat.titansStack === 25) {
+                                unit.stats.armor += 20 * count;
+                                unit.stats.mr += 20 * count;
+                                this.logs.push({ tick: this.tick, type: 'titans_max', target: unit.gridIndex });
+                            }
+                        }
                     }
-                    if (target.combat.itemEffects?.titans && (target.combat.titansStack||0) < 25) {
-                        target.combat.titansStack = (target.combat.titansStack||0) + 1;
-                        target.stats.ad *= 1.02;
-                        target.stats.ap *= 1.02;
+                    if (target.combat.itemEffects?.titans) {
+                        const count = target.combat.itemEffects.titans;
+                        if ((target.combat.titansStack||0) < 25) {
+                            target.combat.titansStack = (target.combat.titansStack||0) + 1;
+                            target.stats.ad += 2 * count;
+                            target.stats.ap += 2 * count;
+                            if (target.combat.titansStack === 25) {
+                                target.stats.armor += 20 * count;
+                                target.stats.mr += 20 * count;
+                                this.logs.push({ tick: this.tick, type: 'titans_max', target: target.gridIndex });
+                            }
+                        }
                     }
                     
                     let dr = target.combat.dmgReduc || 0;
+                    if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                     if (target.combat.isWatcher && (target.currHp / target.stats.maxHp) >= 0.5) dr *= 2;
                     dmg *= (1 - dr);
                     
@@ -730,6 +357,20 @@ export class BattleEngine {
                     }
                     
                     target.currHp -= (totalDmg + trueDmg);
+
+                    // [p15] 바른 생활의 분노 (평타 피격 시 반사)
+                    if (this.playerAugments.includes('p15') && target.team === 'player' && target.subject === '도덕' && unit.team === 'enemy') {
+                        const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
+                        let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
+                        unit.currHp -= actualReflect;
+                        this.logs.push({
+                            tick: this.tick, type: 'damage', target: unit.gridIndex, source: target.gridIndex,
+                            dmg: Math.round(actualReflect), dmgType: 'magic', isCrit: false, fxType: 'aug_thorn_reflect',
+                            currHp: unit.currHp, maxHp: unit.stats.maxHp, currShield: unit.currShield
+                        });
+                        this.checkHpThresholds(unit, activeUnits);
+                        if (unit.currHp <= 0) this.handleDeath(unit, activeUnits);
+                    }
                     
                     if (trueDmg > 0) {
                         this.logs.push({
@@ -782,50 +423,82 @@ export class BattleEngine {
                         attackerMana: unit.currMana, attackerMaxMana: unit.stats.maxMana,
                         targetMana: target.currMana, targetMaxMana: target.stats.maxMana,
                         targetStats: { ad: target.stats.ad, as: target.stats.as, ap: target.stats.ap, armor: target.stats.armor, mr: target.stats.mr },
-                        attackerStats: { ad: unit.stats.ad, as: unit.stats.as, ap: unit.stats.ap, armor: unit.stats.armor, mr: unit.stats.mr }
+                        attackerStats: { ad: unit.stats.ad, as: unit.stats.as, ap: unit.stats.ap, armor: unit.stats.armor, mr: unit.stats.mr },
+                        targetCombat: { ...target.combat }, attackerCombat: { ...unit.combat },
+                        fxType: atkFx
                     });
                     
                     if (unit.combat.itemEffects?.gunbladeHeal) {
+                        const count = unit.combat.itemEffects.gunbladeHeal;
                         const allies = activeUnits.filter(u => u.team === unit.team && u.currHp > 0).sort((a,b)=>(a.currHp/a.stats.maxHp)-(b.currHp/b.stats.maxHp));
-                        if(allies[0]) allies[0].currHp = Math.min(allies[0].stats.maxHp, allies[0].currHp + totalDmg * 0.22);
-                    }
-                    if (unit.combat.itemEffects?.lastWhisper) {
-                        this.addBuff(target, 'debuff', 'armorPct', -0.5, 30);
-                    }
-                    if (unit.combat.itemEffects?.runaans) {
-                        const otherE = enemies.filter(e => e.gridIndex !== target.gridIndex);
-                        if(otherE.length > 0) {
-                            const rTar = otherE.sort((a,b)=>this.getDist(unit.gridIndex,a.gridIndex)-this.getDist(unit.gridIndex,b.gridIndex))[0];
-                            rTar.currHp -= (unit.stats.ad * 0.5) * (100/(100+rTar.stats.armor));
-                            this.checkHpThresholds(rTar, activeUnits);
+                        if(allies[0]) {
+                            const healAmount = totalDmg * 0.22 * count;
+                            allies[0].currHp = Math.min(allies[0].stats.maxHp, allies[0].currHp + healAmount);
+                            this.logs.push({
+                                tick: this.tick, type: 'heal', target: allies[0].gridIndex,
+                                amount: Math.round(healAmount), currHp: allies[0].currHp, maxHp: allies[0].stats.maxHp
+                            });
                         }
                     }
+                    if (unit.combat.itemEffects?.lastWhisper) {
+                        this.addBuff(target, 'armorShred', null, 0.3, 30);
+                    }
+                    if (unit.combat.itemEffects?.runaans) {
+                        const count = unit.combat.itemEffects.runaans;
+                        const otherE = targetableEnemies.filter(e => e.gridIndex !== target.gridIndex);
+                        const rTargets = otherE.sort((a,b)=>this.getDist(unit.gridIndex,a.gridIndex)-this.getDist(unit.gridIndex,b.gridIndex)).slice(0, count);
+                        rTargets.forEach(rTar => {
+                            let rDmg = (unit.stats.ad * 0.5) * (100/(100+rTar.stats.armor));
+                            rTar.currHp -= rDmg;
+                            this.logs.push({
+                                tick: this.tick, type: 'damage', target: rTar.gridIndex, source: unit.gridIndex,
+                                dmg: Math.round(rDmg), dmgType: 'physical', isCrit: false, fxType: 'projectile',
+                                currHp: rTar.currHp, targetMana: rTar.mana, targetStats: { ...rTar.stats }, targetCombat: { ...rTar.combat }
+                            });
+                            this.checkHpThresholds(rTar, activeUnits);
+                            if (rTar.currHp <= 0) this.handleDeath(rTar, activeUnits);
+                        });
+                    }
                     if (unit.combat.itemEffects?.statikk) {
+                        const count = unit.combat.itemEffects.statikk;
                         unit.combat.statikkStack = (unit.combat.statikkStack||0) + 1;
                         if (unit.combat.statikkStack >= 3) {
                             unit.combat.statikkStack = 0;
-                            const statikkTargets = enemies.slice(0, 4);
+                            const statikkTargets = targetableEnemies.slice(0, 4);
                             statikkTargets.forEach(st => {
-                                st.currHp -= 100 * (100/(100+st.stats.mr));
-                                this.addBuff(st, 'statikkShred', null, 0, 50);
+                                let stDmg = (100 * count) * (100/(100+st.stats.mr));
+                                st.currHp -= stDmg;
+                                this.logs.push({
+                                    tick: this.tick, type: 'damage', target: st.gridIndex, source: unit.gridIndex,
+                                    dmg: Math.round(stDmg), dmgType: 'magic', isCrit: false, fxType: 'lightning',
+                                    currHp: st.currHp, targetMana: st.mana, targetStats: { ...st.stats }, targetCombat: { ...st.combat }
+                                });
+                                this.addBuff(st, 'mrShred', null, 0.3, 50);
                                 this.checkHpThresholds(st, activeUnits);
+                                if (st.currHp <= 0) this.handleDeath(st, activeUnits);
                             });
                         }
                     }
                     if (target.combat.itemEffects?.bramble) {
-                        const brambleDmg = 80;
-                        unit.currHp -= brambleDmg * (100/(100+unit.stats.mr));
+                        const count = target.combat.itemEffects.bramble;
+                        const brambleDmg = 80 * count;
+                        let actualBramble = brambleDmg * (100/(100+unit.stats.mr));
+                        unit.currHp -= actualBramble;
+                        this.logs.push({
+                            tick: this.tick, type: 'damage', target: unit.gridIndex, source: target.gridIndex,
+                            dmg: Math.round(actualBramble), dmgType: 'magic', isCrit: false, fxType: 'bramble',
+                            currHp: unit.currHp, targetMana: unit.mana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
+                        });
                         this.checkHpThresholds(unit, activeUnits);
+                        if (unit.currHp <= 0) this.handleDeath(unit, activeUnits);
                     }
                     if (unit.combat.itemEffects?.shojin) {
-                        unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + 5);
+                        const count = unit.combat.itemEffects.shojin;
+                        unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + 5 * count);
                     }
 
                     this.checkHpThresholds(target, activeUnits);
-
-                    if (target.currHp <= 0) {
-                        this.logs.push({ tick: this.tick, type: 'die', target: target.gridIndex, unitName: target.name, team: target.team });
-                    }
+                    if (target.currHp <= 0) this.handleDeath(target, activeUnits);
                     
                     unit.cooldown = Math.max(1, Math.round(10 / unit.stats.as)); 
                 } else {
@@ -877,6 +550,7 @@ export class BattleEngine {
     }
 
     addBuff(target, type, stat, val, duration, sourceIdx) {
+        if (target.currHp <= 0 || target.isDead) return;
         if (!target.buffs) target.buffs = [];
         const ccImmune = target.buffs.some(b => b.type === 'ccImmune');
         if (ccImmune && (type === 'stun' || type === 'taunt' || type === 'zephyr')) return;
@@ -893,6 +567,28 @@ export class BattleEngine {
                     tick: this.tick, type: 'heal', target: target.gridIndex, 
                     amount: Math.round(healed), currHp: target.currHp, maxHp: target.stats.maxHp
                 });
+            }
+
+            // [p12] 과잉 진료 (보건부 유닛이 치유 시 초과된 회복량의 1.5배 광역 고정 피해)
+            const overheal = val - healed;
+            if (overheal > 0 && this.playerAugments.includes('p12') && sourceIdx !== undefined) {
+                const sourceUnit = this.board[sourceIdx];
+                if (sourceUnit && sourceUnit.team === 'player' && sourceUnit.club === '보건부') {
+                    const dmg = overheal * 1.5;
+                    const enemies = this.board.filter(u => u !== null && u.team === 'enemy' && u.currHp > 0);
+                    enemies.forEach(e => {
+                        if (this.getDist(target.gridIndex, e.gridIndex) <= 2) {
+                            e.currHp -= dmg;
+                            this.logs.push({
+                                tick: this.tick, type: 'damage', target: e.gridIndex, source: sourceIdx,
+                                dmg: Math.round(dmg), dmgType: 'true', isCrit: false, fxType: 'aug_heal_bomb',
+                                currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield
+                            });
+                            // 여기서 handleDeath를 바로 부르기엔 구조상 activeUnits 필요하므로 간략화
+                            if (e.currHp <= 0) e.isDead = true; 
+                        }
+                    });
+                }
             }
         }
         else if (stat === 'shield') target.currShield += val;
@@ -914,24 +610,94 @@ export class BattleEngine {
             target.stats.as *= 1.15;
         }
         if (target.combat.itemEffects.bloodthirsterShield && ratio <= 0.4 && !target.combat.btTriggered) {
+            const count = target.combat.itemEffects.bloodthirsterShield;
             target.combat.btTriggered = true;
-            target.currShield += maxHp * 0.25;
+            target.currShield += maxHp * 0.25 * count;
         }
         if (target.combat.itemEffects.steraks && ratio <= 0.6 && !target.combat.steraksTriggered) {
+            const count = target.combat.itemEffects.steraks;
             target.combat.steraksTriggered = true;
-            target.stats.maxHp += maxHp * 0.25;
-            target.currHp += maxHp * 0.25;
-            target.stats.ad *= 1.35;
+            target.stats.maxHp += maxHp * 0.25 * count;
+            target.currHp += maxHp * 0.25 * count;
+            target.stats.ad += 25 * count;
         }
         if (target.combat.itemEffects.protectorsVow && ratio <= 0.5 && !target.combat.vowTriggered) {
+            const count = target.combat.itemEffects.protectorsVow;
             target.combat.vowTriggered = true;
             activeUnits.forEach(u => {
-                if (u.team === target.team && this.getDist(target.gridIndex, u.gridIndex) <= 3) {
-                    u.currShield += u.stats.maxHp * 0.25;
-                    u.stats.armor += 20;
-                    u.stats.mr += 20;
+                if (u.team === target.team && this.getDist(target.gridIndex, u.gridIndex) <= 1) {
+                    u.currShield += u.stats.maxHp * 0.25 * count;
+                    u.stats.armor += 20 * count;
+                    u.stats.mr += 20 * count;
                 }
             });
+        }
+    }
+
+    handleDeath(target, activeUnits) {
+        if (target.currHp > 0 || target.isDead) return;
+        target.isDead = true;
+        this.logs.push({ tick: this.tick, type: 'die', target: target.gridIndex, unitName: target.name, team: target.team });
+        
+        // [p14] 바톤 터치 (육상부 사망 시 스탯 상속)
+        if (this.playerAugments.includes('p14') && target.team === 'player' && target.club === '육상부') {
+            const otherRunners = activeUnits.filter(u => u.team === 'player' && u.club === '육상부' && u.currHp > 0 && !u.isDead);
+            if (otherRunners.length > 0) {
+                otherRunners.sort((a,b) => this.getDist(target.gridIndex, a.gridIndex) - this.getDist(target.gridIndex, b.gridIndex));
+                const heir = otherRunners[0];
+                this.addBuff(heir, 'buff', 'ad', target.stats.ad, 99999);
+                this.addBuff(heir, 'buff', 'as', target.stats.as, 99999);
+                heir.currMana = Math.min(heir.stats.maxMana, heir.currMana + target.currMana);
+                
+                // 바톤 터치 VFX 로그 추가
+                this.logs.push({
+                    tick: this.tick,
+                    type: 'spirit_transfer',
+                    fxType: 'aug_spirit_transfer',
+                    source: target.gridIndex,
+                    target: heir.gridIndex
+                });
+                
+                this.logs.push({ tick: this.tick, type: 'mana_update', target: heir.gridIndex, currMana: heir.currMana, maxMana: heir.stats.maxMana });
+            }
+        }
+
+        // 즈롯 차원문 (급식실 프리패스권) 강아지 소환
+        if (target.combat.itemEffects?.zzrot && !target.isZzrotDog) {
+            const count = target.combat.itemEffects.zzrot;
+            for(let c = 0; c < count; c++) {
+                const dirs = [-1, 1, -8, 8, -9, -7, 7, 9];
+                let spawnIdx = -1;
+                for(let d of dirs) {
+                    const ni = target.gridIndex + d;
+                    if (ni >= 0 && ni < 48 && Math.abs((target.gridIndex%8)-(ni%8)) <= 1) {
+                        if (!activeUnits.some(u => u.currHp > 0 && u.gridIndex === ni)) {
+                            spawnIdx = ni;
+                            break;
+                        }
+                    }
+                }
+                if (spawnIdx !== -1) {
+                    const dog = {
+                        name: '차원문 강아지', icon: '🐶', team: target.team, tier: 1, star: 3, gridIndex: spawnIdx, currHp: 1000, currMana: 0,
+                        isZzrotDog: true,
+                        stats: { maxHp: 1000, hp: 1000, ad: 50, ap: 0, armor: 30, mr: 30, as: 0.65, range: 1, maxMana: 0, mana: 0 },
+                        combat: { critChance: 0.10, critDmg: 1.5, dmgAmp: 0, dmgReduc: 0, vamp: 0 },
+                        buffs: [], cooldown: 0,
+                        manaType: '전투',
+                        skill: { type: 'passive', name: '멍멍!', desc: '주변 도발', charges: [99,99,99] }
+                    };
+                    activeUnits.push(dog);
+                    this.logs.push({ tick: this.tick, type: 'spawn', target: spawnIdx, unit: dog });
+                    
+                    const enemies = activeUnits.filter(u => u.team !== dog.team && u.currHp > 0);
+                    enemies.forEach(e => {
+                        if (this.getDist(dog.gridIndex, e.gridIndex) <= 2) {
+                            this.addBuff(e, 'taunt', null, 0, 30, dog.gridIndex);
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -939,26 +705,32 @@ export class BattleEngine {
         activeUnits.forEach(u => {
             if (!u.combat.itemEffects) return;
             if (u.combat.itemEffects.locket) {
-                this.addBuff(u, 'shield', 'shield', 250, 80);
+                const count = u.combat.itemEffects.locket;
+                this.addBuff(u, 'shield', 'shield', 250 * count, 80);
                 activeUnits.forEach(a => {
                     if (a.team === u.team && this.getDist(u.gridIndex, a.gridIndex) <= 2 && Math.abs((u.gridIndex%8) - (a.gridIndex%8)) <= 2 && Math.floor(u.gridIndex/8) === Math.floor(a.gridIndex/8)) {
-                        if(a !== u) this.addBuff(a, 'shield', 'shield', 250, 80);
+                        if(a !== u) this.addBuff(a, 'shield', 'shield', 250 * count, 80);
                     }
                 });
             }
             if (u.combat.itemEffects.chalice) {
-                u.stats.ap += 25;
+                const count = u.combat.itemEffects.chalice;
+                u.stats.ap += 25 * count;
                 activeUnits.forEach(a => {
                     if (a.team === u.team && Math.abs((u.gridIndex%8) - (a.gridIndex%8)) <= 1 && Math.floor(u.gridIndex/8) === Math.floor(a.gridIndex/8)) {
-                        if(a !== u) a.stats.ap += 25;
+                        if(a !== u) a.stats.ap += 25 * count;
                     }
                 });
             }
             if (u.combat.itemEffects.shroud) {
                 const targetX = u.gridIndex % 8;
+                this.logs.push({ tick: this.tick, type: 'shroud_beam', sourceX: u.gridIndex % 8, sourceY: Math.floor(u.gridIndex/8), team: u.team });
                 activeUnits.forEach(e => {
                     if (e.team !== u.team && (e.gridIndex % 8) === targetX) {
-                        e.combat.startMana = (e.combat.startMana || 0) - (e.stats.maxMana * 0.3); 
+                        e.combat.shroudPenalty = e.stats.maxMana * 0.3;
+                        e.stats.maxMana += e.combat.shroudPenalty;
+                        this.addBuff(e, 'manaSeal', null, 0, 30); 
+                        this.logs.push({ tick: this.tick, type: 'mana_update', target: e.gridIndex, currMana: e.currMana, maxMana: e.stats.maxMana });
                     }
                 });
             }
@@ -968,7 +740,7 @@ export class BattleEngine {
                 const symX = 7 - myX;
                 const symY = 5 - myY;
                 const target = activeUnits.find(e => e.team !== u.team && e.gridIndex === (symY * 8 + symX));
-                if(target) this.addBuff(target, 'stun', null, 0, 50); 
+                if(target) this.addBuff(target, 'zephyr', null, 0, 50); 
             }
             if (u.combat.itemEffects.qss) {
                 this.addBuff(u, 'ccImmune', null, 0, 150); 

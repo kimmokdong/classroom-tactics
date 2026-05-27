@@ -58,6 +58,13 @@ function createUnit(template, star) {
         u.stats.hp = Math.round(u.stats.hp * 1.8);
         u.stats.ad = Math.round(u.stats.ad * 1.5);
         u.stats.ap = Math.round(u.stats.ap * 1.5);
+
+        // [신규 기획] 적 AI도 1~3코스트 3성 패시브 적용 (동일 밸런스)
+        if (u.tier <= 3) {
+            u.stats.armor += Math.round(50 - (u.tier * 10));
+            u.stats.mr += Math.round(50 - (u.tier * 10));
+            u.stats.hp += Math.round(500 - (u.tier * 100));
+        }
     }
     u.stats.maxHp = u.stats.hp;
     return u;
@@ -66,10 +73,10 @@ function createUnit(template, star) {
 export function generateEnemyBoard(world, round) {
     const totalRounds = (world - 1) * 5 + round;
     const enemyLevel = getEnemyLevel(world, round);
-    
+
     // 예산: 1-1은 13G, 7-1은 343G 정도로 기하급수적 성장
     let budget = 10 + (totalRounds * 3) + Math.floor(totalRounds * totalRounds * 0.25);
-    
+
     let purchasedPool = [];
     let safeGuard = 0;
 
@@ -77,7 +84,7 @@ export function generateEnemyBoard(world, round) {
     while (budget >= 2 && safeGuard < 500) {
         safeGuard++;
         const shop = generateShop(enemyLevel);
-        
+
         for (let unit of shop) {
             if (budget >= unit.tier) {
                 budget -= unit.tier;
@@ -101,7 +108,7 @@ export function generateEnemyBoard(world, round) {
         let rem = count % 9;
         let star2 = Math.floor(rem / 3);
         let star1 = rem % 3;
-        
+
         const baseUnit = UNIT_POOL.find(u => u.id === id);
         for (let i = 0; i < star3; i++) finalUnits.push(createUnit(baseUnit, 3));
         for (let i = 0; i < star2; i++) finalUnits.push(createUnit(baseUnit, 2));
@@ -120,13 +127,13 @@ export function generateEnemyBoard(world, round) {
     const selectedUnits = finalUnits.slice(0, spawnCount);
 
     const enemyBoard = Array(24).fill(null);
-    const availableSlots = Array.from({length: 24}, (_, i) => i);
-    
+    const availableSlots = Array.from({ length: 24 }, (_, i) => i);
+
     // 무작위 셔플 후 배치
     availableSlots.sort(() => Math.random() - 0.5);
     for (let i = 0; i < selectedUnits.length; i++) {
         enemyBoard[availableSlots[i]] = selectedUnits[i];
     }
-    
+
     return enemyBoard;
 }

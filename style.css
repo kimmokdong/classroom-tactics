@@ -361,9 +361,9 @@ body {
 
 .status-icons {
   position: absolute;
-  top: -6px; right: -6px;
+  top: -6px; left: -6px;
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   gap: 2px;
   z-index: 10;
 }
@@ -382,14 +382,14 @@ body {
 
 /* Tooltip */
 .glass-tooltip {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(253, 250, 243, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
   padding: 15px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   pointer-events: none;
   min-width: 260px;
-  color: #2c3e50;
+  color: #334155;
   backdrop-filter: blur(10px);
 }
 
@@ -436,9 +436,31 @@ body {
 }
 .dmg-text.physical { color: #d32f2f; }
 .dmg-text.magic { color: #9c27b0; text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff; }
-.dmg-text.true { color: #ffffff; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; font-size: 1.9rem; }
-.dmg-text.crit { color: #ffeb3b; text-shadow: 2px 2px 0 #e65100, -1px -1px 0 #e65100; font-size: 2.2rem; }
+.dmg-text.true { color: #2c3e50; text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; font-size: 1.9rem; }
+.dmg-text.crit { font-style: italic; } /* color removed to keep dmgType color */
 .dmg-text.heal { color: #4caf50; font-size: 1.6rem; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff; }
+
+.dmg-text.basic-attack { font-size: 1.1rem; }
+.dmg-text.basic-attack.crit { font-size: 1.6rem; font-weight: 900; }
+.dmg-text.skill-attack { font-size: 2.2rem; font-weight: 900; }
+.dmg-text.skill-attack.crit { font-size: 2.8rem; font-weight: 900; }
+
+/* Guide용 정적 데미지 텍스트 (애니메이션, 절대좌표 제거) */
+.guide-static-dmg {
+  position: static;
+  animation: none;
+  display: inline-block;
+  line-height: 1;
+}
+
+.guide-shield-circle {
+  position: absolute;
+  top: -20px; left: -10px; right: -10px; bottom: -5px;
+  border: 4px solid rgba(176, 190, 197, 0.6);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+}
 
 @keyframes floatUp {
   0% { transform: translateY(0) scale(1); opacity: 1; }
@@ -454,19 +476,54 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(3px);
 }
 .modal-content {
-  background: #f8fafc;
-  width: 1100px;
-  max-height: 85vh;
-  border-radius: 16px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  border: 1px solid var(--glass-border);
 }
+
+/* Guide Modal Specific Styles */
+.guide-tabs {
+  display: flex;
+  background: rgba(241, 245, 249, 0.6);
+  border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+  padding: 10px 10px 0 10px;
+  gap: 8px;
+}
+.guide-tab-btn {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: rgba(255, 255, 255, 0.4);
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1rem;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
+}
+.guide-tab-btn:hover { 
+  background: rgba(255, 255, 255, 0.8); 
+  color: #3b82f6; 
+  transform: translateY(-2px);
+}
+.guide-tab-btn.active { 
+  color: #8e44ad; 
+  background: white; 
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  border-bottom: 2px solid white;
+  margin-bottom: -2px; /* 하단 테두리 덮어쓰기 */
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+}
+
 .modal-header {
   padding: 15px 25px;
   border-bottom: 2px solid #e2e8f0;
@@ -694,3 +751,52 @@ body {
     50% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -30%) scale(0.5); opacity: 0; }
 }
+
+/* Guide UI Hover Interactions */
+.guide-unit-example.show-stun [data-target="stun"],
+.guide-unit-example.show-taunt [data-target="taunt"],
+.guide-unit-example.show-manaSeal [data-target="manaSeal"],
+.guide-unit-example.show-debuff [data-target="debuff"],
+.guide-unit-example.show-buff [data-target="buff"],
+.guide-unit-example.show-heal [data-target="heal"],
+.guide-unit-example.show-shield [data-target="shield-icon"] {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+.guide-unit-example.show-shield [data-target="shield-circle"],
+.guide-unit-example.show-shield [data-target="shield-bar"] {
+    opacity: 1 !important;
+}
+
+.guide-unit-example.show-heal-eff [data-target="heal-particle"] {
+    opacity: 1 !important;
+    animation: spinHeal 2s linear infinite;
+}
+
+.guide-unit-example.show-cc-eff [data-target="stun-border"] {
+    opacity: 1 !important;
+    animation: flashCC 0.5s alternate infinite;
+}
+
+@keyframes spinHeal {
+    100% { transform: rotate(360deg); }
+}
+@keyframes flashCC {
+    0% { border-color: rgba(231,76,60,0.3); }
+    100% { border-color: rgba(231,76,60,1); }
+}
+
+.guide-hover-trigger:hover {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 4px;
+}
+
+.titans-max {
+    transform: scale(1.25) !important;
+    filter: drop-shadow(0 0 10px gold) !important;
+    transition: transform 0.3s ease;
+    z-index: 100 !important;
+}
+

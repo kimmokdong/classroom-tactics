@@ -1,0 +1,2844 @@
+[
+  {
+    "A": "노시너지",
+    "B": "국어2",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "노시너지",
+    "B": "국어4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "노시너지",
+    "B": "수학2",
+    "winRateA": "10.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "노시너지",
+    "B": "수학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "노시너지",
+    "B": "영어2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "노시너지",
+    "B": "영어4",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "노시너지",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "노시너지",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "노시너지",
+    "B": "과학2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "노시너지",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.9"
+  },
+  {
+    "A": "노시너지",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "노시너지",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "노시너지",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "노시너지",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "노시너지",
+    "B": "미술2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "노시너지",
+    "B": "미술4",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "노시너지",
+    "B": "음악2",
+    "winRateA": "30.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.5"
+  },
+  {
+    "A": "노시너지",
+    "B": "음악4",
+    "winRateA": "40.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "노시너지",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "노시너지",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.7"
+  },
+  {
+    "A": "노시너지",
+    "B": "방송부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "2.9"
+  },
+  {
+    "A": "노시너지",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "노시너지",
+    "B": "육상부2",
+    "winRateA": "30.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "노시너지",
+    "B": "육상부4",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "노시너지",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "노시너지",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.2"
+  },
+  {
+    "A": "노시너지",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.4"
+  },
+  {
+    "A": "노시너지",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "국어2",
+    "B": "국어4",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.5",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "국어2",
+    "B": "수학2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "국어2",
+    "B": "수학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.9"
+  },
+  {
+    "A": "국어2",
+    "B": "영어2",
+    "winRateA": "20.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "국어2",
+    "B": "영어4",
+    "winRateA": "30.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "2.2"
+  },
+  {
+    "A": "국어2",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.3"
+  },
+  {
+    "A": "국어2",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "국어2",
+    "B": "과학2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "국어2",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "국어2",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "국어2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.0"
+  },
+  {
+    "A": "국어2",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.4"
+  },
+  {
+    "A": "국어2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.0"
+  },
+  {
+    "A": "국어2",
+    "B": "미술2",
+    "winRateA": "20.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.9"
+  },
+  {
+    "A": "국어2",
+    "B": "미술4",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "국어2",
+    "B": "음악2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.2",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "국어2",
+    "B": "음악4",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "국어2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "국어2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.7"
+  },
+  {
+    "A": "국어2",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "국어2",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.6"
+  },
+  {
+    "A": "국어2",
+    "B": "육상부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "국어2",
+    "B": "육상부4",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "국어2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.1"
+  },
+  {
+    "A": "국어2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.3"
+  },
+  {
+    "A": "국어2",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.9"
+  },
+  {
+    "A": "국어2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "국어4",
+    "B": "수학2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "국어4",
+    "B": "수학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.6"
+  },
+  {
+    "A": "국어4",
+    "B": "영어2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "국어4",
+    "B": "영어4",
+    "winRateA": "40.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "국어4",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "국어4",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "국어4",
+    "B": "과학2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "국어4",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "국어4",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "국어4",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "국어4",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.8"
+  },
+  {
+    "A": "국어4",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "국어4",
+    "B": "미술2",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.2",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "국어4",
+    "B": "미술4",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "국어4",
+    "B": "음악2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.4"
+  },
+  {
+    "A": "국어4",
+    "B": "음악4",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "국어4",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "국어4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "국어4",
+    "B": "방송부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "국어4",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "국어4",
+    "B": "육상부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "국어4",
+    "B": "육상부4",
+    "winRateA": "10.0%",
+    "avgSurvA": "6.0",
+    "avgSurvB": "2.6"
+  },
+  {
+    "A": "국어4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.9"
+  },
+  {
+    "A": "국어4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.6"
+  },
+  {
+    "A": "국어4",
+    "B": "급식부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "국어4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "수학2",
+    "B": "수학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "수학2",
+    "B": "영어2",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "수학2",
+    "B": "영어4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "수학2",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "수학2",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "수학2",
+    "B": "과학2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "수학2",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.8"
+  },
+  {
+    "A": "수학2",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.4"
+  },
+  {
+    "A": "수학2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.8"
+  },
+  {
+    "A": "수학2",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "수학2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.6"
+  },
+  {
+    "A": "수학2",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학2",
+    "B": "미술4",
+    "winRateA": "70.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "수학2",
+    "B": "음악2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "1.5"
+  },
+  {
+    "A": "수학2",
+    "B": "음악4",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "수학2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.8"
+  },
+  {
+    "A": "수학2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.9"
+  },
+  {
+    "A": "수학2",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.5"
+  },
+  {
+    "A": "수학2",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "수학2",
+    "B": "육상부2",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학2",
+    "B": "육상부4",
+    "winRateA": "80.0%",
+    "avgSurvA": "2.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "수학2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.6"
+  },
+  {
+    "A": "수학2",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.4"
+  },
+  {
+    "A": "수학2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.8"
+  },
+  {
+    "A": "수학4",
+    "B": "영어2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "영어4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "사회2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.4",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "수학4",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.9"
+  },
+  {
+    "A": "수학4",
+    "B": "과학2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "수학4",
+    "B": "과학4",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "수학4",
+    "B": "체육2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "수학4",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.4"
+  },
+  {
+    "A": "수학4",
+    "B": "도덕2",
+    "winRateA": "90.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "수학4",
+    "B": "도덕4",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "4.3"
+  },
+  {
+    "A": "수학4",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.3",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "2.9"
+  },
+  {
+    "A": "수학4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.0"
+  },
+  {
+    "A": "수학4",
+    "B": "방송부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "수학4",
+    "B": "방송부4",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "2.4"
+  },
+  {
+    "A": "수학4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.4",
+    "avgSurvB": 0
+  },
+  {
+    "A": "수학4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "2.9"
+  },
+  {
+    "A": "수학4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.8"
+  },
+  {
+    "A": "수학4",
+    "B": "급식부2",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "수학4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "영어2",
+    "B": "영어4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "영어2",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.3"
+  },
+  {
+    "A": "영어2",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "영어2",
+    "B": "과학2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "영어2",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.9"
+  },
+  {
+    "A": "영어2",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "영어2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "영어2",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.4"
+  },
+  {
+    "A": "영어2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.1"
+  },
+  {
+    "A": "영어2",
+    "B": "미술2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "영어2",
+    "B": "미술4",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "4.5"
+  },
+  {
+    "A": "영어2",
+    "B": "음악2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.6",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "영어2",
+    "B": "음악4",
+    "winRateA": "30.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "영어2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.1"
+  },
+  {
+    "A": "영어2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.9"
+  },
+  {
+    "A": "영어2",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "영어2",
+    "B": "방송부4",
+    "winRateA": "10.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "영어2",
+    "B": "육상부2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "영어2",
+    "B": "육상부4",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "영어2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.7"
+  },
+  {
+    "A": "영어2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.4"
+  },
+  {
+    "A": "영어2",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.4"
+  },
+  {
+    "A": "영어2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "영어4",
+    "B": "사회2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "영어4",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "8.0"
+  },
+  {
+    "A": "영어4",
+    "B": "과학2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "영어4",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "영어4",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "영어4",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.3"
+  },
+  {
+    "A": "영어4",
+    "B": "도덕2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "영어4",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.2"
+  },
+  {
+    "A": "영어4",
+    "B": "미술2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "영어4",
+    "B": "미술4",
+    "winRateA": "50.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "영어4",
+    "B": "음악2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "영어4",
+    "B": "음악4",
+    "winRateA": "10.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "2.4"
+  },
+  {
+    "A": "영어4",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "영어4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.5"
+  },
+  {
+    "A": "영어4",
+    "B": "방송부2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "영어4",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "영어4",
+    "B": "육상부2",
+    "winRateA": "80.0%",
+    "avgSurvA": "2.9",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "영어4",
+    "B": "육상부4",
+    "winRateA": "40.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "영어4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "영어4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.5"
+  },
+  {
+    "A": "영어4",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "영어4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.7"
+  },
+  {
+    "A": "사회2",
+    "B": "사회4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.6"
+  },
+  {
+    "A": "사회2",
+    "B": "과학2",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "과학4",
+    "winRateA": "20.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "사회2",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "사회2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.8"
+  },
+  {
+    "A": "사회2",
+    "B": "도덕2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "사회2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "사회2",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "2.9"
+  },
+  {
+    "A": "사회2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.1"
+  },
+  {
+    "A": "사회2",
+    "B": "방송부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "4.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "방송부4",
+    "winRateA": "20.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": "2.2"
+  },
+  {
+    "A": "사회2",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "사회2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.7"
+  },
+  {
+    "A": "사회2",
+    "B": "급식부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.1",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "사회2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "사회4",
+    "B": "과학2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "과학4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "체육2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "체육4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "도덕2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "도덕4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "선도부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "선도부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.2",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "방송부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "방송부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "8.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "보건부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "보건부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "급식부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "사회4",
+    "B": "급식부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학2",
+    "B": "과학4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "과학2",
+    "B": "체육2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.3"
+  },
+  {
+    "A": "과학2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "과학2",
+    "B": "도덕2",
+    "winRateA": "30.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "과학2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.1"
+  },
+  {
+    "A": "과학2",
+    "B": "미술2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.9",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "과학2",
+    "B": "미술4",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학2",
+    "B": "음악2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학2",
+    "B": "음악4",
+    "winRateA": "80.0%",
+    "avgSurvA": "3.9",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "과학2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.5"
+  },
+  {
+    "A": "과학2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "과학2",
+    "B": "방송부2",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.2",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "과학2",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "과학2",
+    "B": "육상부2",
+    "winRateA": "80.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "과학2",
+    "B": "육상부4",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.2",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "과학2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.4"
+  },
+  {
+    "A": "과학2",
+    "B": "급식부2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.2",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "과학2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.5"
+  },
+  {
+    "A": "과학4",
+    "B": "체육2",
+    "winRateA": "30.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "3.1"
+  },
+  {
+    "A": "과학4",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.6"
+  },
+  {
+    "A": "과학4",
+    "B": "도덕2",
+    "winRateA": "90.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "과학4",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "과학4",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "선도부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "2.5"
+  },
+  {
+    "A": "과학4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.0"
+  },
+  {
+    "A": "과학4",
+    "B": "방송부2",
+    "winRateA": "80.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "과학4",
+    "B": "방송부4",
+    "winRateA": "70.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "과학4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "과학4",
+    "B": "보건부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.5",
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "과학4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.0"
+  },
+  {
+    "A": "과학4",
+    "B": "급식부2",
+    "winRateA": "60.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "과학4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "체육2",
+    "B": "체육4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.4"
+  },
+  {
+    "A": "체육2",
+    "B": "도덕2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "체육2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "체육2",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.4",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "선도부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "체육2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.1"
+  },
+  {
+    "A": "체육2",
+    "B": "방송부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "4.4",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "체육2",
+    "B": "방송부4",
+    "winRateA": "80.0%",
+    "avgSurvA": "3.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "보건부2",
+    "winRateA": "70.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "3.5"
+  },
+  {
+    "A": "체육2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.8"
+  },
+  {
+    "A": "체육2",
+    "B": "급식부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육2",
+    "B": "급식부4",
+    "winRateA": "20.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "체육4",
+    "B": "도덕2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "도덕4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "선도부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "선도부4",
+    "winRateA": "20.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "4.5"
+  },
+  {
+    "A": "체육4",
+    "B": "방송부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "방송부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "보건부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.9"
+  },
+  {
+    "A": "체육4",
+    "B": "급식부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "체육4",
+    "B": "급식부4",
+    "winRateA": "90.0%",
+    "avgSurvA": "5.1",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "도덕4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "도덕2",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "미술4",
+    "winRateA": "90.0%",
+    "avgSurvA": "4.7",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "도덕2",
+    "B": "음악2",
+    "winRateA": "90.0%",
+    "avgSurvA": "4.4",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "도덕2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.3"
+  },
+  {
+    "A": "도덕2",
+    "B": "방송부2",
+    "winRateA": "70.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "도덕2",
+    "B": "방송부4",
+    "winRateA": "10.0%",
+    "avgSurvA": "5.0",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "도덕2",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "도덕2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.1"
+  },
+  {
+    "A": "도덕2",
+    "B": "급식부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "도덕2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.9"
+  },
+  {
+    "A": "도덕4",
+    "B": "미술2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "미술4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "음악2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "음악4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.0",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "선도부2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "도덕4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "도덕4",
+    "B": "방송부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "방송부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.4",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "보건부2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": "3.7"
+  },
+  {
+    "A": "도덕4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.9"
+  },
+  {
+    "A": "도덕4",
+    "B": "급식부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "도덕4",
+    "B": "급식부4",
+    "winRateA": "60.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "3.5"
+  },
+  {
+    "A": "미술2",
+    "B": "미술4",
+    "winRateA": "40.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "미술2",
+    "B": "음악2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.4",
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "미술2",
+    "B": "음악4",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "미술2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "미술2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.8"
+  },
+  {
+    "A": "미술2",
+    "B": "방송부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "미술2",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.9"
+  },
+  {
+    "A": "미술2",
+    "B": "육상부2",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.2",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "미술2",
+    "B": "육상부4",
+    "winRateA": "40.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "2.4"
+  },
+  {
+    "A": "미술2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "미술2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.4"
+  },
+  {
+    "A": "미술2",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "미술2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "미술4",
+    "B": "음악2",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "2.8"
+  },
+  {
+    "A": "미술4",
+    "B": "음악4",
+    "winRateA": "20.0%",
+    "avgSurvA": "3.5",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "미술4",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.6"
+  },
+  {
+    "A": "미술4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.5"
+  },
+  {
+    "A": "미술4",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "미술4",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "미술4",
+    "B": "육상부2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.7",
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "미술4",
+    "B": "육상부4",
+    "winRateA": "50.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "2.6"
+  },
+  {
+    "A": "미술4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.8"
+  },
+  {
+    "A": "미술4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.6"
+  },
+  {
+    "A": "미술4",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "3.9"
+  },
+  {
+    "A": "미술4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "음악2",
+    "B": "음악4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "3.5"
+  },
+  {
+    "A": "음악2",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.5"
+  },
+  {
+    "A": "음악2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.7"
+  },
+  {
+    "A": "음악2",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "3.8"
+  },
+  {
+    "A": "음악2",
+    "B": "방송부4",
+    "winRateA": "10.0%",
+    "avgSurvA": "5.0",
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "음악2",
+    "B": "육상부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "2.6"
+  },
+  {
+    "A": "음악2",
+    "B": "육상부4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "2.6"
+  },
+  {
+    "A": "음악2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "음악2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.3"
+  },
+  {
+    "A": "음악2",
+    "B": "급식부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "음악2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.7"
+  },
+  {
+    "A": "음악4",
+    "B": "선도부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.1"
+  },
+  {
+    "A": "음악4",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.6"
+  },
+  {
+    "A": "음악4",
+    "B": "방송부2",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.0",
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "음악4",
+    "B": "방송부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.1"
+  },
+  {
+    "A": "음악4",
+    "B": "육상부2",
+    "winRateA": "60.0%",
+    "avgSurvA": "2.8",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "음악4",
+    "B": "육상부4",
+    "winRateA": "50.0%",
+    "avgSurvA": "3.4",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "음악4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.8"
+  },
+  {
+    "A": "음악4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.5"
+  },
+  {
+    "A": "음악4",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.2"
+  },
+  {
+    "A": "음악4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.8"
+  },
+  {
+    "A": "선도부2",
+    "B": "선도부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.0"
+  },
+  {
+    "A": "선도부2",
+    "B": "방송부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "4.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부2",
+    "B": "방송부4",
+    "winRateA": "60.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "선도부2",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.3",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부2",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부2",
+    "B": "보건부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "선도부2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "6.9"
+  },
+  {
+    "A": "선도부2",
+    "B": "급식부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부2",
+    "B": "급식부4",
+    "winRateA": "10.0%",
+    "avgSurvA": "4.0",
+    "avgSurvB": "3.3"
+  },
+  {
+    "A": "선도부4",
+    "B": "방송부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "방송부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "보건부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.7",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.9"
+  },
+  {
+    "A": "선도부4",
+    "B": "급식부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "선도부4",
+    "B": "급식부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "5.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "방송부2",
+    "B": "방송부4",
+    "winRateA": "20.0%",
+    "avgSurvA": "2.5",
+    "avgSurvB": "2.7"
+  },
+  {
+    "A": "방송부2",
+    "B": "육상부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": 0
+  },
+  {
+    "A": "방송부2",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.5",
+    "avgSurvB": 0
+  },
+  {
+    "A": "방송부2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.3"
+  },
+  {
+    "A": "방송부2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.5"
+  },
+  {
+    "A": "방송부2",
+    "B": "급식부2",
+    "winRateA": "30.0%",
+    "avgSurvA": "2.3",
+    "avgSurvB": "3.0"
+  },
+  {
+    "A": "방송부2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.1"
+  },
+  {
+    "A": "방송부4",
+    "B": "육상부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.8",
+    "avgSurvB": "2.0"
+  },
+  {
+    "A": "방송부4",
+    "B": "육상부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "3.6",
+    "avgSurvB": 0
+  },
+  {
+    "A": "방송부4",
+    "B": "보건부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.6"
+  },
+  {
+    "A": "방송부4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.8"
+  },
+  {
+    "A": "방송부4",
+    "B": "급식부2",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.2"
+  },
+  {
+    "A": "방송부4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "육상부2",
+    "B": "육상부4",
+    "winRateA": "40.0%",
+    "avgSurvA": "3.3",
+    "avgSurvB": "2.3"
+  },
+  {
+    "A": "육상부2",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.2"
+  },
+  {
+    "A": "육상부2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.5"
+  },
+  {
+    "A": "육상부2",
+    "B": "급식부2",
+    "winRateA": "10.0%",
+    "avgSurvA": "3.0",
+    "avgSurvB": "3.9"
+  },
+  {
+    "A": "육상부2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.3"
+  },
+  {
+    "A": "육상부4",
+    "B": "보건부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.4"
+  },
+  {
+    "A": "육상부4",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.5"
+  },
+  {
+    "A": "육상부4",
+    "B": "급식부2",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.0"
+  },
+  {
+    "A": "육상부4",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "5.0"
+  },
+  {
+    "A": "보건부2",
+    "B": "보건부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "7.0"
+  },
+  {
+    "A": "보건부2",
+    "B": "급식부2",
+    "winRateA": "90.0%",
+    "avgSurvA": "3.9",
+    "avgSurvB": 0
+  },
+  {
+    "A": "보건부2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.4"
+  },
+  {
+    "A": "보건부4",
+    "B": "급식부2",
+    "winRateA": "100.0%",
+    "avgSurvA": "7.2",
+    "avgSurvB": 0
+  },
+  {
+    "A": "보건부4",
+    "B": "급식부4",
+    "winRateA": "100.0%",
+    "avgSurvA": "6.2",
+    "avgSurvB": 0
+  },
+  {
+    "A": "급식부2",
+    "B": "급식부4",
+    "winRateA": "0.0%",
+    "avgSurvA": 0,
+    "avgSurvB": "4.5"
+  }
+]

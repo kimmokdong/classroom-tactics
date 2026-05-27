@@ -44,8 +44,8 @@ const itemsData = [
     },
     {
         id: "base_crit", name: "두꺼운 뿔테안경", type: "base",
-        stats: { critChance: 0.10, dodge: 0.10 }, 
-        desc: "치명타 확률과 회피율이 각각 10% 증가합니다."
+        stats: { critChance: 0.20 }, 
+        desc: "치명타 확률이 20% 증가합니다."
     },
 
     // ==========================================
@@ -53,42 +53,42 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_ad_ad", name: "전교 1등의 샤프", type: "combined", recipe: ["base_ad", "base_ad"],
-        stats: { ad: 40 },
-        desc: "공격력이 40 증가합니다."
+        stats: { ad: 70 }, effect: "deathblade",
+        desc: "순수 물리 공격력이 극대화된 무기입니다."
     },
     {
         id: "comb_ad_as", name: "체력장 만점 기록부", type: "combined", recipe: ["base_ad", "base_as"],
-        stats: { ad: 15, ap: 15, as: 0.10 }, effect: "giantSlayer",
+        stats: { ad: 10, as: 0.10 }, effect: "giantSlayer",
         desc: "기본 공격 및 스킬 피해량이 10% 증가합니다. 대상 최대 체력이 1,500을 초과하면 25%로 증가합니다."
     },
     {
         id: "comb_ad_ap", name: "마법의 컨닝페이퍼", type: "combined", recipe: ["base_ad", "base_ap"],
-        stats: { ad: 15, ap: 15, vamp: 0.22 }, effect: "gunbladeHeal",
+        stats: { ad: 10, ap: 10 }, effect: "gunbladeHeal",
         desc: "피해 흡혈이 22% 증가합니다. 입힌 피해량만큼 체력 비율이 가장 낮은 아군을 회복시킵니다."
     },
     {
         id: "comb_ad_mana", name: "삼색 볼펜", type: "combined", recipe: ["base_ad", "base_mana"],
-        stats: { ad: 15, ap: 15, mana: 15 }, effect: "shojin",
+        stats: { ad: 10, mana: 15 }, effect: "shojin",
         desc: "기본 공격 시 마나를 추가로 5 회복합니다."
     },
     {
         id: "comb_ad_armor", name: "체육부장의 호각", type: "combined", recipe: ["base_ad", "base_armor"],
         stats: { ad: 10, armor: 20 }, effect: "edgeOfNight",
-        desc: "체력이 60% 이하로 떨어지면 잠시 무적 상태가 되며 공격 속도가 15% 증가합니다."
+        desc: "체력이 60% 이하로 떨어지면 잠시 타겟팅 불가(무적) 상태가 되며 공격 속도가 15% 증가합니다."
     },
     {
         id: "comb_ad_mr", name: "매점 VIP 쿠폰", type: "combined", recipe: ["base_ad", "base_mr"],
-        stats: { ad: 15, mr: 20, vamp: 0.20 }, effect: "bloodthirsterShield",
+        stats: { ad: 10, mr: 20 }, effect: "bloodthirsterShield",
         desc: "피해 흡혈이 20% 증가합니다. 체력이 40% 이하가 되면 5초간 최대 체력 25%의 보호막을 얻습니다."
     },
     {
         id: "comb_ad_hp", name: "무거운 전공서적", type: "combined", recipe: ["base_ad", "base_hp"],
-        stats: { ad: 15, maxHp: 200 }, effect: "steraks",
+        stats: { ad: 10, maxHp: 150 }, effect: "steraks",
         desc: "체력이 60% 이하가 되면 최대 체력의 25%와 공격력 35를 전투 끝까지 얻습니다."
     },
     {
         id: "comb_ad_crit", name: "제도용 컴퍼스", type: "combined", recipe: ["base_ad", "base_crit"],
-        stats: { ad: 35, critChance: 0.20 }, effect: "skillCrit",
+        stats: { ad: 10, critChance: 0.10 }, effect: "skillCrit",
         desc: "모든 스킬에 치명타가 적용됩니다. 치명타 피해량이 10% 증가합니다."
     },
 
@@ -97,27 +97,27 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_as_as", name: "로켓 실내화", type: "combined", recipe: ["base_as", "base_as"],
-        stats: { as: 0.40 }, effect: "rfc",
+        stats: { as: 0.20 }, effect: "rfc",
         desc: "기본 공격 사거리가 1칸 증가하며 공격 속도가 40% 증가합니다."
     },
     {
         id: "comb_as_ap", name: "야간자율학습용 스탠드", type: "combined", recipe: ["base_as", "base_ap"],
-        stats: { as: 0.15, ap: 10 }, effect: "guinsoo",
+        stats: { as: 0.10, ap: 10 }, effect: "guinsoo",
         desc: "기본 공격 시 공격 속도가 4%, 주문력이 2씩 전투 종료 시까지 무한히 증가합니다."
     },
     {
         id: "comb_as_mana", name: "정전기 책받침", type: "combined", recipe: ["base_as", "base_mana"],
-        stats: { as: 0.15, mana: 15, ap: 15 }, effect: "statikk",
-        desc: "매 3번째 공격마다 다수의 적에게 마법 피해를 입히고 마법 저항력을 50% 감소시킵니다."
+        stats: { as: 0.10, mana: 15 }, effect: "statikk",
+        desc: "매 3번째 공격마다 다수의 적에게 100의 마법 피해를 입히고 마법 저항력을 30% 감소시킵니다."
     },
     {
         id: "comb_as_armor", name: "선도부 완장", type: "combined", recipe: ["base_as", "base_armor"],
         stats: { as: 0.10, armor: 20 }, effect: "titans",
-        desc: "공격하거나 피해를 입을 때마다 공격력 2, 주문력이 2% 증가합니다. (최대 25중첩)"
+        desc: "공격하거나 피해를 입을 때마다 공격력 2, 주문력이 2% 증가합니다. (최대 25중첩). 최대 중첩 시 방어력과 마법 저항력이 20 증가합니다."
     },
     {
         id: "comb_as_mr", name: "분필 지우개 털이개", type: "combined", recipe: ["base_as", "base_mr"],
-        stats: { as: 0.10, mr: 20, ad: 20 }, effect: "runaans",
+        stats: { as: 0.10, mr: 20 }, effect: "runaans",
         desc: "기본 공격 시 주변 적 하나에게 추가로 분필을 날려 공격력의 50% 피해를 입힙니다."
     },
     {
@@ -127,8 +127,8 @@ const itemsData = [
     },
     {
         id: "comb_as_crit", name: "수학의 정석", type: "combined", recipe: ["base_as", "base_crit"],
-        stats: { as: 0.10, critChance: 0.20, ad: 15 }, effect: "lastWhisper",
-        desc: "물리 피해를 입히면 3초 동안 대상의 방어력을 50% 감소시킵니다."
+        stats: { as: 0.10, critChance: 0.10 }, effect: "lastWhisper",
+        desc: "물리 피해를 입히면 3초 동안 대상의 방어력을 30% 감소시킵니다."
     },
 
     // ==========================================
@@ -136,12 +136,12 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_ap_ap", name: "교장선생님의 마이크", type: "combined", recipe: ["base_ap", "base_ap"],
-        stats: { ap: 50 }, effect: "rabadon",
+        stats: { ap: 20 }, effect: "rabadon",
         desc: "주문력이 50 증가하며, 최종 주문력이 추가로 20% 증폭됩니다."
     },
     {
         id: "comb_ap_mana", name: "두꺼운 백과사전", type: "combined", recipe: ["base_ap", "base_mana"],
-        stats: { ap: 20, mana: 15 }, effect: "archangel",
+        stats: { ap: 10, mana: 15 }, effect: "archangel",
         desc: "전투 중에 5초마다 주문력이 25씩 증가합니다."
     },
     {
@@ -152,16 +152,16 @@ const itemsData = [
     {
         id: "comb_ap_mr", name: "겨울용 수면양말", type: "combined", recipe: ["base_ap", "base_mr"],
         stats: { ap: 10, mr: 20 }, effect: "ionic",
-        desc: "주변 2칸 내 적들의 마법 저항력을 50% 깎습니다. 적이 스킬을 쓰면 마나 비례 마법 피해를 입힙니다."
+        desc: "주변 1칸 내 적들의 마법 저항력을 30% 깎습니다. 적이 스킬을 쓰면 최대 마나 비례 마법 피해를 입힙니다."
     },
     {
         id: "comb_ap_hp", name: "불타는 학구열", type: "combined", recipe: ["base_ap", "base_hp"],
-        stats: { ap: 25, maxHp: 150 }, effect: "morello",
+        stats: { ap: 10, maxHp: 150 }, effect: "morello",
         desc: "스킬 피해를 입히면 10초 동안 적 최대 체력의 10%만큼 화염 피해를 입히고 치유량을 50% 감소시킵니다."
     },
     {
         id: "comb_ap_crit", name: "보석 박힌 샤프심", type: "combined", recipe: ["base_ap", "base_crit"],
-        stats: { ap: 30, critChance: 0.20 }, effect: "skillCrit",
+        stats: { ap: 10, critChance: 0.10 }, effect: "skillCrit",
         desc: "모든 마법 및 고정 피해 스킬에 치명타가 적용됩니다."
     },
 
@@ -170,8 +170,8 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_mana_mana", name: "밤샘용 핫식스 박스", type: "combined", recipe: ["base_mana", "base_mana"],
-        stats: { mana: 30, ap: 10 }, effect: "blueBuff",
-        desc: "최대 마나가 10 감소하며, 스킬 사용 시 즉시 10의 마나를 회복합니다."
+        stats: { mana: 30, maxMana: -10 }, effect: "blueBuff",
+        desc: "스킬 사용 시 즉시 10의 마나를 회복합니다."
     },
     {
         id: "comb_mana_armor", name: "반성문", type: "combined", recipe: ["base_mana", "base_armor"],
@@ -186,11 +186,11 @@ const itemsData = [
     {
         id: "comb_mana_hp", name: "어머니의 편지", type: "combined", recipe: ["base_mana", "base_hp"],
         stats: { mana: 15, maxHp: 150 }, effect: "redemption",
-        desc: "5초마다 1칸 내 아군들의 잃은 체력의 15%를 회복시키고 받는 광역 피해를 25% 줄여줍니다."
+        desc: "5초마다 1칸 내 아군 잃은 체력 10%를 회복시키고 받는 광역 피해를 3초간 25% 줄여줍니다."
     },
     {
         id: "comb_mana_crit", name: "찍기용 주사위", type: "combined", recipe: ["base_mana", "base_crit"],
-        stats: { mana: 15, critChance: 0.20 }, effect: "hoj",
+        stats: { mana: 15, critChance: 0.10 }, effect: "hoj",
         desc: "피해량 15% 증가 및 피해 흡혈 15%를 얻습니다. 매 라운드마다 둘 중 하나의 효과가 두 배로 증폭됩니다."
     },
 
@@ -199,7 +199,7 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_armor_armor", name: "철벽의 책가방", type: "combined", recipe: ["base_armor", "base_armor"],
-        stats: { armor: 50 }, effect: "bramble",
+        stats: { armor: 40 }, effect: "bramble",
         desc: "치명타 추가 피해를 무시합니다. 기본 공격을 받으면 가시를 방출하여 마법 반사 피해를 입힙니다."
     },
     {
@@ -214,7 +214,7 @@ const itemsData = [
     },
     {
         id: "comb_armor_crit", name: "압수된 핸드폰", type: "combined", recipe: ["base_armor", "base_crit"],
-        stats: { armor: 20, critChance: 0.20 }, effect: "shroud",
+        stats: { armor: 20, critChance: 0.10 }, effect: "shroud",
         desc: "전투 시작 시 일직선으로 광선을 쏴 맞은 적들의 첫 스킬 마나 요구량을 30% 증가시킵니다."
     },
 
@@ -223,17 +223,17 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_mr_mr", name: "소음방지 귀마개", type: "combined", recipe: ["base_mr", "base_mr"],
-        stats: { mr: 50 }, effect: "dclaw",
-        desc: "마법 저항력이 대폭 증가합니다. 마법 피해를 받을 때마다 최대 체력의 2%를 회복합니다."
+        stats: { mr: 40 }, effect: "dclaw",
+        desc: "마법 저항력이 크게 증가합니다. 매 2초마다 최대 체력의 5%를 회복합니다."
     },
     {
         id: "comb_mr_hp", name: "비밀 쪽지", type: "combined", recipe: ["base_mr", "base_hp"],
         stats: { mr: 20, maxHp: 150 }, effect: "zephyr",
-        desc: "전투 시작 시 대칭되는 위치에 있는 적 하나를 5초 동안 회오리바람으로 띄워 전장에서 이탈시킵니다."
+        desc: "전투 시작 시 대칭되는 위치에 있는 적 하나를 5초 동안 회오리바람으로 띄워 타겟팅 불가 상태로 만듭니다."
     },
     {
         id: "comb_mr_crit", name: "전교회장 배지", type: "combined", recipe: ["base_mr", "base_crit"],
-        stats: { mr: 20, critChance: 0.20, as: 0.10 }, effect: "qss",
+        stats: { mr: 20, critChance: 0.10 }, effect: "qss",
         desc: "전투 시작 후 15초 동안 모든 군중 제어기(CC)에 면역이 됩니다."
     },
 
@@ -242,17 +242,17 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_hp_hp", name: "초대형 텀블러", type: "combined", recipe: ["base_hp", "base_hp"],
-        stats: { maxHp: 500 }, effect: "warmog",
-        desc: "최대 체력이 500 증가합니다."
+        stats: { maxHp: 800 }, effect: "warmog",
+        desc: "순수 체력이 극대화된 방어구입니다."
     },
     {
         id: "comb_hp_crit", name: "일진의 너클", type: "combined", recipe: ["base_hp", "base_crit"],
-        stats: { maxHp: 150, critChance: 0.20, ap: 15, ad: 15 }, effect: "guardbreaker",
+        stats: { maxHp: 150, critChance: 0.10 }, effect: "guardbreaker",
         desc: "피해량이 15% 증가합니다. 보호막을 가진 적을 공격하면 피해량이 추가로 25% 증가합니다."
     },
     {
         id: "comb_crit_crit", name: "분실물 보관함", type: "combined", recipe: ["base_crit", "base_crit"],
-        stats: { critChance: 0.20, dodge: 0.20 }, effect: "thievesGloves",
+        stats: { critChance: 0.40 }, effect: "thievesGloves",
         desc: "매 라운드마다 무작위 완성 아이템 2개를 임시로 장착합니다. (다른 아이템 장착 불가)"
     }
 ];

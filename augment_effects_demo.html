@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신규 프리즘 증강체 VFX 데모</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #07070f;
+    --card-bg: rgba(16, 17, 34, 0.7);
+    --border-color: rgba(60, 64, 120, 0.35);
+    --glow-green: #2ecc71;
+    --glow-red: #ff3860;
+    --glow-gold: #ffdd57;
+    --glow-cyan: #209cee;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: radial-gradient(circle at center, #101128 0%, var(--bg-dark) 100%);
+    color: #f1f1f6;
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* 헤더 섹션 */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    max-width: 800px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    text-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
+  }
+
+  header p {
+    color: #94a3b8;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .accent-box {
+    display: inline-block;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c7d2fe;
+    margin-bottom: 16px;
+  }
+
+  /* 메인 데모 그리드 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    width: 100%;
+    max-width: 1100px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 글래스모피즘 카드 */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.25);
+  }
+
+  /* 카드별 무드 색상 */
+  .card.green:hover { border-color: rgba(46, 204, 113, 0.5); box-shadow: 0 20px 40px -15px rgba(46, 204, 113, 0.2); }
+  .card.red:hover { border-color: rgba(255, 56, 96, 0.5); box-shadow: 0 20px 40px -15px rgba(255, 56, 96, 0.2); }
+  .card.gold:hover { border-color: rgba(255, 221, 87, 0.5); box-shadow: 0 20px 40px -15px rgba(255, 221, 87, 0.2); }
+  .card.cyan:hover { border-color: rgba(32, 156, 238, 0.5); box-shadow: 0 20px 40px -15px rgba(32, 156, 238, 0.2); }
+
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .green .card-badge { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+  .red .card-badge { background: rgba(255, 56, 96, 0.15); color: #ff3860; border: 1px solid rgba(255, 56, 96, 0.3); }
+  .gold .card-badge { background: rgba(255, 221, 87, 0.15); color: #ffdd57; border: 1px solid rgba(255, 221, 87, 0.3); }
+  .cyan .card-badge { background: rgba(32, 156, 238, 0.15); color: #209cee; border: 1px solid rgba(32, 156, 238, 0.3); }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-desc {
+    padding: 16px 24px;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    background: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    min-height: 72px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 300px;
+    background: #090a16;
+    cursor: pointer;
+  }
+
+  .card-footer {
+    padding: 14px 24px;
+    font-size: 0.78rem;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  .btn-test {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f1f6;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .btn-test:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.03);
+  }
+
+  .green .btn-test:hover { background: rgba(46, 204, 113, 0.2); border-color: #2ecc71; color: #fff; }
+  .red .btn-test:hover { background: rgba(255, 56, 96, 0.2); border-color: #ff3860; color: #fff; }
+  .gold .btn-test:hover { background: rgba(255, 221, 87, 0.2); border-color: #ffdd57; color: #fff; }
+  .cyan .btn-test:hover { background: rgba(32, 156, 238, 0.2); border-color: #209cee; color: #fff; }
+
+  /* 제어 패널 */
+  .control-panel {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+</style>
+</head>
+<body>
+
+  <div class="accent-box">🔮 PRISMATIC AUGMENT VFX PREVIEW</div>
+  <header>
+    <h1>신규 증강체 시각효과 데모</h1>
+    <p>보건부, 방송부, 육상부, 도덕 시너지의 뽕맛을 극대화하는 신규 프리즘 증강체 전용 VFX입니다.<br>캔버스를 클릭하거나 테스트 버튼을 누르면 연출을 직접 확인할 수 있습니다.</p>
+  </header>
+
+  <div class="control-panel">
+    <button class="btn-primary" id="btn-play-all">모든 효과 연속 재생</button>
+    <button class="btn-secondary" onclick="location.reload()">새로고침</button>
+  </div>
+
+  <div class="grid">
+    <!-- 1. 보건부: 과잉 진료 (맹독 폭발) -->
+    <div class="card green">
+      <div class="card-header">
+        <div class="card-title">🟢 과잉 진료 (보건부)</div>
+        <div class="card-badge">Heal Bomb</div>
+      </div>
+      <div class="card-desc">
+        초과 치유량의 150%만큼 광역 고정 피해를 줄 때 발동됩니다. <strong>초록색 치유 폭발과 함께 십자가 파편</strong>이 사방으로 퍼집니다.
+      </div>
+      <canvas id="canvas-heal-bomb"></canvas>
+      <div class="card-footer">
+        <span>Click Canvas to Cast</span>
+        <button class="btn-test" id="btn-heal-bomb">VFX 실행</button>
+      </div>
+    </div>
+
+    <!-- 2. 방송부: 긴급 속보 (전파 납치) -->
+    <div class="card red">
+      <div class="card-header">
+        <div class="card-title">🔴 긴급 속보 (방송부)</div>
+        <div class="card-badge">Mass Silence</div>
+      </div>
+      <div class="card-desc">
+        전투 시작 시 적 전체를 무력화할 때 발동됩니다. <strong>화면 전체에 노이즈(글리치)가 발생하며 적 머리에 붉은 'X' 마크</strong>가 새겨집니다.
+      </div>
+      <canvas id="canvas-mass-silence"></canvas>
+      <div class="card-footer">
+        <span>Click Canvas to Cast</span>
+        <button class="btn-test" id="btn-mass-silence">VFX 실행</button>
+      </div>
+    </div>
+
+    <!-- 3. 육상부: 바톤 터치 (영혼의 바톤) -->
+    <div class="card gold">
+      <div class="card-header">
+        <div class="card-title">⚡ 바톤 터치 (육상부)</div>
+        <div class="card-badge">Spirit Transfer</div>
+      </div>
+      <div class="card-desc">
+        아군 사망 시 가장 가까운 육상부 아군에게 스탯을 양도합니다. <strong>황금빛 영혼의 혜성</strong>이 피상속자에게 날아가 강하게 흡수됩니다.
+      </div>
+      <canvas id="canvas-spirit-transfer"></canvas>
+      <div class="card-footer">
+        <span>Click Canvas to Cast</span>
+        <button class="btn-test" id="btn-spirit-transfer">VFX 실행</button>
+      </div>
+    </div>
+
+    <!-- 4. 도덕: 바른 생활의 분노 (가시 방패 반사) -->
+    <div class="card cyan">
+      <div class="card-header">
+        <div class="card-title">🛡️ 바른 생활의 분노 (도덕)</div>
+        <div class="card-badge">Thorn Reflect</div>
+      </div>
+      <div class="card-desc">
+        도덕 유닛 피격 시 방/마저 비례 반사 피해를 가합니다. <strong>네온 블루/은빛 가시가 방패에서 뿜어져 나와</strong> 공격자를 가격합니다.
+      </div>
+      <canvas id="canvas-thorn-reflect"></canvas>
+      <div class="card-footer">
+        <span>Click Canvas to Cast</span>
+        <button class="btn-test" id="btn-thorn-reflect">VFX 실행</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ─── 공통 유틸 함수 ──────────────────────────────────────────────
+  const rand = (a, b) => Math.random() * (b - a) + a;
+  const randInt = (a, b) => Math.floor(rand(a, b));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  function initCanvas(id) {
+    const canvas = document.getElementById(id);
+    const ctx = canvas.getContext('2d');
+    
+    // 고해상도 처리
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 300 * dpr;
+    ctx.scale(dpr, dpr);
+    
+    return { canvas, ctx, W: rect.width, H: 300 };
+  }
+
+  // ─── 1. 보건부: 과잉 진료 (맹독 폭발) ───────────────────────────────
+  const healBomb = (function() {
+    const { canvas, ctx, W, H } = initCanvas('canvas-heal-bomb');
+    let particles = [];
+    let waves = [];
+    let crosses = [];
+    let active = false;
+
+    function trigger(x = W/2, y = H/2) {
+      active = true;
+      
+      // 그린 오라 파동 2개
+      for (let i = 0; i < 2; i++) {
+        waves.push({
+          x, y, r: 10, maxR: 90 + i * 25,
+          life: 1.0, speed: 0.05 - i * 0.01
+        });
+      }
+
+      // 기본 폭발 파티클
+      for (let i = 0; i < 60; i++) {
+        const angle = rand(0, Math.PI * 2);
+        const speed = rand(2.5, 9);
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - rand(0.5, 2.5),
+          life: rand(0.6, 1.2),
+          maxLife: 1.2,
+          size: rand(3, 8),
+          hue: rand(110, 145) // 초록 ~ 연두 계열 HSL
+        });
+      }
+
+      // 초록색 십자가 (+) 파티클들
+      for (let i = 0; i < 15; i++) {
+        const angle = rand(0, Math.PI * 2);
+        const speed = rand(1.5, 4.5);
+        crosses.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - rand(0, 1.5),
+          life: rand(0.8, 1.5),
+          maxLife: 1.5,
+          size: rand(6, 12),
+          rot: rand(0, Math.PI),
+          rotSpd: rand(-0.06, 0.06)
+        });
+      }
+    }
+
+    function drawBg() {
+      ctx.fillStyle = '#080914';
+      ctx.fillRect(0, 0, W, H);
+      
+      // 그리드 배경
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < W; i += 25) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+      }
+      for (let i = 0; i < H; i += 25) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+      }
+    }
+
+    function render() {
+      drawBg();
+
+      // 1. 파동
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const w = waves[i];
+        w.r = lerp(w.r, w.maxR, 0.12);
+        w.life -= w.speed;
+        if (w.life <= 0) {
+          waves.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.strokeStyle = `hsla(140, 90%, 65%, ${w.life * 0.7})`;
+        ctx.lineWidth = 3 * w.life + 0.5;
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. 십자가 파티클
+      for (let i = crosses.length - 1; i >= 0; i--) {
+        const c = crosses[i];
+        c.x += c.vx; c.y += c.vy;
+        c.vy += 0.08; // 중력 효과
+        c.rot += c.rotSpd;
+        c.life -= 0.02;
+        if (c.life <= 0) {
+          crosses.splice(i, 1);
+          continue;
+        }
+
+        const t = c.life / c.maxLife;
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.rot);
+        ctx.strokeStyle = `rgba(180, 255, 200, ${t})`;
+        ctx.lineWidth = 2.5 * t;
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 10;
+        
+        const hs = c.size * 0.5 * t;
+        // 십자가 '+' 그리기
+        ctx.beginPath();
+        ctx.moveTo(-hs, 0); ctx.lineTo(hs, 0);
+        ctx.moveTo(0, -hs); ctx.lineTo(0, hs);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 3. 일반 파티클
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.12;
+        p.vx *= 0.98;
+        p.life -= 0.022;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        const t = p.life / p.maxLife;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * t * 2.5);
+        grad.addColorStop(0, `hsla(${p.hue}, 100%, 90%, ${t})`);
+        grad.addColorStop(0.4, `hsla(${p.hue}, 95%, 60%, ${t * 0.8})`);
+        grad.addColorStop(1, `hsla(${p.hue}, 100%, 40%, 0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * t * 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    canvas.addEventListener('click', e => {
+      const r = canvas.getBoundingClientRect();
+      trigger(e.clientX - r.left, e.clientY - r.top);
+    });
+
+    return { trigger };
+  })();
+
+  // ─── 2. 방송부: 긴급 속보 (전파 납치) ───────────────────────────────
+  const massSilence = (function() {
+    const { canvas, ctx, W, H } = initCanvas('canvas-mass-silence');
+    let glitches = [];
+    let xMarks = [];
+    let noiseTimer = 0;
+    let scanlineOffset = 0;
+
+    function trigger() {
+      noiseTimer = 25; // 25프레임 동안 전체 노이즈(글리치) 발생
+      xMarks = [];
+      
+      // 적군 3명이 배치되어 있는 느낌으로 3곳에 붉은 X마크 소환
+      const targets = [
+        { x: W * 0.3, y: H * 0.5 },
+        { x: W * 0.5, y: H * 0.4 },
+        { x: W * 0.7, y: H * 0.6 }
+      ];
+
+      targets.forEach((tar, idx) => {
+        setTimeout(() => {
+          xMarks.push({
+            x: tar.x, y: tar.y,
+            life: 1.0, maxLife: 1.0,
+            scale: 2.0, // 크게 생겼다가 작아지면서 꽂힘
+            sparks: Array.from({ length: 12 }, () => ({
+              a: rand(0, Math.PI * 2),
+              spd: rand(1.5, 4.5),
+              l: rand(0.5, 1.0)
+            }))
+          });
+        }, idx * 150); // 순차적으로 쾅 쾅 쾅!
+      });
+    }
+
+    function drawBg() {
+      ctx.fillStyle = '#080914';
+      ctx.fillRect(0, 0, W, H);
+      
+      // TV 스캔라인
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+      ctx.lineWidth = 1;
+      scanlineOffset = (scanlineOffset + 0.5) % 8;
+      for (let y = scanlineOffset; y < H; y += 6) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+    }
+
+    function render() {
+      drawBg();
+
+      // 전파 글리치 노이즈 효과 (화면 전체 지지직)
+      if (noiseTimer > 0) {
+        noiseTimer--;
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 56, 96, ${noiseTimer / 70})`;
+        ctx.fillRect(0, 0, W, H);
+        
+        // 지지직 가로선들
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        for (let i = 0; i < 6; i++) {
+          const h = rand(2, 8);
+          const y = rand(0, H - h);
+          const xOffset = rand(-15, 15);
+          ctx.lineWidth = h;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // X자 마크 드로잉
+      for (let i = xMarks.length - 1; i >= 0; i--) {
+        const x = xMarks[i];
+        x.life -= 0.015;
+        if (x.scale > 1.0) x.scale -= 0.15;
+        
+        if (x.life <= 0) {
+          xMarks.splice(i, 1);
+          continue;
+        }
+
+        const t = x.life / x.maxLife;
+        ctx.save();
+        ctx.translate(x.x, x.y);
+        ctx.strokeStyle = `rgba(255, 56, 96, ${t})`;
+        ctx.shadowColor = '#ff3860';
+        ctx.shadowBlur = 20 * t + 5;
+        ctx.lineWidth = 6 * t * (1 / x.scale) + 1;
+        
+        const size = 20 * x.scale * t;
+        
+        // 홀로그램 글리치 복사본
+        if (rand(0, 1) > 0.6) {
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+          ctx.beginPath();
+          ctx.moveTo(-size + 3, -size); ctx.lineTo(size + 3, size);
+          ctx.moveTo(size + 3, -size); ctx.lineTo(-size + 3, size);
+          ctx.stroke();
+          ctx.strokeStyle = `rgba(255, 56, 96, ${t})`;
+        }
+
+        // 메인 X선
+        ctx.beginPath();
+        ctx.moveTo(-size, -size); ctx.lineTo(size, size);
+        ctx.moveTo(size, -size); ctx.lineTo(-size, size);
+        ctx.stroke();
+        ctx.restore();
+
+        // X자 충격 파편들
+        x.sparks.forEach(s => {
+          s.l -= 0.015;
+          if (s.l > 0) {
+            const sx = x.x + Math.cos(s.a) * (20 + (1 - s.l) * 45 * s.spd);
+            const sy = x.y + Math.sin(s.a) * (20 + (1 - s.l) * 45 * s.spd);
+            ctx.fillStyle = `rgba(255, 80, 120, ${s.l})`;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 3 * s.l, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    canvas.addEventListener('click', () => {
+      trigger();
+    });
+
+    return { trigger };
+  })();
+
+  // ─── 3. 육상부: 바톤 터치 (영혼의 바톤) ───────────────────────────────
+  const spiritTransfer = (function() {
+    const { canvas, ctx, W, H } = initCanvas('canvas-spirit-transfer');
+    let bolts = [];
+    let sources = [];
+    let targets = [];
+
+    // 가상의 유닛 배치
+    const sourceUnit = { x: W * 0.25, y: H * 0.65, label: '사망 유닛' };
+    const targetUnit = { x: W * 0.75, y: H * 0.35, label: '계승 유닛' };
+
+    function trigger() {
+      // 혜성 효과 발사
+      const life = 1.0;
+      bolts.push({
+        x: sourceUnit.x, y: sourceUnit.y,
+        tx: targetUnit.x, ty: targetUnit.y,
+        t: 0,
+        trail: [],
+        life, maxLife: life,
+        size: 15,
+        targetHit: false
+      });
+
+      // 영혼 불빛 파티클들이 출발지에서 먼저 방출됨
+      for (let i = 0; i < 20; i++) {
+        const a = rand(0, Math.PI * 2);
+        const spd = rand(1, 4);
+        sources.push({
+          x: sourceUnit.x, y: sourceUnit.y,
+          vx: Math.cos(a) * spd,
+          vy: Math.sin(a) * spd - rand(0, 1.5),
+          life: rand(0.5, 1.0)
+        });
+      }
+    }
+
+    function drawBg() {
+      ctx.fillStyle = '#080914';
+      ctx.fillRect(0, 0, W, H);
+
+      // 출발지와 목적지 유닛 가상 렌더
+      // 1. 사망지 (회색 해골)
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,255,255,0.05)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = 'rgba(40, 40, 55, 0.7)';
+      ctx.beginPath();
+      ctx.arc(sourceUnit.x, sourceUnit.y, 25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.stroke();
+      ctx.fillStyle = '#64748b';
+      ctx.font = '24px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💀', sourceUnit.x, sourceUnit.y);
+      ctx.font = '10px Outfit';
+      ctx.fillText(sourceUnit.label, sourceUnit.x, sourceUnit.y + 40);
+      ctx.restore();
+
+      // 2. 계승자 (황금 오라)
+      ctx.save();
+      ctx.shadowColor = '#ffdd57';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = 'rgba(255, 221, 87, 0.1)';
+      ctx.beginPath();
+      ctx.arc(targetUnit.x, targetUnit.y, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 221, 87, 0.4)';
+      ctx.stroke();
+      ctx.fillStyle = '#ffdd57';
+      ctx.font = '26px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🏃', targetUnit.x, targetUnit.y);
+      ctx.font = '10px Outfit';
+      ctx.fillText(targetUnit.label, targetUnit.x, targetUnit.y + 40);
+      ctx.restore();
+    }
+
+    function render() {
+      drawBg();
+
+      // 1. 소스 스파크
+      for (let i = sources.length - 1; i >= 0; i--) {
+        const s = sources[i];
+        s.x += s.vx; s.y += s.vy;
+        s.life -= 0.02;
+        if (s.life <= 0) {
+          sources.splice(i, 1);
+          continue;
+        }
+        ctx.fillStyle = `rgba(255, 221, 87, ${s.life})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 3 * s.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 2. 타겟 골드 스파크 (혜성 충돌 후 발생)
+      for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        t.x += t.vx; t.y += t.vy;
+        t.life -= 0.02;
+        if (t.life <= 0) {
+          targets.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.shadowColor = '#ffdd57';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = `rgba(255, 221, 87, ${t.life})`;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.size * t.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. 메인 혜성 (영혼의 바톤)
+      for (let i = bolts.length - 1; i >= 0; i--) {
+        const b = bolts[i];
+        // 포물선 궤적으로 보정
+        b.t += 0.025; // 40프레임 속도
+        
+        // 베지에 곡선으로 비행 궤적 계산
+        const cpX = (b.x + b.tx) / 2;
+        const cpY = Math.min(b.y, b.ty) - 80; // 위로 볼록한 포물선
+        
+        const u = 1 - b.t;
+        const tt = b.t * b.t;
+        const uu = u * u;
+        
+        // 베지에 좌표
+        const cx = uu * b.x + 2 * u * b.t * cpX + tt * b.tx;
+        const cy = uu * b.y + 2 * u * b.t * cpY + tt * b.ty;
+        
+        b.trail.push({ x: cx, y: cy });
+        if (b.trail.length > 10) b.trail.shift();
+
+        // 혜성 꼬리(Trail) 그리기
+        b.trail.forEach((pt, j) => {
+          const alpha = (j / b.trail.length) * 0.7;
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = `rgba(255, 221, 87, ${alpha})`;
+          ctx.shadowColor = '#ffdd57';
+          ctx.shadowBlur = j;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, b.size * (j / b.trail.length) * 0.9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // 혜성 머리(Core) 그리기
+        ctx.save();
+        ctx.shadowColor = '#ffdd57';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        if (b.t >= 1) {
+          // 목적지 충돌 효과 트리거
+          for (let k = 0; k < 25; k++) {
+            const angle = rand(0, Math.PI * 2);
+            const spd = rand(2.0, 7.5);
+            targets.push({
+              x: b.tx, y: b.ty,
+              vx: Math.cos(angle) * spd,
+              vy: Math.sin(angle) * spd - rand(0, 2),
+              life: rand(0.6, 1.2),
+              size: rand(2.5, 6)
+            });
+          }
+          bolts.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    canvas.addEventListener('click', () => {
+      trigger();
+    });
+
+    return { trigger };
+  })();
+
+  // ─── 4. 도덕: 바른 생활의 분노 (가시 방패 반사) ───────────────────────
+  const thornReflect = (function() {
+    const { canvas, ctx, W, H } = initCanvas('canvas-thorn-reflect');
+    let shields = [];
+    let thorns = [];
+    let sparks = [];
+
+    // 가상의 위치 설정
+    const myPos = { x: W * 0.35, y: H * 0.5, label: '도덕 유닛' };
+    const attackerPos = { x: W * 0.7, y: H * 0.5, label: '공격한 적' };
+
+    function trigger() {
+      // 1. 방어막 육각 오라 깜빡임
+      shields.push({
+        x: myPos.x, y: myPos.y,
+        life: 1.0, maxLife: 1.0,
+        r: 30
+      });
+
+      // 2. 은색/네온블루 가시 3개 발사 (공격자를 향함)
+      const angleToAttacker = Math.atan2(attackerPos.y - myPos.y, attackerPos.x - myPos.x);
+      
+      for (let i = 0; i < 3; i++) {
+        const spread = (i - 1) * 0.22; // 3개 가시가 부채꼴로
+        const a = angleToAttacker + spread;
+        thorns.push({
+          x: myPos.x + Math.cos(a) * 20,
+          y: myPos.y + Math.sin(a) * 20,
+          vx: Math.cos(a) * 8.5,
+          vy: Math.sin(a) * 8.5,
+          angle: a,
+          life: 1.0,
+          length: rand(18, 26),
+          width: rand(4, 7),
+          done: false
+        });
+      }
+    }
+
+    function drawBg() {
+      ctx.fillStyle = '#080914';
+      ctx.fillRect(0, 0, W, H);
+
+      // 도덕 유닛 렌더링 (방패 오라)
+      ctx.save();
+      ctx.fillStyle = 'rgba(30, 45, 75, 0.7)';
+      ctx.beginPath();
+      ctx.arc(myPos.x, myPos.y, 25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(32, 156, 238, 0.35)';
+      ctx.stroke();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '24px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🛡️', myPos.x, myPos.y);
+      ctx.font = '10px Outfit';
+      ctx.fillText(myPos.label, myPos.x, myPos.y + 40);
+      ctx.restore();
+
+      // 적 렌더링
+      ctx.save();
+      ctx.fillStyle = 'rgba(75, 30, 30, 0.7)';
+      ctx.beginPath();
+      ctx.arc(attackerPos.x, attackerPos.y, 25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 56, 96, 0.3)';
+      ctx.stroke();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '24px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('👿', attackerPos.x, attackerPos.y);
+      ctx.font = '10px Outfit';
+      ctx.fillText(attackerPos.label, attackerPos.x, attackerPos.y + 40);
+      ctx.restore();
+    }
+
+    function drawThorn(ctx, x, y, angle, len, width, alpha) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      
+      const grad = ctx.createLinearGradient(0, 0, len, 0);
+      grad.addColorStop(0, `rgba(200, 240, 255, ${alpha})`);
+      grad.addColorStop(0.3, `rgba(32, 156, 238, ${alpha * 0.9})`);
+      grad.addColorStop(1, `rgba(20, 80, 220, 0)`);
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -width/2);
+      ctx.lineTo(len, 0);
+      ctx.lineTo(0, width/2);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // 글로우 중심 코어
+      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.85})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(len * 0.7, 0);
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+
+    function render() {
+      drawBg();
+
+      // 1. 방패 충격 오라 (육각형)
+      for (let i = shields.length - 1; i >= 0; i--) {
+        const s = shields[i];
+        s.life -= 0.045;
+        s.r = lerp(s.r, 50, 0.15);
+        if (s.life <= 0) {
+          shields.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(32, 156, 238, ${s.life * 0.85})`;
+        ctx.lineWidth = 3.5 * s.life;
+        ctx.shadowColor = '#209cee';
+        ctx.shadowBlur = 10;
+        
+        ctx.beginPath();
+        // 육각형 그리기
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2 - Math.PI/6;
+          const px = s.x + Math.cos(a) * s.r;
+          const py = s.y + Math.sin(a) * s.r;
+          if (k === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. 가시 날아감
+      for (let i = thorns.length - 1; i >= 0; i--) {
+        const t = thorns[i];
+        t.x += t.vx; t.y += t.vy;
+        
+        // 날아가면서 수명이 아주 느리게 닳음 (타격 시 즉사)
+        t.life -= 0.015;
+        if (t.life <= 0) {
+          thorns.splice(i, 1);
+          continue;
+        }
+
+        // 가시 그리기
+        drawThorn(ctx, t.x, t.y, t.angle, t.length, t.width, t.life);
+
+        // 공격자에게 닿았는지 체크 (Chebyshev distance < 25)
+        const d = Math.hypot(t.x - attackerPos.x, t.y - attackerPos.y);
+        if (d < 25 && !t.done) {
+          t.done = true;
+          // 공격자 피격 파편 폭발 트리거
+          for (let k = 0; k < 8; k++) {
+            const a = t.angle + Math.PI + rand(-0.8, 0.8); // 튕겨나가는 파편
+            const spd = rand(1.5, 4.5);
+            sparks.push({
+              x: attackerPos.x, y: attackerPos.y,
+              vx: Math.cos(a) * spd,
+              vy: Math.sin(a) * spd - rand(0, 1),
+              life: rand(0.4, 0.8)
+            });
+          }
+          thorns.splice(i, 1);
+        }
+      }
+
+      // 3. 피격 반사 파편
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.x += s.vx; s.y += s.vy;
+        s.life -= 0.03;
+        if (s.life <= 0) {
+          sparks.splice(i, 1);
+          continue;
+        }
+
+        ctx.fillStyle = `rgba(32, 200, 255, ${s.life})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 2.5 * s.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    canvas.addEventListener('click', () => {
+      trigger();
+    });
+
+    return { trigger };
+  })();
+
+  // ─── 제어 및 바인딩 ──────────────────────────────────────────────
+  document.getElementById('btn-heal-bomb').addEventListener('click', () => healBomb.trigger());
+  document.getElementById('btn-mass-silence').addEventListener('click', () => massSilence.trigger());
+  document.getElementById('btn-spirit-transfer').addEventListener('click', () => spiritTransfer.trigger());
+  document.getElementById('btn-thorn-reflect').addEventListener('click', () => thornReflect.trigger());
+
+  // 모든 효과 연속 재생
+  document.getElementById('btn-play-all').addEventListener('click', () => {
+    let delay = 0;
+    
+    setTimeout(() => healBomb.trigger(), delay);
+    delay += 1000;
+    
+    setTimeout(() => massSilence.trigger(), delay);
+    delay += 1200;
+    
+    setTimeout(() => spiritTransfer.trigger(), delay);
+    delay += 1400;
+    
+    setTimeout(() => thornReflect.trigger(), delay);
+  });
+</script>
+</body>
+</html>

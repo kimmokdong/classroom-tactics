@@ -1,3 +1,8 @@
+import { FxSystem } from './battle/FxSystem.js';
+import { FxRenderer } from './battle/FxRenderer.js';
+import { DpsTracker } from './battle/DpsTracker.js';
+
+
 export class BattleRenderer {
     constructor(logs, boardEl, fxCanvas = null) {
         this.logs = logs;
@@ -14,6 +19,15 @@ export class BattleRenderer {
         this.screenFlash = 0;
         this.hitStopUntil = 0;
         
+        // 모듈 초기화
+        this.dpsTracker = new DpsTracker();
+        this.fxSystem = new FxSystem(this);
+        this.fxRenderer = new FxRenderer(this.fxSystem);
+
+        // 전투 통계 유지 (게임 앱 상태에서 참조, 없으면 생성)
+        this.dpsTracker.syncWithGameState();
+        this.dpsStats = this.dpsTracker.stats;
+
         this.resizeCanvas = this.resizeCanvas.bind(this);
         this.animate = this.animate.bind(this);
         
@@ -28,8 +42,6 @@ export class BattleRenderer {
         const rect = this.boardEl.getBoundingClientRect();
         this.fxCanvas.width = rect.width;
         this.fxCanvas.height = rect.height;
-        this.fxCanvas.style.width = rect.width + 'px';
-        this.fxCanvas.style.height = rect.height + 'px';
     }
 
     getCellCenter(index) {
@@ -43,19 +55,7 @@ export class BattleRenderer {
         };
     }
 
-    spawnFx(type, x, y, options = {}) {
-        this.particles.push({
-            type: type,
-            x: x, y: y,
-            vx: options.vx || 0, vy: options.vy || 0,
-            life: options.life || 0.5,
-            maxLife: options.life || 0.5,
-            size: options.size || 20,
-            color: options.color || '#fff',
-            angle: options.angle || 0,
-            history: [{x:x, y:y}]
-        });
-    }
+    spawnFx(type, x, y, options = {}) { this.fxSystem.spawnFx(type, x, y, options); }
     
     play(onEnd) {
         if(this.logs.length === 0) {
@@ -63,6 +63,11 @@ export class BattleRenderer {
             return;
         }
         
+        // Initialize DPS Stats
+        this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
+
+        this.currentTick = this.logs[0].tick;
+        this.resizeCanvas();
         let logIndex = 0;
         
         if (this.fxCanvas) {
@@ -78,8 +83,14 @@ export class BattleRenderer {
                 logIndex++;
             }
             
+            // Update DPS UI occasionally (every 5 ticks to save performance)
+            if (this.currentTick % 5 === 0) {
+                this.renderDpsUI();
+            }
+            
             if (logIndex >= this.logs.length) {
                 clearInterval(this.timer);
+                this.renderDpsUI(); // 전투 종료 시 최종 통계 한번 더 렌더링
                 if (this.fxCanvas) {
                     setTimeout(() => {
                         cancelAnimationFrame(this.animId);
@@ -105,8 +116,10 @@ export class BattleRenderer {
         const DAMPING = 0.7;
         for (let i = 0; i < this.cells.length; i++) {
             let t = this.unitTransforms[i];
+            let targetY = 0;
+            if (t.buffs && t.buffs.includes('zephyr')) targetY = -40; // 공중으로 띄우기
             let ax = -t.x * SPRING_K;
-            let ay = -t.y * SPRING_K;
+            let ay = (targetY - t.y) * SPRING_K;
             t.vx = (t.vx + ax) * DAMPING;
             t.vy = (t.vy + ay) * DAMPING;
             t.x += t.vx;
@@ -146,6 +159,31 @@ export class BattleRenderer {
                     this.ctx.lineWidth = 2;
                     this.ctx.strokeRect(-25, -25, 50, 50);
                 }
+                if (t.buffs.includes('ccImmune') || t.buffs.includes('invincible')) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 40, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = t.buffs.includes('invincible') ? 'rgba(255, 215, 0, 0.9)' : 'rgba(255, 255, 255, 0.8)';
+                    this.ctx.setLineDash([5, 5]);
+                    this.ctx.lineWidth = 3;
+                    this.ctx.stroke();
+                    this.ctx.setLineDash([]);
+                }
+                if (t.buffs.includes('zephyr')) {
+                    // 회오리 이펙트 (Tornado)
+                    const time = performance.now() / 150;
+                    this.ctx.strokeStyle = `rgba(200, 210, 220, 0.9)`;
+                    this.ctx.lineWidth = 4;
+                    for (let j = 0; j < 6; j++) {
+                        this.ctx.beginPath();
+                        const phase = time + j;
+                        const w = 15 + j * 6; // gets wider at the top
+                        const h = 5 + j * 2;
+                        const yOffset = 40 - j * 12; // start from bottom, go up
+                        const xOffset = Math.sin(phase) * (8 + j); // sway left and right
+                        this.ctx.ellipse(xOffset, yOffset, w, h, 0, 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    }
+                }
                 this.ctx.restore();
             }
         }
@@ -161,47 +199,7 @@ export class BattleRenderer {
             this.ctx.save();
             this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
             
-            if (p.type === 'single_hit') {
-                this.ctx.translate(p.x, p.y);
-                this.ctx.rotate(p.angle || 0);
-                this.ctx.strokeStyle = p.color;
-                this.ctx.lineWidth = 4 * (p.life / p.maxLife);
-                this.ctx.beginPath();
-                this.ctx.moveTo(-p.size, -p.size);
-                this.ctx.lineTo(p.size, p.size);
-                this.ctx.moveTo(p.size, -p.size);
-                this.ctx.lineTo(-p.size, p.size);
-                this.ctx.stroke();
-            } else if (p.type === 'projectile') {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.history.push({x: p.x, y: p.y});
-                if(p.history.length > 5) p.history.shift();
-                
-                this.ctx.beginPath();
-                for(let j=0; j<p.history.length; j++) {
-                    const pt = p.history[j];
-                    if(j===0) this.ctx.moveTo(pt.x, pt.y);
-                    else this.ctx.lineTo(pt.x, pt.y);
-                }
-                this.ctx.strokeStyle = p.color;
-                this.ctx.lineWidth = p.size;
-                this.ctx.lineCap = 'round';
-                this.ctx.stroke();
-            } else if (p.type === 'aoe_ripple') {
-                const radius = p.size * (1 - p.life / p.maxLife);
-                this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-                this.ctx.strokeStyle = p.color;
-                this.ctx.lineWidth = 4;
-                this.ctx.stroke();
-            } else if (p.type === 'heal_particle') {
-                p.y -= 1;
-                this.ctx.fillStyle = p.color;
-                this.ctx.font = '20px sans-serif';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText('+', p.x, p.y);
-            }
+            this.fxRenderer.renderParticle(p, this.ctx, this.fxCanvas);
             
             this.ctx.restore();
         }
@@ -214,19 +212,91 @@ export class BattleRenderer {
     }
 
     executeAction(action) {
-        if (action.type === 'move') {
+        if (action.type === 'spawn') {
+            const cell = this.cells[action.target];
+            if (!cell) return;
+            const uDiv = document.createElement('div');
+            uDiv.className = `unit-character tier-${action.unit.tier} star-${action.unit.star || 1}`;
+            if (action.unit.team === 'enemy') uDiv.classList.add('is-enemy');
+            uDiv.innerHTML = `
+                <div class="status-icons"></div>
+                <div style="font-size: 0.6rem; margin-bottom: 2px;">⭐⭐⭐</div>
+                <span class="unit-icon">${action.unit.icon || '🐶'}</span>
+                <span class="unit-name">${action.unit.name}</span>
+                <div class="bars-wrapper">
+                    <div class="hp-container">
+                        <div class="hp-fill" style="width: 100%;"></div>
+                        <div class="shield-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="mana-container"><div class="mana-fill" style="width: 0%;"></div></div>
+                </div>
+            `;
+            uDiv.dataset.currHp = action.unit.stats.maxHp;
+            uDiv.dataset.currMana = 0;
+            uDiv.dataset.index = action.target;
+            cell.appendChild(uDiv);
+            if (!this.unitTransforms[action.target]) this.unitTransforms[action.target] = {x:0, y:0, vx:0, vy:0, buffs: []};
+            
+            if (!this.dpsStats) this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
+            this.dpsStats[action.target] = {
+                name: action.unit.name,
+                team: action.unit.team,
+                damage: 0, tank: 0, heal: 0
+            };
+            
+            const center = this.getCellCenter(action.target);
+            this.spawnFx('aoe_ripple', center.x, center.y, {life: 0.6, color: '#9b59b6', size: 60});
+        } else if (action.type === 'move') {
             const oldCell = this.cells[action.unit];
             const newCell = this.cells[action.to];
             const uDiv = oldCell.querySelector('.unit-character');
             if (uDiv) newCell.appendChild(uDiv);
+            
+            if (this.unitTransforms[action.unit]) {
+                this.unitTransforms[action.to] = this.unitTransforms[action.unit];
+                this.unitTransforms[action.unit] = {x:0, y:0, vx:0, vy:0, buffs: []};
+            }
+            if (this.dpsStats && this.dpsStats[action.unit]) {
+                this.dpsStats[action.to] = this.dpsStats[action.unit];
+                delete this.dpsStats[action.unit];
+            }
         } else if (action.type === 'attack' || action.type === 'damage') {
-            const fromCell = action.from !== undefined ? this.cells[action.from] : null;
-            const toCell = this.cells[action.to !== undefined ? action.to : action.target];
+            const sourceIdx = action.source !== undefined ? action.source : action.from;
+            const targetIdx = action.target !== undefined ? action.target : action.to;
+            const fromCell = sourceIdx !== undefined ? this.cells[sourceIdx] : null;
+            const toCell = this.cells[targetIdx];
+            
+            // DPS Stats 자동 초기화 - DOM에서 유닛 정보를 읽어 없는 경우 생성
+            if (!this.dpsStats) this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
+            const ensureStatEntry = (idx, cell) => {
+                if (idx === undefined || this.dpsStats[idx]) return;
+                if (!cell) return;
+                const uDiv = cell.querySelector('.unit-character');
+                if (!uDiv) return;
+                this.dpsStats[idx] = {
+                    name: uDiv.querySelector('.unit-name')?.innerText || `Unit_${idx}`,
+                    team: uDiv.classList.contains('is-enemy') ? 'enemy' : 'player',
+                    damage: 0, tank: 0, heal: 0
+                };
+            };
+            ensureStatEntry(sourceIdx, fromCell);
+            ensureStatEntry(targetIdx, toCell);
+
+            // Update DPS Stats
+            if (sourceIdx !== undefined && this.dpsStats[sourceIdx]) {
+                this.dpsStats[sourceIdx].damage += action.dmg || 0;
+            }
+            if (targetIdx !== undefined && this.dpsStats[targetIdx]) {
+                this.dpsStats[targetIdx].tank += action.dmg || 0;
+            }
+            
             if (!toCell) return;
             
             const dmgText = document.createElement('div');
             let classes = ['dmg-text', action.dmgType || 'physical'];
             if (action.isCrit) classes.push('crit');
+            if (action.type === 'attack') classes.push('basic-attack');
+            else if (action.type === 'damage') classes.push('skill-attack');
             dmgText.className = classes.join(' ');
             dmgText.innerText = action.isCrit ? `💥-${action.dmg}` : `-${action.dmg}`;
             // 데미지 텍스트 겹침 방지를 위한 랜덤 오프셋
@@ -273,8 +343,7 @@ export class BattleRenderer {
             const targetDiv = toCell.querySelector('.unit-character');
             
             // --- Canvas VFX: 타격 반동(Recoil & Dash) 및 이펙트 ---
-            const targetIdx = action.to !== undefined ? action.to : action.target;
-            const fromIdx = action.from !== undefined ? action.from : action.source;
+            const fromIdx = sourceIdx;
             if (this.fxCanvas && targetIdx !== undefined && fromIdx !== undefined && targetIdx !== fromIdx) {
                 const c1 = this.getCellCenter(fromIdx);
                 const c2 = this.getCellCenter(targetIdx);
@@ -294,9 +363,13 @@ export class BattleRenderer {
                     }
                     let color = action.dmgType === 'magic' ? '#9c27b0' : action.dmgType === 'true' ? '#ffffff' : '#d32f2f';
                     if (action.fxType === 'projectile') {
-                        this.spawnFx('projectile', c1.x, c1.y, {vx: nx*15, vy: ny*15, life: 1, color: color, size: 4});
+                        this.spawnFx('projectile', c1.x, c1.y, {vx: nx*15, vy: ny*15, targetX: c2.x, targetY: c2.y, life: 1, color: color, size: 6});
                     } else if (action.fxType === 'dash_slash' || action.fxType === 'single_hit') {
                         this.spawnFx('single_hit', c2.x, c2.y, {life: 0.3, color: color, size: 20, angle: Math.atan2(ny, nx)});
+                    } else if (action.fxType === 'lightning') {
+                        this.spawnFx('lightning', c1.x, c1.y, {targetX: c2.x, targetY: c2.y, life: 0.2, color: '#00d2ff'});
+                    } else if (action.fxType === 'bramble') {
+                        this.spawnFx('bramble', c1.x, c1.y, {life: 0.3, color: '#e74c3c', size: 30});
                     }
                 }
             }
@@ -324,6 +397,14 @@ export class BattleRenderer {
                         const mrEl = document.getElementById('info-mr'); if(mrEl) mrEl.innerText = Math.round(action.targetStats.mr);
                         const asEl = document.getElementById('info-as'); if(asEl) asEl.innerText = action.targetStats.as.toFixed(2);
                     }
+                    if (action.targetCombat) {
+                        const critChanceEl = document.getElementById('info-critChance'); if(critChanceEl) critChanceEl.innerText = Math.round((action.targetCombat.critChance || 0)*100) + '%';
+                        const critDmgEl = document.getElementById('info-critDmg'); if(critDmgEl) critDmgEl.innerText = Math.round((action.targetCombat.critDmg || 1.5)*100) + '%';
+                        const dmgAmpEl = document.getElementById('info-dmgAmp'); if(dmgAmpEl) dmgAmpEl.innerText = '+' + Math.round((action.targetCombat.dmgAmp || 0)*100) + '%';
+                        const dmgReducEl = document.getElementById('info-dmgReduc'); if(dmgReducEl) dmgReducEl.innerText = Math.round((action.targetCombat.dmgReduc || 0)*100) + '%';
+                        const vampEl = document.getElementById('info-vamp'); if(vampEl) vampEl.innerText = Math.round((action.targetCombat.vamp || 0)*100) + '%';
+                        const manaRegenEl = document.getElementById('info-manaRegen'); if(manaRegenEl) manaRegenEl.innerText = '+' + ((action.targetCombat.teamManaRegen || 0) + (action.targetCombat.artManaRegen || 0));
+                    }
                 }
             }
             if (uDiv) {
@@ -346,6 +427,14 @@ export class BattleRenderer {
                         const mrEl = document.getElementById('info-mr'); if(mrEl) mrEl.innerText = Math.round(action.attackerStats.mr);
                         const asEl = document.getElementById('info-as'); if(asEl) asEl.innerText = action.attackerStats.as.toFixed(2);
                     }
+                    if (action.attackerCombat) {
+                        const critChanceEl = document.getElementById('info-critChance'); if(critChanceEl) critChanceEl.innerText = Math.round((action.attackerCombat.critChance || 0)*100) + '%';
+                        const critDmgEl = document.getElementById('info-critDmg'); if(critDmgEl) critDmgEl.innerText = Math.round((action.attackerCombat.critDmg || 1.5)*100) + '%';
+                        const dmgAmpEl = document.getElementById('info-dmgAmp'); if(dmgAmpEl) dmgAmpEl.innerText = '+' + Math.round((action.attackerCombat.dmgAmp || 0)*100) + '%';
+                        const dmgReducEl = document.getElementById('info-dmgReduc'); if(dmgReducEl) dmgReducEl.innerText = Math.round((action.attackerCombat.dmgReduc || 0)*100) + '%';
+                        const vampEl = document.getElementById('info-vamp'); if(vampEl) vampEl.innerText = Math.round((action.attackerCombat.vamp || 0)*100) + '%';
+                        const manaRegenEl = document.getElementById('info-manaRegen'); if(manaRegenEl) manaRegenEl.innerText = '+' + ((action.attackerCombat.teamManaRegen || 0) + (action.attackerCombat.artManaRegen || 0));
+                    }
                 }
             }
             
@@ -360,6 +449,9 @@ export class BattleRenderer {
                 uDiv.style.transition = 'opacity 0.2s';
                 uDiv.style.opacity = '0';
                 setTimeout(() => { if(uDiv.parentNode) uDiv.parentNode.removeChild(uDiv); }, 200);
+            }
+            if (this.unitTransforms[action.target]) {
+                this.unitTransforms[action.target].buffs = [];
             }
             
             const logEl = document.getElementById('battle-log');
@@ -377,6 +469,21 @@ export class BattleRenderer {
         } else if (action.type === 'heal') {
             const toCell = this.cells[action.target];
             if (!toCell) return;
+            
+            // Update heal DPS Stats
+            if (!this.dpsStats) this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
+            if (this.dpsStats[action.target]) {
+                this.dpsStats[action.target].heal += action.amount || 0;
+            } else {
+                const uDiv = toCell.querySelector('.unit-character');
+                if (uDiv) {
+                    this.dpsStats[action.target] = {
+                        name: uDiv.querySelector('.unit-name')?.innerText || `Unit_${action.target}`,
+                        team: uDiv.classList.contains('is-enemy') ? 'enemy' : 'player',
+                        damage: 0, tank: 0, heal: action.amount || 0
+                    };
+                }
+            }
             
             const healText = document.createElement('div');
             healText.className = 'dmg-text heal';
@@ -401,6 +508,34 @@ export class BattleRenderer {
                     const hpEl = document.getElementById('info-hp');
                     if (hpEl) hpEl.innerText = Math.max(0, Math.round(action.currHp));
                 }
+            }
+        } else if (action.type === 'mana_update') {
+            const cell = this.cells[action.target];
+            if (!cell) return;
+            const targetDiv = cell.querySelector('.unit-character');
+            const manaFill = cell.querySelector('.mana-fill');
+            if (manaFill && action.maxMana > 0) {
+                const pct = Math.max(0, Math.min(100, (action.currMana / action.maxMana) * 100));
+                manaFill.style.width = `${pct}%`;
+            }
+            if (targetDiv) {
+                targetDiv.dataset.currMana = action.currMana;
+                if (action.maxMana !== undefined) targetDiv.dataset.maxMana = action.maxMana;
+                
+                if (targetDiv.dataset.viewing === 'true') {
+                    const manaEl = document.getElementById('info-mana');
+                    if (manaEl) manaEl.innerText = Math.max(0, Math.round(action.currMana));
+                    if (action.maxMana !== undefined) {
+                        const maxManaEl = document.getElementById('info-max-mana');
+                        if (maxManaEl) maxManaEl.innerText = Math.max(0, Math.round(action.maxMana));
+                    }
+                }
+            }
+        } else if (action.type === 'titans_max') {
+            const cell = this.cells[action.target];
+            if(cell) {
+                const uDiv = cell.querySelector('.unit-character');
+                if (uDiv) uDiv.classList.add('titans-max');
             }
         } else if (action.type === 'skill') {
             const casterCell = this.cells[action.caster];
@@ -450,30 +585,101 @@ export class BattleRenderer {
             if (action.targets && action.fxType && this.fxCanvas) {
                 const casterCenter = this.getCellCenter(action.caster);
                 let color = '#9c27b0';
-                if (action.fxType === 'heal_particle') color = '#4caf50';
+                if (action.vfx && action.vfx.includes('fire')) color = '#f44336';
+                if (action.vfx && action.vfx.includes('heal')) color = '#4caf50';
+                if (action.vfx && action.vfx.includes('slam')) color = '#ffd700';
 
-                action.targets.forEach(tIdx => {
-                    const tCenter = this.getCellCenter(tIdx);
-                    if (action.fxType === 'single_hit' || action.fxType === 'dash_slash') {
-                        this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.4, color: color, size: 30});
-                    } else if (action.fxType === 'projectile') {
-                        const dx = tCenter.x - casterCenter.x;
-                        const dy = tCenter.y - casterCenter.y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist > 0) this.spawnFx('projectile', casterCenter.x, casterCenter.y, {vx: (dx/dist)*15, vy: (dy/dist)*15, life: 1, color: color, size: 6});
-                    } else if (action.fxType === 'aoe_ripple') {
-                        this.spawnFx('aoe_ripple', tCenter.x, tCenter.y, {life: 0.6, color: color, size: 80});
-                    } else if (action.fxType === 'heal_particle') {
-                        for(let i=0; i<3; i++) {
-                            this.spawnFx('heal_particle', tCenter.x + (Math.random()*20-10), tCenter.y + (Math.random()*20-10), {life: 0.8, color: color});
+                let prevCenter = casterCenter;
+                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole'];
+                const lowTierIds = [
+                    'u1_1','u1_2','u1_3','u1_4','u1_5','u1_6','u1_7','u1_8','u1_9','u1_10',
+                    'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10',
+                    'u3_1','u3_2','u3_3','u3_4','u3_5','u3_6','u3_7','u3_8','u3_9'
+                ];
+                
+                if (lowTierIds.includes(action.fxType)) {
+                    this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, { targets: action.targets, color: color });
+                } else {
+                    if (schoolGlobalFx.includes(action.fxType)) {
+                        if (action.fxType === 'school_blackhole') {
+                            this.spawnFx(action.fxType, this.fxCanvas.width/2, this.fxCanvas.height/3, { targets: action.targets, life: 2.5 });
+                        } else if (action.fxType === 'school_foreign') {
+                            this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, { targets: action.targets, life: 2.0 });
+                        } else {
+                            this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, { targets: action.targets });
                         }
-                    } else if (action.fxType === 'chain_bounce') {
-                        this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.3, color: color, size: 40});
+                    } else if (action.fxType === 'school_beaker' && action.targets.length > 0) {
+                        const tCenter = this.getCellCenter(action.targets[0]);
+                        this.spawnFx('school_beaker', casterCenter.x, casterCenter.y, { targetX: tCenter.x, targetY: tCenter.y });
+                    } else if (action.fxType === 'school_pen' && action.targets.length > 0) {
+                        const tCenter = this.getCellCenter(action.targets[0]);
+                        this.spawnFx('school_pen', tCenter.x, tCenter.y);
                     }
-                });
+                    
+                    const customGlobalFx = ['mega_shield', 'holy_heal', 'piano_wave', 'silence_drop', 'paint_swipe', 'black_hole', 'super_aura', 'data_aura', 'ground_slam'];
+                    if (customGlobalFx.includes(action.fxType)) {
+                        this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, {life: 1.5});
+                    }
+
+                    action.targets.forEach(tIdx => {
+                        const tCenter = this.getCellCenter(tIdx);
+                        if (action.fxType === 'single_hit' || action.fxType === 'dash_slash') {
+                            this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.4, color: color, size: 30});
+                        } else if (action.fxType === 'projectile') {
+                            const dx = tCenter.x - casterCenter.x;
+                            const dy = tCenter.y - casterCenter.y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist > 0) this.spawnFx('projectile', casterCenter.x, casterCenter.y, {vx: (dx/dist)*15, vy: (dy/dist)*15, targetX: tCenter.x, targetY: tCenter.y, life: 1, color: color, size: 8});
+                        } else if (action.fxType === 'aoe_ripple') {
+                            const dx = tCenter.x - casterCenter.x;
+                            const dy = tCenter.y - casterCenter.y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist > 0) this.spawnFx('projectile', casterCenter.x, casterCenter.y, {vx: (dx/dist)*20, vy: (dy/dist)*20, targetX: tCenter.x, targetY: tCenter.y, life: 1, color: color, size: 6});
+                            this.spawnFx('aoe_ripple', tCenter.x, tCenter.y, {life: 0.6, color: color, size: 80});
+                        } else if (action.fxType === 'heal_particle') {
+                            for(let i=0; i<3; i++) {
+                                this.spawnFx('heal_particle', tCenter.x + (Math.random()*20-10), tCenter.y + (Math.random()*20-10), {life: 0.8, color: color});
+                            }
+                        } else if (action.fxType === 'aug_heal_bomb') {
+                            this.spawnFx('aug_heal_bomb', tCenter.x, tCenter.y);
+                        } else if (action.fxType === 'aug_thorn_reflect') {
+                            const attackerCenter = this.getCellCenter(action.source);
+                            if (attackerCenter) {
+                                this.spawnFx('aug_thorn_reflect', tCenter.x, tCenter.y, { targetX: attackerCenter.x, targetY: attackerCenter.y });
+                            }
+                        } else if (action.fxType === 'chain_bounce') {
+                            this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.3, color: color, size: 40});
+                            this.spawnFx('lightning', prevCenter.x, prevCenter.y, {targetX: tCenter.x, targetY: tCenter.y, life: 0.4, color: color});
+                            prevCenter = tCenter;
+                        } else if (action.fxType === 'beam') {
+                            const dx = tCenter.x - casterCenter.x;
+                            const dy = tCenter.y - casterCenter.y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            if (dist > 0) {
+                                this.spawnFx('projectile', casterCenter.x, casterCenter.y, {vx: (dx/dist)*25, vy: (dy/dist)*25, targetX: tCenter.x, targetY: tCenter.y, life: 1.5, color: color, size: 12, isGlobalNuke: true});
+                            }
+                        } else if (action.fxType === 'judge_pen') {
+                            this.spawnFx('judge_pen', tCenter.x, tCenter.y, {life: 0.8});
+                        } else if (action.fxType === 'mega_shield') {
+                            this.spawnFx('shield_buff', tCenter.x, tCenter.y, {life: 1.0});
+                        } else if (action.fxType === 'holy_heal') {
+                            this.spawnFx('heal_sparkle', tCenter.x, tCenter.y, {life: 1.5});
+                        } else if (action.fxType === 'paint_swipe') {
+                            this.spawnFx('paint_splatter', tCenter.x, tCenter.y, {life: 1.0});
+                        }
+                    });
+                }
             }
             
-            if (action.hitStop && this.fxCanvas) this.hitStopUntil = performance.now() + 150;
+            if (action.castTime && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + action.castTime;
+            } else if (action.type === 'broadcast_silence' && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 1500;
+            } else if (action.type === 'spirit_transfer' && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 800;
+            } else if (action.hitStop && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 150;
+            }
             if (action.screenFlash && this.fxCanvas) this.screenFlash = 0.5;
 
         } else if (action.type === 'buff_update') {
@@ -496,17 +702,43 @@ export class BattleRenderer {
                         else if(bType === 'buff') { icon = '⬆️'; bg = '#4caf50'; }
                         else if(bType === 'shield') { icon = '🛡️'; bg = '#b0bec5'; }
                         else if(bType === 'heal') { icon = '💚'; bg = '#2ecc71'; }
+                        else if(bType === 'ccImmune') { icon = '🌟'; bg = '#f1c40f'; }
+                        else if(bType === 'zephyr') { icon = '🌪️'; bg = '#bdc3c7'; }
+                        else if(bType === 'antiHeal') { icon = '💔'; bg = '#c0392b'; }
+                        else if(bType === 'morello') { icon = '🔥'; bg = '#e67e22'; }
+                        else if(bType === 'invincible') { icon = '✨'; bg = '#f39c12'; }
+                        else if(bType === 'armorShred') { icon = '📉'; bg = '#7f8c8d'; }
+                        else if(bType === 'mrShred') { icon = '🌀'; bg = '#8e44ad'; }
                         
                         if (icon) {
                             const iconDiv = document.createElement('div');
                             iconDiv.className = 'status-icon';
-                            iconDiv.style.background = bg;
+                            iconDiv.style.background = 'rgba(255, 255, 255, 0.95)';
+                            iconDiv.style.border = `2px solid ${bg}`;
+                            iconDiv.style.color = bg;
                             iconDiv.innerText = icon;
                             iconContainer.appendChild(iconDiv);
                         }
                     });
                 }
             }
+        } else if (action.type === 'shroud_beam' && this.fxCanvas) {
+            const startXPos = (action.sourceX % 8);
+            const startCell = startXPos + action.sourceY * 8;
+            const endY = action.team === 'player' ? 0 : 5;
+            const endCell = startXPos + endY * 8;
+            
+            const startPos = this.getCellCenter(startCell);
+            const endPos = this.getCellCenter(endCell);
+            
+            this.spawnFx('beam', startPos.x, startPos.y, {
+                targetX: endPos.x, targetY: endPos.y,
+                color: 'rgba(155, 89, 182, 0.8)',
+                size: 60,
+                life: 1.5
+            });
         }
     }
+
+    renderDpsUI() { this.dpsTracker.renderUI(); }
 }

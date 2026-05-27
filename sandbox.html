@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>교실 택틱스 샌드박스</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .sandbox-layout {
+            display: flex;
+            height: calc(100vh - 80px);
+            padding: 20px;
+            gap: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .side-panel {
+            width: 400px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .unit-list, .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+        }
+        .selectable-btn {
+            padding: 8px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1.5rem;
+            transition: all 0.2s;
+        }
+        .selectable-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        .selectable-btn.selected {
+            border-color: #e74c3c;
+            background: #ffeaa7;
+        }
+        .selectable-btn .name {
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .team-selector {
+            display: flex;
+            gap: 10px;
+        }
+        .team-selector label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .sandbox-board-container {
+            flex: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .tool-mode {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34495e;
+            padding: 10px;
+            background: #ecf0f1;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="tooltip" style="display:none; position:absolute; pointer-events:none; background:rgba(253,250,243,0.98); padding:12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); box-shadow:0 10px 25px -5px rgba(0,0,0,0.2); z-index:9999; max-width:260px; font-size: 0.9rem; line-height: 1.4;"></div>
+
+    <header id="game-header" style="min-height: 80px; padding: 10px 30px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; background: #34495e; box-sizing: border-box;">
+        <div class="hud-left">
+            <span style="font-size: 1.5rem; font-weight: 800; color: #fff;">🛠️ 샌드박스 모드</span>
+        </div>
+        <div class="hud-center" style="display: flex; gap: 10px;">
+            <button id="btn-start" class="btn" style="background:#27ae60; font-size:1.2rem; padding: 10px 30px;">전투 시작</button>
+            <button id="btn-reset" class="btn" style="background:#e74c3c; font-size:1.2rem; padding: 10px 30px;">초기화</button>
+        </div>
+    </header>
+
+    <div class="sandbox-layout">
+        <!-- Left Panel -->
+        <div class="left-panel" style="width: 320px; display: flex; flex-direction: column; gap: 15px;">
+            <div id="unit-details" style="background: rgba(255,255,255,0.85); padding: 20px; border-radius: 16px; font-size: 0.95rem; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); min-height: 240px; flex-shrink: 0; overflow-y: auto;">
+                <div style="text-align:center; color:#888;">보드 위 유닛을 클릭하면 상세 정보가 표시됩니다.</div>
+            </div>
+            
+            <div id="synergy-wrapper" style="flex: 3; overflow-y: auto; overflow-x: hidden; padding-right: 4px; background: rgba(255,255,255,0.85); border-radius: 16px; padding: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                <div style="font-weight: 800; color: #2c3e50; margin-bottom: 10px;">🌟 활성화된 시너지</div>
+                <ul id="synergy-list" style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
+            </div>
+            
+            <div id="augments-container" style="flex: 2; overflow-y: auto; overflow-x: hidden; background: rgba(255,255,255,0.85); border-radius: 16px; padding: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                <div style="font-weight: 800; color: #2c3e50; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📋 생기부 특기사항</span>
+                    <button id="btn-add-augment" class="btn" style="padding: 4px 10px; font-size: 0.8rem; background: #3498db;">+ 추가</button>
+                </div>
+                <div id="selected-augments-list" style="display: flex; flex-direction: column; gap: 6px; flex: 1;"></div>
+            </div>
+        </div>
+
+        <!-- Main Board Panel -->
+        <div class="main-panel">
+            <div class="sandbox-board-container">
+                <div id="battle-container">
+                    <!-- Grid and Entities will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Controls Panel -->
+        <div class="side-panel">
+            <div class="tool-mode" id="current-tool">모드: [ 선택 안됨 ]</div>
+
+            <hr style="border-color: rgba(0,0,0,0.1);">
+            
+            <h3>유닛 (클릭하여 툴 선택)</h3>
+            <div class="unit-list" id="sandbox-unit-list">
+                <!-- Dynamically populated -->
+            </div>
+
+            <hr style="border-color: rgba(0,0,0,0.1);">
+            
+            <button class="btn selectable-btn" id="btn-dummy-mode" style="background:#f39c12; width: 100%; font-size: 1.1rem; color: white;">🎯 허수아비 3개 배치 (적 진영)</button>
+
+            <hr style="border-color: rgba(0,0,0,0.1);">
+            
+            <h3>아이템 (클릭하여 툴 선택)</h3>
+            <div class="item-list" id="sandbox-item-list">
+                <!-- Dynamically populated -->
+            </div>
+
+            <hr style="border-color: rgba(0,0,0,0.1);">
+            <button class="btn selectable-btn" id="btn-erase" data-type="eraser" style="background:#7f8c8d; width: 100%; font-size: 1.2rem; color: white;">지우개 모드 (우클릭과 동일)</button>
+        </div>
+    </div>
+
+    <!-- Augment Modal -->
+    <div id="sandbox-augment-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div style="background: white; border-radius: 16px; width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 1.5rem; color: #2c3e50;">증강체 선택</h2>
+                <button id="btn-close-augment-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+            </div>
+            <div id="sandbox-augment-pool" style="padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load engine and data first -->
+    <script type="module" src="./js/sandbox.js"></script>
+</body>
+</html>
