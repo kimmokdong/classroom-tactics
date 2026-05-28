@@ -6,23 +6,32 @@ export class BattleEngine {
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
-                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: u.currHp !== undefined ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         for(let i=0; i<24; i++) {
             if (enemyBoard[i]) {
                 const u = enemyBoard[i];
-                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: u.currHp !== undefined ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         
         // 보건부 부활 정보 초기화
         this.playerReviveCharges = 0;
         this.playerReviveHpPct = 0;
-        this.playerReviveBurst = false;
+        this.playerReviveShieldPct = 0;
+        this.playerReviveStun = false;
+        this.playerReviveSelfDefBuff = 0;
+        this.playerReviveBurstDmg = 0;
+        this.playerReviveTeamHeal = 0;
+
         this.enemyReviveCharges = 0;
         this.enemyReviveHpPct = 0;
-        this.enemyReviveBurst = false;
+        this.enemyReviveShieldPct = 0;
+        this.enemyReviveStun = false;
+        this.enemyReviveSelfDefBuff = 0;
+        this.enemyReviveBurstDmg = 0;
+        this.enemyReviveTeamHeal = 0;
 
         for (let i = 0; i < 48; i++) {
             const u = this.board[i];
@@ -30,11 +39,19 @@ export class BattleEngine {
                 if (u.team === 'player' && u.combat && u.combat.reviveCount > 0) {
                     this.playerReviveCharges = Math.max(this.playerReviveCharges, u.combat.reviveCount);
                     this.playerReviveHpPct = Math.max(this.playerReviveHpPct, u.combat.reviveHpPct);
-                    if (u.combat.reviveBurst) this.playerReviveBurst = true;
+                    this.playerReviveShieldPct = Math.max(this.playerReviveShieldPct, u.combat.reviveShieldPct || 0);
+                    if (u.combat.reviveStun) this.playerReviveStun = true;
+                    this.playerReviveSelfDefBuff = Math.max(this.playerReviveSelfDefBuff, u.combat.reviveSelfDefBuff || 0);
+                    this.playerReviveBurstDmg = Math.max(this.playerReviveBurstDmg, u.combat.reviveBurstDmg || 0);
+                    this.playerReviveTeamHeal = Math.max(this.playerReviveTeamHeal, u.combat.reviveTeamHeal || 0);
                 } else if (u.team === 'enemy' && u.combat && u.combat.reviveCount > 0) {
                     this.enemyReviveCharges = Math.max(this.enemyReviveCharges, u.combat.reviveCount);
                     this.enemyReviveHpPct = Math.max(this.enemyReviveHpPct, u.combat.reviveHpPct);
-                    if (u.combat.reviveBurst) this.enemyReviveBurst = true;
+                    this.enemyReviveShieldPct = Math.max(this.enemyReviveShieldPct, u.combat.reviveShieldPct || 0);
+                    if (u.combat.reviveStun) this.enemyReviveStun = true;
+                    this.enemyReviveSelfDefBuff = Math.max(this.enemyReviveSelfDefBuff, u.combat.reviveSelfDefBuff || 0);
+                    this.enemyReviveBurstDmg = Math.max(this.enemyReviveBurstDmg, u.combat.reviveBurstDmg || 0);
+                    this.enemyReviveTeamHeal = Math.max(this.enemyReviveTeamHeal, u.combat.reviveTeamHeal || 0);
                 }
             }
         }
@@ -49,6 +66,7 @@ export class BattleEngine {
         this.shieldEfficiency = 1.0;   // 연장전 시 0.34 (-66%)
         this.ccDurationMult = 1.0;     // 연장전 시 0.34 (-66%)
         this.skillEngine = new SkillEngine();
+        this.canvases = []; // 미술 장판 (색채의 캔버스) 관리
     }
 
     getDist(i1, i2) {
@@ -113,6 +131,14 @@ export class BattleEngine {
                     u.stats.ap *= 2.0;    // 주문력 +100%
                 });
                 this.logs.push({ tick: this.tick, type: 'sudden_death' });
+            }
+
+            // [미술 시너지] 장판 지속시간 감소 및 버프 판정 초기화
+            for (let i = this.canvases.length - 1; i >= 0; i--) {
+                this.canvases[i].duration--;
+                if (this.canvases[i].duration <= 0) {
+                    this.canvases.splice(i, 1);
+                }
             }
 
             // 버프 타이머 처리
@@ -248,13 +274,28 @@ export class BattleEngine {
                 });
             }
 
-            // 글로벌 틱 이벤트 (예: 30틱 = 약 3초마다 화염단 체력 회복)
+            // 글로벌 틱 이벤트 (예: 30틱 = 약 3초마다)
             if (this.tick > 0 && this.tick % 30 === 0) {
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
                     if (u.combat.isFirelight) {
                         u.currHp = Math.min(u.stats.maxHp, u.currHp + (u.stats.maxHp * u.combat.tickHeal * this.healEfficiency));
                         u.combat.firelightCharge = true;
+                    }
+                    
+                    // [급식부 시너지] 포만감(Satiety) 틱마다 체력/방마저 증가
+                    if (u.combat.isCafeteria && this.tick % (u.combat.satietyTick || 30) === 0) {
+                        const bonusHp = u.stats.maxHp * u.combat.stackHpPct;
+                        u.stats.maxHp += bonusHp;
+                        u.currHp += bonusHp;
+                        u.stats.armor += u.combat.stackArmorMr;
+                        u.stats.mr += u.combat.stackArmorMr;
+                        
+                        this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(bonusHp), currHp: u.currHp, maxHp: u.stats.maxHp });
+                        u.combat.satietyCount = (u.combat.satietyCount || 0) + 1;
+                        this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'satiety_tick', target: u.gridIndex, count: u.combat.satietyCount });
+                        // 시각적 피드백을 위한 더미 버프 (실제 스탯은 영구 증가됨)
+                        this.addBuff(u, 'buff', 'dummy', 0, 10); 
                     }
                 });
             }
@@ -279,6 +320,90 @@ export class BattleEngine {
                 const isManaSealed = unit.buffs.some(b => b.type === 'manaSeal');
                 if (unit.stats.maxMana > 0 && unit.currMana >= unit.stats.maxMana && unit.skill && !isStunned && !isManaSealed) {
                     this.skillEngine.execute(unit, activeUnits, this);
+                    
+                    // [미술 시너지] 스킬 사용 시 장판 생성
+                    if (unit.combat.canvasDuration > 0) {
+                        this.canvases.push({
+                            centerIdx: unit.gridIndex,
+                            radius: unit.combat.canvasRadius || 1,
+                            duration: unit.combat.canvasDuration,
+                            allyDmgReduc: unit.combat.canvasAllyDmgReduc || 0,
+                            enemyDmgAmp: unit.combat.canvasEnemyDmgAmp || 0,
+                            team: unit.team
+                        });
+                        this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'art_canvas', target: unit.gridIndex, radius: unit.combat.canvasRadius || 1 });
+                    }
+                    
+                    // [장난꾸러기 시너지] 스킬 3회 사용 시 장난 발동
+                    if (unit.combat.prankLevel > 0) {
+                        unit.combat.prankCount = (unit.combat.prankCount || 0) + 1;
+                        if (unit.combat.prankCount >= 3) {
+                            unit.combat.prankCount = 0;
+                            const prankEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
+                            const prankTarget = prankEnemies.length > 0 ? prankEnemies[Math.floor(Math.random() * prankEnemies.length)] : null;
+                            if (prankTarget) {
+                                if (unit.combat.prankLevel === 1) {
+                                    this.addBuff(prankTarget, 'stun', null, 0, 15);
+                                    this.logs.push({ tick: this.tick, type: 'damage', target: prankTarget.gridIndex, source: unit.gridIndex, dmg: 0, dmgType: 'magic', isCrit: false, fxType: 'banana', currHp: prankTarget.currHp, maxHp: prankTarget.stats.maxHp, currShield: prankTarget.currShield });
+                                } else if (unit.combat.prankLevel === 2) {
+                                    this.addBuff(prankTarget, 'stun', null, 0, 15);
+                                    let prankDmg = prankTarget.stats.maxHp * 0.10 * (100 / (100 + prankTarget.stats.mr));
+                                    prankTarget.currHp -= prankDmg;
+                                    this.logs.push({ tick: this.tick, type: 'damage', target: prankTarget.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: prankTarget.currHp, maxHp: prankTarget.stats.maxHp, currShield: prankTarget.currShield });
+                                    this.checkHpThresholds(prankTarget, activeUnits);
+                                    if (prankTarget.currHp <= 0) this.handleDeath(prankTarget, activeUnits);
+                                } else if (unit.combat.prankLevel === 3) {
+                                    const allEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
+                                    allEnemies.forEach(e => {
+                                        this.addBuff(e, 'stun', null, 0, 15);
+                                        let prankDmg = e.stats.maxHp * 0.10 * (100 / (100 + e.stats.mr));
+                                        e.currHp -= prankDmg;
+                                        this.logs.push({ tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield });
+                                        this.checkHpThresholds(e, activeUnits);
+                                        if (e.currHp <= 0) this.handleDeath(e, activeUnits);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    // [영어 시너지] 스킬 사용 시 마나 번 및 분배
+                    if (unit.combat.manaBurnFlat > 0 && unit.combat.burnToMana) {
+                        let totalStolen = 0;
+                        const aliveEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
+                        aliveEnemies.sort((a, b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex));
+                        const mainTarget = aliveEnemies[0];
+
+                        if (mainTarget) {
+                            const burnEnemies = aliveEnemies.filter(e => this.getDist(mainTarget.gridIndex, e.gridIndex) <= 1);
+                        burnEnemies.forEach(e => {
+                            if (e.currMana >= unit.combat.manaBurnFlat) {
+                                e.currMana -= unit.combat.manaBurnFlat;
+                                totalStolen += unit.combat.manaBurnFlat;
+                            } else {
+                                totalStolen += e.currMana;
+                                e.currMana = 0;
+                            }
+                            this.logs.push({ tick: this.tick, type: 'mana_update', target: e.gridIndex, currMana: e.currMana, maxMana: e.stats.maxMana });
+                        });
+                        
+                        if (totalStolen > 0) {
+                            const allies = activeUnits.filter(u => u.team === unit.team && u.currHp > 0 && !u.isDead);
+                            const healPerAlly = Math.floor(totalStolen / allies.length);
+                            const remainder = totalStolen - (healPerAlly * allies.length);
+                            
+                            allies.forEach(a => {
+                                const finalHeal = healPerAlly + (a.gridIndex === unit.gridIndex ? remainder : 0);
+                                a.currMana = Math.min(a.stats.maxMana, a.currMana + finalHeal);
+                                this.logs.push({ tick: this.tick, type: 'mana_update', target: a.gridIndex, currMana: a.currMana, maxMana: a.stats.maxMana });
+                                if (a.gridIndex !== unit.gridIndex) {
+                                    this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'mana_steal_proj', source: unit.gridIndex, target: a.gridIndex });
+                                }
+                            });
+                        }
+                        }
+                    }
+
                     let excess = Math.max(0, unit.currMana - unit.stats.maxMana);
                     unit.currMana = excess + (unit.combat.itemEffects?.blueBuff ? 10 : 0);
                     if (unit.combat.shroudPenalty) {
@@ -316,16 +441,9 @@ export class BattleEngine {
                 
                 if (dist <= unit.stats.range) {
                     let dmg = unit.stats.ad;
+
                     
-                    if (unit.combat.isDominator && unit.combat.stackAdApPct) {
-                        unit.stats.ad *= (1 + unit.combat.stackAdApPct);
-                        unit.stats.ap *= (1 + unit.combat.stackAdApPct);
-                    }
-                    
-                    if (unit.combat.isQuickstriker) {
-                        const missingHpPct = 1 - (target.currHp / target.stats.maxHp);
-                        unit.stats.as = (unit.stats.as || 0.6) * (1 + (missingHpPct * unit.combat.maxAsBuff));
-                    }
+
                     
                     let currentDmgAmp = unit.combat.dmgAmp || 0;
                     if (unit.combat.isSniper) {
@@ -393,17 +511,17 @@ export class BattleEngine {
                     if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                     dr = Math.min(dr, 0.75); // 하드캡
                     totalDmg *= (1 - dr);
-                    
-                    if (unit.combat.firelightCharge) {
-                        totalDmg += unit.combat.bonusMagicDmg * (100 / (100 + actualMr));
-                        unit.combat.firelightCharge = false;
-                    }
-                    
-                    // 보너스 고정 피해 버프 (외고 전학생) 적용
                     let trueDmg = 0;
                     if (unit.buffs.some(b => b.type === 'bonusTrueDmg')) {
                         const bTrue = unit.buffs.find(b => b.type === 'bonusTrueDmg');
                         trueDmg = bTrue.val;
+                    }
+
+                    // [영어 시너지] 기본 공격 보너스 마법 피해
+                    if (unit.combat.bonusMagicDmgEng > 0) {
+                        let engMagicDmg = (unit.stats.ap * unit.combat.bonusMagicDmgEng) + (unit.stats.as * 10);
+                        let engActualDmg = engMagicDmg * (100 / (100 + actualMr));
+                        totalDmg += engActualDmg;
                     }
 
                     let preShieldDmg = totalDmg + trueDmg;
@@ -595,6 +713,21 @@ export class BattleEngine {
                             const oldIdx = unit.gridIndex;
                             unit.gridIndex = n.idx;
                             this.logs.push({ tick: this.tick, type: 'move', unit: oldIdx, to: n.idx });
+                            
+                            // [육상부 리워크] 이동 시 스택 누적
+                            if (unit.combat.isRunner) {
+                                unit.combat.runnerStacks = (unit.combat.runnerStacks || 0) + 1;
+                                if (unit.combat.runnerStacks <= unit.combat.runnerMaxStacks) {
+                                    unit.stats.as *= (1 + unit.combat.moveAsBuff);
+                                    unit.combat.armorPen = (unit.combat.armorPen || 0) + unit.combat.movePenBuff;
+                                    
+                                    if (unit.combat.runnerStacks === unit.combat.runnerMaxStacks) {
+                                        unit.stats.as *= (1 + (unit.combat.runnerMaxBonusAs || 0));
+                                        unit.combat.armorPen += (unit.combat.runnerMaxBonusPen || 0);
+                                    }
+                                }
+                            }
+                            
                             unit.cooldown = 6;
                             moved = true;
                             break;
@@ -717,7 +850,11 @@ export class BattleEngine {
             else this.enemyReviveCharges--;
 
             const reviveHpPct = target.team === 'player' ? this.playerReviveHpPct : this.enemyReviveHpPct;
-            const reviveBurst = target.team === 'player' ? this.playerReviveBurst : this.enemyReviveBurst;
+            const reviveShieldPct = target.team === 'player' ? this.playerReviveShieldPct : this.enemyReviveShieldPct;
+            const reviveStun = target.team === 'player' ? this.playerReviveStun : this.enemyReviveStun;
+            const reviveSelfDefBuff = target.team === 'player' ? this.playerReviveSelfDefBuff : this.enemyReviveSelfDefBuff;
+            const reviveBurstDmg = target.team === 'player' ? this.playerReviveBurstDmg : this.enemyReviveBurstDmg;
+            const reviveTeamHeal = target.team === 'player' ? this.playerReviveTeamHeal : this.enemyReviveTeamHeal;
 
             target.currHp = Math.round(target.stats.maxHp * reviveHpPct);
             target.isDead = false;
@@ -730,35 +867,65 @@ export class BattleEngine {
                 hp: target.currHp
             });
 
-            // 부활 광포화 버프: 50틱 동안 AD/AP/AS +50%
-            this.addBuff(target, 'buff', 'ad', Math.round(target.stats.ad * 0.50), 50);
-            this.addBuff(target, 'buff', 'ap', Math.round(target.stats.ap * 0.50), 50);
-            this.addBuff(target, 'buff', 'as', target.stats.as * 0.50, 50);
+            // [보건부 리워크] 광포화 삭제 -> 정화 및 응급조치 부여
+            // 1초간 디버프 면역(정화)
+            this.addBuff(target, 'ccImmune', null, 0, 10);
 
-            if (reviveBurst) {
+            // 주변 1칸 아군 보호막
+            if (reviveShieldPct > 0) {
+                const allies = activeUnits.filter(u => u.team === target.team && u.currHp > 0 && !u.isDead);
+                allies.forEach(a => {
+                    if (this.getDist(target.gridIndex, a.gridIndex) <= 1) {
+                        a.currShield += target.stats.maxHp * reviveShieldPct * this.shieldEfficiency;
+                    }
+                });
+            }
+
+            // 본인 방어력/마저 버프
+            if (reviveSelfDefBuff > 0) {
+                this.addBuff(target, 'buff', 'armor', Math.round(target.stats.armor * reviveSelfDefBuff), 50);
+                this.addBuff(target, 'buff', 'mr', Math.round(target.stats.mr * reviveSelfDefBuff), 50);
+            }
+
+            // 부활 시 주변 적 기절
+            if (reviveStun) {
                 const enemies = activeUnits.filter(u => u.team !== target.team && u.currHp > 0 && !u.isDead);
                 enemies.forEach(e => {
                     if (this.getDist(target.gridIndex, e.gridIndex) <= 1) {
-                        const burstDmg = target.stats.maxHp * 0.35;
-                        const actualDmg = burstDmg * (100 / (100 + e.stats.mr));
-                        e.currHp -= actualDmg;
-                        this.logs.push({
-                            tick: this.tick,
-                            type: 'damage',
-                            target: e.gridIndex,
-                            source: target.gridIndex,
-                            dmg: Math.round(actualDmg),
-                            dmgType: 'magic',
-                            isCrit: false,
-                            fxType: 'fire_red',
-                            currHp: e.currHp,
-                            maxHp: e.stats.maxHp,
-                            currShield: e.currShield
-                        });
-                        this.checkHpThresholds(e, activeUnits);
-                        if (e.currHp <= 0) this.handleDeath(e, activeUnits);
+                        this.addBuff(e, 'stun', null, 0, 15); // 1.5초
                     }
                 });
+            }
+
+            // 강력한 마법피해 + 아군 전체 회복
+            if (reviveBurstDmg > 0 || reviveTeamHeal > 0) {
+                if (reviveBurstDmg > 0) {
+                    const burstEnemies = activeUnits.filter(u => u.team !== target.team && u.currHp > 0 && !u.isDead);
+                    burstEnemies.forEach(e => {
+                        if (this.getDist(target.gridIndex, e.gridIndex) <= 2) {
+                            const actualDmg = (target.stats.maxHp * reviveBurstDmg) * (100 / (100 + e.stats.mr));
+                            e.currHp -= actualDmg;
+                            this.logs.push({
+                                tick: this.tick, type: 'damage', target: e.gridIndex, source: target.gridIndex,
+                                dmg: Math.round(actualDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red',
+                                currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield
+                            });
+                            this.checkHpThresholds(e, activeUnits);
+                            if (e.currHp <= 0) this.handleDeath(e, activeUnits);
+                        }
+                    });
+                }
+                if (reviveTeamHeal > 0) {
+                    const healAllies = activeUnits.filter(u => u.team === target.team && u.currHp > 0 && !u.isDead);
+                    healAllies.forEach(a => {
+                        const healVal = a.stats.maxHp * reviveTeamHeal * this.healEfficiency;
+                        a.currHp = Math.min(a.stats.maxHp, a.currHp + healVal);
+                        this.logs.push({
+                            tick: this.tick, type: 'heal', target: a.gridIndex, 
+                            amount: Math.round(healVal), currHp: a.currHp, maxHp: a.stats.maxHp
+                        });
+                    });
+                }
             }
             return;
         }

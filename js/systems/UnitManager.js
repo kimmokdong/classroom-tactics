@@ -494,8 +494,11 @@ export class UnitManager {
                 if (window.gameApp && window.gameApp.engine) {
                     const idx = parseInt(uDiv.dataset.index);
                     let activeU = null;
-                    if (baseUnit.isEnemy) activeU = window.gameApp.engine.enemyBoard[idx];
-                    else activeU = window.gameApp.engine.board[idx];
+                    if (baseUnit.isEnemy && window.gameApp.engine.enemyBoard) {
+                        activeU = window.gameApp.engine.enemyBoard[idx];
+                    } else if (window.gameApp.engine.board) {
+                        activeU = window.gameApp.engine.board[idx];
+                    }
 
                     if (activeU && activeU.buffs) {
                         let armShreds = activeU.buffs.filter(b => b.type === 'armorShred');
@@ -684,9 +687,16 @@ export class UnitManager {
                 let html = `<strong style="color:#d81b60">${syn.name}</strong><br><span style="font-size:0.85rem; color:#555;">${syn.desc}</span><div style="margin-top:5px; font-size:0.75rem;">`;
                 for (const [lvl, effects] of Object.entries(syn.levels)) {
                     html += `<div style="margin-top:3px;"><span style="font-weight:bold; color:#1976d2;">[${lvl}]</span> `;
-                    let effStrs = [];
-                    for (const [k, v] of Object.entries(effects)) effStrs.push(formatStat(k, v));
-                    html += effStrs.join(', ') + `</div>`;
+                    if (effects.desc) {
+                        html += `<span>${effects.desc}</span></div>`;
+                    } else {
+                        let effStrs = [];
+                        for (const [k, v] of Object.entries(effects)) {
+                            if (k === 'desc') continue;
+                            effStrs.push(formatStat(k, v));
+                        }
+                        html += effStrs.join(', ') + `</div>`;
+                    }
                 }
                 html += `</div>`;
                 tooltip.innerHTML = html;

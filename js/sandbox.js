@@ -776,7 +776,7 @@ function applyItemsToStats(board) {
                         if (itemDef.stats) {
                             if (itemDef.stats.hp) { u.stats.maxHp += itemDef.stats.hp; u.currHp += itemDef.stats.hp; }
                             if (itemDef.stats.maxHp) { u.stats.maxHp += itemDef.stats.maxHp; u.currHp += itemDef.stats.maxHp; }
-                            if (itemDef.stats.mana) u.currMana += itemDef.stats.mana;
+                            if (itemDef.stats.mana) { u.currMana += itemDef.stats.mana; u.stats.mana = (u.stats.mana || 0) + itemDef.stats.mana; }
                             if (itemDef.stats.ad) u.stats.ad += itemDef.stats.ad;
                             if (itemDef.stats.ap) u.stats.ap += itemDef.stats.ap;
                             if (itemDef.stats.armor) u.stats.armor += itemDef.stats.armor;

@@ -67,6 +67,21 @@ export class SkillEngine {
                 }
             }
 
+            // [미술 시너지] 장판 효과 적용 (스킬)
+            let dmgAmpFromCanvas = 0;
+            let dmgReducFromCanvas = 0;
+            for (let canvas of engine.canvases) {
+                const inRange = engine.getDist(canvas.centerIdx, target.gridIndex) <= canvas.radius;
+                if (inRange) {
+                    if (canvas.team !== target.team) {
+                        dmgAmpFromCanvas += canvas.enemyDmgAmp;
+                    } else {
+                        dmgReducFromCanvas += canvas.allyDmgReduc;
+                    }
+                }
+            }
+            if (dmgAmpFromCanvas > 0) finalDmg *= (1 + dmgAmpFromCanvas);
+
             if (type === 'physical') {
                 // ① 방어력 감쇄 먼저 적용
                 let armor = target.stats.armor;
@@ -82,6 +97,7 @@ export class SkillEngine {
                 finalDmg *= (100 / (100 + armor));
                 // ② dmgReduc 적용 (하드캡 75%)
                 let dr = target.combat?.dmgReduc || 0;
+                dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                 dr = Math.min(dr, 0.75);
                 finalDmg *= (1 - dr);
@@ -94,6 +110,7 @@ export class SkillEngine {
                 finalDmg *= (100 / (100 + actualMr));
                 // ② dmgReduc 적용 (하드캡 75%) - 마법 피해에도 적용
                 let dr = target.combat?.dmgReduc || 0;
+                dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                 dr = Math.min(dr, 0.75);
                 finalDmg *= (1 - dr);
@@ -104,6 +121,18 @@ export class SkillEngine {
             if (target.combat.itemEffects?.bramble && isCrit) {
                 finalDmg /= (unit.combat.critDmg || 1.5); // negate crit dmg
             }
+
+            // [영어 시너지] 스킬 적중 시 보너스 마법 피해
+            let engActualDmg = 0;
+            if (unit.combat.bonusMagicDmgEng > 0 && type !== 'true') {
+                let engMagicDmg = (unit.stats.ap * unit.combat.bonusMagicDmgEng) + (unit.stats.as * 10);
+                let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
+                let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
+                let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
+                engActualDmg = engMagicDmg * (100 / (100 + actualMr));
+            }
+            finalDmg += engActualDmg;
 
             let preShieldDmg = finalDmg;
 

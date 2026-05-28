@@ -289,9 +289,13 @@ window.addEventListener('DOMContentLoaded', () => {
             let html = `<strong style="font-size:1.1rem; color:#d81b60;">${syn.name} (${syn.desc})</strong><div style="margin-top:8px;">`;
             for (const [lvl, effects] of Object.entries(syn.levels)) {
                 html += `<span style="font-weight:bold;">[${lvl}]</span> `;
-                let effStrs = [];
-                for (const [k, v] of Object.entries(effects)) effStrs.push(formatStat(k, v));
-                html += effStrs.join(', ') + '&nbsp;&nbsp;|&nbsp;&nbsp;';
+                if (effects.desc) {
+                    html += `${effects.desc}&nbsp;&nbsp;|&nbsp;&nbsp;`;
+                } else {
+                    let effStrs = [];
+                    for (const [k, v] of Object.entries(effects)) effStrs.push(formatStat(k, v));
+                    html += effStrs.join(', ') + '&nbsp;&nbsp;|&nbsp;&nbsp;';
+                }
             }
             html += `</div>`;
             infoDiv.innerHTML = html;

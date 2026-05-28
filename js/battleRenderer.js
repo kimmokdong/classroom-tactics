@@ -66,6 +66,15 @@ export class BattleRenderer {
         // Initialize DPS Stats
         this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
 
+        // Initialize Timer
+        const timerContainer = document.getElementById('battle-timer-container');
+        const timerText = document.getElementById('battle-timer');
+        if (timerContainer) {
+            timerContainer.style.display = 'flex';
+            timerContainer.style.borderColor = '#3498db';
+            if (timerText) timerText.style.color = '#fff';
+        }
+
         this.currentTick = this.logs[0].tick;
         this.resizeCanvas();
         let logIndex = 0;
@@ -87,6 +96,22 @@ export class BattleRenderer {
             if (this.currentTick % 5 === 0) {
                 this.renderDpsUI();
             }
+
+            // Update Timer UI
+            if (this.currentTick >= 0 && timerText && timerContainer) {
+                if (this.currentTick >= 300) {
+                    if (timerText.innerText !== '연장전') {
+                        timerText.innerText = '연장전';
+                        timerContainer.style.borderColor = '#e74c3c';
+                        timerText.style.color = '#e74c3c';
+                    }
+                } else {
+                    const remainSec = Math.max(0, 30 - Math.floor(this.currentTick / 10));
+                    if (timerText.innerText !== remainSec.toString()) {
+                        timerText.innerText = remainSec;
+                    }
+                }
+            }
             
             if (logIndex >= this.logs.length) {
                 clearInterval(this.timer);
@@ -98,12 +123,13 @@ export class BattleRenderer {
                         this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
                     }, 2000);
                 }
+                if (timerContainer) timerContainer.style.display = 'none';
                 const lastLog = this.logs[this.logs.length - 1];
                 setTimeout(() => onEnd(lastLog.winner, lastLog), 1500);
             }
             
             this.currentTick++;
-        }, 100);
+        }, 150); // 100ms -> 150ms로 늦춰 전체 전투 템포 조절
     }
 
     animate(time) {
@@ -364,6 +390,10 @@ export class BattleRenderer {
                     let color = action.dmgType === 'magic' ? '#9c27b0' : action.dmgType === 'true' ? '#ffffff' : '#d32f2f';
                     if (action.fxType === 'projectile') {
                         this.spawnFx('projectile', c1.x, c1.y, {vx: nx*15, vy: ny*15, targetX: c2.x, targetY: c2.y, life: 1, color: color, size: 6});
+                    } else if (action.fxType === 'banana') {
+                        this.spawnFx('banana_proj', c1.x, c1.y, {vx: nx*12, vy: ny*12, targetX: c2.x, targetY: c2.y, life: 1, color: '#f1c40f', size: 10});
+                    } else if (action.fxType === 'fire_red') {
+                        this.spawnFx('fire_red_proj', c1.x, c1.y, {vx: nx*18, vy: ny*18, targetX: c2.x, targetY: c2.y, life: 1, color: '#e74c3c', size: 8});
                     } else if (action.fxType === 'dash_slash' || action.fxType === 'single_hit') {
                         this.spawnFx('single_hit', c2.x, c2.y, {life: 0.3, color: color, size: 20, angle: Math.atan2(ny, nx)});
                     } else if (action.fxType === 'lightning') {
@@ -654,7 +684,14 @@ export class BattleRenderer {
                             }
                         } else if (action.fxType === 'chain_bounce') {
                             this.spawnFx('single_hit', tCenter.x, tCenter.y, {life: 0.3, color: color, size: 40});
-                            this.spawnFx('lightning', prevCenter.x, prevCenter.y, {targetX: tCenter.x, targetY: tCenter.y, life: 0.4, color: color});
+                            if (action.vfx === 'triangle_ruler') {
+                                const dx = tCenter.x - prevCenter.x;
+                                const dy = tCenter.y - prevCenter.y;
+                                const dist = Math.sqrt(dx*dx + dy*dy);
+                                if (dist > 0) this.spawnFx('triangle_ruler_proj', prevCenter.x, prevCenter.y, {vx: (dx/dist)*15, vy: (dy/dist)*15, targetX: tCenter.x, targetY: tCenter.y, life: 1});
+                            } else {
+                                this.spawnFx('lightning', prevCenter.x, prevCenter.y, {targetX: tCenter.x, targetY: tCenter.y, life: 0.4, color: color});
+                            }
                             prevCenter = tCenter;
                         } else if (action.fxType === 'beam') {
                             const dx = tCenter.x - casterCenter.x;
@@ -725,6 +762,51 @@ export class BattleRenderer {
                             iconContainer.appendChild(iconDiv);
                         }
                     });
+                }
+            }
+        } else if (action.type === 'spirit_transfer' && this.fxCanvas) {
+            const sourceCenter = this.getCellCenter(action.source);
+            const targetCenter = this.getCellCenter(action.target);
+            if(sourceCenter && targetCenter) {
+                const dx = targetCenter.x - sourceCenter.x;
+                const dy = targetCenter.y - sourceCenter.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist > 0) {
+                    this.spawnFx(action.fxType || 'aug_spirit_transfer', sourceCenter.x, sourceCenter.y, { 
+                        vx: (dx/dist)*15, vy: (dy/dist)*15, 
+                        targetX: targetCenter.x, targetY: targetCenter.y, 
+                        life: 1.0, color: '#f1c40f', size: 10 
+                    });
+                }
+            }
+        } else if (action.type === 'vfx' && this.fxCanvas) {
+            const center = this.getCellCenter(action.target);
+            if (!center) return;
+            if (action.fxType === 'art_canvas') {
+                const cellSize = this.cellSize || 70;
+                this.spawnFx('art_canvas', center.x, center.y, { life: 5.0, maxLife: 5.0, radius: 0, maxRadius: (action.radius || 1) * cellSize * 1.2 });
+            } else if (action.fxType === 'satiety_tick') {
+                const count = action.count || 1;
+                for (let i=0; i<3 + count; i++) {
+                    const r = 20 + count * 5;
+                    this.spawnFx('heal_sparkle', center.x + (Math.random()*r-r/2), center.y + (Math.random()*r-r/2), { life: 0.8 + count*0.1, color: '#f39c12' });
+                }
+                this.spawnFx('satiety_aura', center.x, center.y, { life: 0.8, count: count });
+            } else if (action.fxType === 'mana_burn_fx') {
+                this.spawnFx('mana_burn_fx', center.x, center.y, { life: 0.8 });
+            } else if (action.fxType === 'mana_steal_proj') {
+                const sourceCenter = this.getCellCenter(action.source);
+                if(sourceCenter) {
+                    const dx = center.x - sourceCenter.x;
+                    const dy = center.y - sourceCenter.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist > 0) {
+                        this.spawnFx('mana_steal_proj', sourceCenter.x, sourceCenter.y, { 
+                            vx: (dx/dist)*12, vy: (dy/dist)*12, 
+                            targetX: center.x, targetY: center.y, 
+                            life: 1.0, color: '#9b59b6', size: 6 
+                        });
+                    }
                 }
             }
         } else if (action.type === 'shroud_beam' && this.fxCanvas) {

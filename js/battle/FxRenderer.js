@@ -1468,6 +1468,163 @@ export class FxRenderer {
                 ctx.arc(p.x, p.y, 2.0 * t, 0, Math.PI * 2);
                 ctx.fill();
             }
+        } else if (p.type === 'mana_steal_proj' || p.type === 'aug_spirit_transfer') {
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.03;
+            if (p.life > 0) {
+                ctx.fillStyle = p.color || (p.type === 'aug_spirit_transfer' ? '#f1c40f' : '#9b59b6');
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size || 6, 0, Math.PI * 2);
+                ctx.fill();
+                this.fxSystem.particles.push({
+                    type: 'particle', x: p.x, y: p.y, vx: 0, vy: 0, life: 0.2, color: ctx.fillStyle, size: (p.size || 6) * 0.8
+                });
+            }
+        } else if (p.type === 'satiety_aura') {
+            p.radius = (p.radius || 10) + 2;
+            p.life -= 0.02;
+            if (p.life > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(243, 156, 18, ${Math.min(1, p.life)})`;
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.restore();
+            }
+        } else if (p.type === 'banana') {
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.03;
+            if (p.life > 0) {
+                ctx.font = '20px Arial';
+                ctx.fillText('🍌', p.x, p.y);
+            }
+        } else if (p.type === 'triangle_ruler_proj') {
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.05;
+            if (p.life > 0) {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(Date.now() / 100);
+                ctx.font = '20px Arial';
+                ctx.fillText('📐', -10, 10);
+                ctx.restore();
+            }
+        } else if (p.type === 'art_canvas') {
+            p.radius = p.radius + (p.maxRadius - p.radius) * 0.1;
+            const wave = Math.sin(Date.now() / 200 + p.life * 5) * 5;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.lineWidth = 10 + wave;
+            ctx.strokeStyle = `hsla(${(p.life * 50) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.4})`;
+            ctx.stroke();
+            
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+            grad.addColorStop(0, `hsla(${(p.life * 50 + 60) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.15})`);
+            grad.addColorStop(1, `hsla(${(p.life * 50) % 360}, 70%, 60%, 0)`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            
+            // 물감 튀기는(Splatter) 파티클 간헐적 생성
+            if (Math.random() < 0.1 && p.life > 0.5) {
+                const a = Math.random() * Math.PI * 2;
+                const r = Math.random() * p.radius;
+                this.fxSystem.spawnFx('paint_splatter', p.x + Math.cos(a)*r, p.y + Math.sin(a)*r, { life: 0.5 });
+            }
+            ctx.restore();
+        } else if (p.type === 'satiety_aura') {
+            const count = p.count || 1;
+            const r = 20 + count * 5;
+            const alpha = Math.max(0, p.life / 0.8);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * (1 - alpha) + r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(243, 156, 18, ${alpha})`;
+            ctx.lineWidth = 2 + count;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * 1.5 * (1 - alpha) + r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(241, 196, 15, ${alpha * 0.5})`;
+            ctx.lineWidth = 1 + count * 0.5;
+            ctx.stroke();
+        } else if (p.type === 'mana_steal_proj') {
+            p.t = Math.min((p.t || 0) + 0.02, 1);
+            p.x += p.vx; p.y += p.vy;
+            
+            if (p.targetX !== undefined && p.targetY !== undefined) {
+                const distSq = Math.pow(p.targetX - p.x, 2) + Math.pow(p.targetY - p.y, 2);
+                if (distSq < Math.pow(Math.max(Math.abs(p.vx), Math.abs(p.vy)) + p.size, 2)) {
+                    p.life = 0;
+                    this.fxSystem.spawnFx('mana_burn_fx', p.targetX, p.targetY, { life: 0.5 });
+                }
+            }
+            ctx.fillStyle = '#3498db'; // 파란색/보라색 마나 구슬
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 꼬리 이펙트
+            this.fxSystem.particles.push({ type: 'low_lifesteal', x: p.x, y: p.y, tx: p.x - p.vx*2, ty: p.y - p.vy*2, t: 0, life: 0.2 });
+        } else if (p.type === 'banana_proj') {
+            p.t = Math.min((p.t || 0) + 0.02, 1);
+            p.x += p.vx; p.y += p.vy;
+            p.rotation = (p.rotation || 0) + 0.3;
+            
+            if (p.targetX !== undefined && p.targetY !== undefined) {
+                const distSq = Math.pow(p.targetX - p.x, 2) + Math.pow(p.targetY - p.y, 2);
+                if (distSq < Math.pow(Math.max(Math.abs(p.vx), Math.abs(p.vy)) + p.size, 2)) {
+                    p.life = 0; // die
+                }
+            }
+            
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillStyle = '#f1c40f';
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size, 0.2*Math.PI, 0.8*Math.PI);
+            ctx.arc(0, -p.size/2, p.size*1.2, 0.8*Math.PI, 0.2*Math.PI, true);
+            ctx.fill();
+        } else if (p.type === 'fire_red_proj') {
+            p.t = Math.min((p.t || 0) + 0.02, 1);
+            p.x += p.vx; p.y += p.vy;
+            
+            if (p.targetX !== undefined && p.targetY !== undefined) {
+                const distSq = Math.pow(p.targetX - p.x, 2) + Math.pow(p.targetY - p.y, 2);
+                if (distSq < Math.pow(Math.max(Math.abs(p.vx), Math.abs(p.vy)) + p.size, 2)) {
+                    p.life = 0;
+                    this.fxSystem.spawnFx('aoe_ripple', p.targetX, p.targetY, { life: 0.5, color: '#e74c3c', size: 30 });
+                    for(let i=0; i<8; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const s = Math.random() * 3 + 1;
+                        this.fxSystem.particles.push({ type: 'low_hit', x: p.targetX, y: p.targetY, vx: Math.cos(a)*s, vy: Math.sin(a)*s, color: '#e74c3c', life: 0.5, maxLife: 0.5 });
+                    }
+                }
+            }
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (p.type === 'mana_burn_fx') {
+            if (!p.particles) {
+                p.particles = Array.from({ length: 6 }, () => ({
+                    x: p.x + (Math.random() * 20 - 10),
+                    y: p.y + (Math.random() * 10 - 5),
+                    vy: -(Math.random() * 2 + 1),
+                    vx: (Math.random() * 1 - 0.5),
+                    l: Math.random() * 0.5 + 0.3,
+                    size: Math.random() * 3 + 2
+                }));
+            }
+            p.particles.forEach(pt => {
+                pt.x += pt.vx; pt.y += pt.vy;
+                pt.l -= 0.01;
+                if (pt.l > 0) {
+                    ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size * pt.l, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(155, 89, 182, ${pt.l})`; ctx.fill();
+                }
+            });
         }
 
         ctx.restore();

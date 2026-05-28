@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리워크 VFX 데모</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: #fff; }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        h1 { font-size: 24px; margin-bottom: 10px; color: #64ffda; }
+        p { font-size: 14px; color: #aaa; margin-bottom: 20px; }
+        .canvas-container { position: relative; width: 600px; height: 400px; margin: 0 auto; background: #222; border-radius: 8px; border: 1px solid #333; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        canvas { position: absolute; top: 0; left: 0; }
+        .controls { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 10px 20px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background: #444; border-color: #64ffda; color: #64ffda; }
+        button.active { background: #64ffda; color: #000; border-color: #64ffda; }
+        
+        .info-panel { margin-top: 30px; text-align: left; background: #2a2a2a; padding: 20px; border-radius: 8px; border: 1px solid #333; }
+        .info-panel h2 { margin-top: 0; color: #64ffda; font-size: 18px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .synergy-item { margin-bottom: 15px; }
+        .synergy-item strong { color: #ffb74d; }
+        .synergy-item ul { margin: 5px 0 0 20px; padding: 0; color: #ccc; font-size: 14px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>교실 택틱스: 신규 시각효과(VFX) 데모</h1>
+    <p>아래 버튼을 눌러 각 시너지의 리워크된 파티클 이펙트를 확인하세요.</p>
+    
+    <div class="canvas-container">
+        <canvas id="bgCanvas" width="600" height="400"></canvas>
+        <canvas id="fxCanvas" width="600" height="400"></canvas>
+    </div>
+    
+    <div class="controls">
+        <button id="btn-art" class="active" onclick="setMode('art')">미술 (장판 효과)</button>
+        <button id="btn-banana" onclick="setMode('banana')">장난 (바나나 투척)</button>
+        <button id="btn-fire" onclick="setMode('fire')">장난 (폭음탄 투척)</button>
+        <button id="btn-satiety" onclick="setMode('satiety')">급식부 (포만감 틱)</button>
+        <button id="btn-mana" onclick="setMode('mana')">영어 (마나번)</button>
+    </div>
+
+    <div class="info-panel">
+        <h2>리워크 시너지 세부 수치 안내</h2>
+        
+        <div class="synergy-item">
+            <strong>🎨 미술 (색채의 캔버스)</strong>
+            <ul>
+                <li>[2] 스킬 사용 시 반경 1칸(상하좌우대각선 8칸) 미술 장판 5초 생성. 장판 내 아군 피해감소 15%, 적 피해증폭 15%</li>
+                <li>[4] 스킬 사용 시 반경 2칸 미술 장판 5초 생성. 장판 내 아군 피해감소 30%, 적 피해증폭 30%</li>
+            </ul>
+        </div>
+        
+        <div class="synergy-item">
+            <strong>🧢 장난꾸러기 (예측불허 장난)</strong>
+            <ul>
+                <li>[2] 스킬 3회 사용 시 랜덤 적에게 바나나 투척 (1.5초 기절)</li>
+                <li>[4] 스킬 3회 사용 시 랜덤 적에게 폭음탄 투척 (1.5초 기절 + 최대체력 10% 비례 마법피해)</li>
+                <li>[6] 스킬 3회 사용 시 모든 적에게 폭음탄 투척 (광역 1.5초 기절 + 10% 비례 마법피해)</li>
+            </ul>
+        </div>
+
+        <div class="synergy-item">
+            <strong>🍱 급식부 (든든한 밥심)</strong>
+            <ul>
+                <li>[3] 전투 시작 시 200 보호막. 전투 중 매 3초마다 최대 체력 5%, 방/마저 5 증가 (주황빛 회복 이펙트 발생)</li>
+                <li>[5] 전투 시작 시 400 보호막. 전투 중 매 3초마다 최대 체력 10%, 방/마저 10 증가</li>
+                <li>[7] 전투 시작 시 800 보호막. 전투 중 매 3초마다 최대 체력 20%, 방/마저 20 증가</li>
+            </ul>
+        </div>
+        
+        <div class="synergy-item">
+            <strong>🗣️ 영어 (글로벌 스피킹)</strong>
+            <ul>
+                <li>[2] 적 전체 최대 마나통 20% 감소. 스킬 시전 시 반경 2칸 적의 마나 15 연소 및 아군 분배 (보라색 화염 이펙트 발생)</li>
+                <li>[4] 적 전체 최대 마나통 45% 감소. 스킬 시전 시 반경 2칸 적의 마나 15 연소 및 분배. <br>추가로 모든 기본공격 및 스킬 적중 시 (주문력 15% + 공속 비례)의 추가 마법피해</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fxCanvas = document.getElementById('fxCanvas');
+    const bgCanvas = document.getElementById('bgCanvas');
+    const ctx = fxCanvas.getContext('2d');
+    const bgCtx = bgCanvas.getContext('2d');
+    
+    let currentMode = 'art';
+    let particles = [];
+    let time = 0;
+    
+    const CHAR_RADIUS = 20;
+    
+    function setMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + mode).classList.add('active');
+        particles = [];
+        triggerEffect();
+    }
+    
+    function drawBackground() {
+        bgCtx.fillStyle = '#222';
+        bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        
+        // Grid
+        bgCtx.strokeStyle = '#333';
+        bgCtx.lineWidth = 1;
+        for(let i=0; i<600; i+=50) {
+            bgCtx.beginPath(); bgCtx.moveTo(i, 0); bgCtx.lineTo(i, 400); bgCtx.stroke();
+        }
+        for(let i=0; i<400; i+=50) {
+            bgCtx.beginPath(); bgCtx.moveTo(0, i); bgCtx.lineTo(600, i); bgCtx.stroke();
+        }
+        
+        // Characters
+        // Player (Left)
+        bgCtx.fillStyle = '#2980b9'; // Blue
+        bgCtx.beginPath(); bgCtx.arc(150, 200, CHAR_RADIUS, 0, Math.PI*2); bgCtx.fill();
+        bgCtx.strokeStyle = '#fff'; bgCtx.lineWidth = 2; bgCtx.stroke();
+        
+        // Enemy (Right)
+        bgCtx.fillStyle = '#c0392b'; // Red
+        bgCtx.beginPath(); bgCtx.arc(450, 200, CHAR_RADIUS, 0, Math.PI*2); bgCtx.fill();
+        bgCtx.strokeStyle = '#fff'; bgCtx.stroke();
+    }
+    
+    function triggerEffect() {
+        if(currentMode === 'art') {
+            particles.push({ type: 'canvas', x: 150, y: 200, radius: 0, maxRadius: 100, life: 3.0, maxLife: 3.0, color: 'hsla(320, 70%, 60%, 0.4)' });
+            particles.push({ type: 'canvas', x: 150, y: 200, radius: 0, maxRadius: 100, life: 3.2, maxLife: 3.2, color: 'hsla(200, 70%, 60%, 0.4)' });
+        } 
+        else if (currentMode === 'banana') {
+            particles.push({ type: 'projectile', x: 150, y: 200, targetX: 450, targetY: 200, progress: 0, color: '#f1c40f', isBanana: true, rotation: 0 });
+        }
+        else if (currentMode === 'fire') {
+            particles.push({ type: 'projectile', x: 150, y: 200, targetX: 450, targetY: 200, progress: 0, color: '#e74c3c', isFire: true });
+        }
+        else if (currentMode === 'satiety') {
+            const count = Math.floor(Math.random() * 5) + 1; // 1~5 임의 카운트
+            for(let i=0; i<3 + count; i++) {
+                const r = 20 + count * 5;
+                particles.push({ type: 'spark', x: 150 + Math.random()*r-r/2, y: 200 + Math.random()*r-r/2, vx: 0, vy: -1.5, life: 0.8 + count*0.1, maxLife: 0.8 + count*0.1, color: '#f39c12', size: 4 });
+            }
+            particles.push({ type: 'satiety_aura', x: 150, y: 200, life: 0.8, count: count });
+        }
+        else if (currentMode === 'mana') {
+            particles.push({ type: 'mana_steal_proj', x: 450, y: 200, targetX: 150, targetY: 200, progress: 0, vx: -4, vy: 0, life: 1, color: '#3498db', size: 6 });
+        }
+    }
+    
+    function spawnExplosion(x, y) {
+        for(let i=0; i<20; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            particles.push({
+                type: 'spark', x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0.5 + Math.random() * 0.3, maxLife: 0.8, color: Math.random() > 0.5 ? '#ff5722' : '#ffc107', size: Math.random() * 4 + 2
+            });
+        }
+        particles.push({ type: 'shockwave', x: x, y: y, radius: 5, life: 0.4, maxLife: 0.4 });
+    }
+
+    function spawnStun(x, y) {
+        particles.push({ type: 'stun', x: x, y: y - 30, angle: 0, life: 1.5, maxLife: 1.5 });
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        time += 0.016;
+        
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            
+            if (p.type === 'canvas') {
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                
+                p.radius = p.radius + (p.maxRadius - p.radius) * 0.1;
+                const wave = Math.sin(time * 5 + p.life) * 5;
+                
+                ctx.save();
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+                ctx.lineWidth = 10 + wave;
+                ctx.strokeStyle = `hsla(${(p.life * 50) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.4})`;
+                ctx.stroke();
+                
+                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+                grad.addColorStop(0, `hsla(${(p.life * 50 + 60) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.15})`);
+                grad.addColorStop(1, `hsla(${(p.life * 50) % 360}, 70%, 60%, 0)`);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                
+                if (Math.random() < 0.1 && p.life > 0.5) {
+                    const a = Math.random() * Math.PI * 2;
+                    const r = Math.random() * p.radius;
+                    particles.push({ type: 'spark', x: p.x + Math.cos(a)*r, y: p.y + Math.sin(a)*r, vx: 0, vy: 0, life: 0.5, maxLife: 0.5, color: `hsl(${Math.random() * 360}, 100%, 50%)`, size: Math.random()*4+2 });
+                }
+                ctx.restore();
+            }
+            else if (p.type === 'projectile') {
+                p.progress += 0.02;
+                if (p.progress >= 1.0) {
+                    particles.splice(i, 1);
+                    if (p.isBanana) spawnStun(p.targetX, p.targetY);
+                    else if (p.isFire) { spawnExplosion(p.targetX, p.targetY); spawnStun(p.targetX, p.targetY); }
+                    continue;
+                }
+                
+                const px = p.x + (p.targetX - p.x) * p.progress;
+                const arcY = Math.sin(p.progress * Math.PI) * -80; 
+                const py = p.y + (p.targetY - p.y) * p.progress + arcY;
+                
+                ctx.save();
+                ctx.translate(px, py);
+                
+                if (p.isBanana) {
+                    p.rotation += 0.3; ctx.rotate(p.rotation);
+                    ctx.fillStyle = '#f1c40f';
+                    ctx.beginPath(); ctx.arc(0, 0, 10, 0.2*Math.PI, 0.8*Math.PI); ctx.arc(0, -5, 12, 0.8*Math.PI, 0.2*Math.PI, true); ctx.fill();
+                } else if (p.isFire) {
+                    ctx.fillStyle = '#ff5722';
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+                    particles.push({ type: 'trail', x: px, y: py, life: 0.2, color: '#e74c3c', size: 4 });
+                }
+                ctx.restore();
+            }
+            else if (p.type === 'spark' || p.type === 'mana_burn') {
+                p.x += p.vx; p.y += p.vy; p.vx *= 0.9; p.vy *= 0.9;
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                
+                ctx.globalAlpha = p.life / p.maxLife; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+            else if (p.type === 'trail') {
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                ctx.globalAlpha = p.life / 0.2; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+            else if (p.type === 'shockwave') {
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                p.radius += 10;
+                ctx.globalAlpha = Math.max(0, p.life / p.maxLife); ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 4 * (p.life / p.maxLife);
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.stroke();
+                ctx.globalAlpha = 1.0;
+            }
+            else if (p.type === 'satiety_aura') {
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                
+                const r = 20 + p.count * 5;
+                const alpha = Math.max(0, p.life / 0.8);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r * (1 - alpha) + r, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(243, 156, 18, ${alpha})`;
+                ctx.lineWidth = 2 + p.count;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r * 1.5 * (1 - alpha) + r, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(241, 196, 15, ${alpha * 0.5})`;
+                ctx.lineWidth = 1 + p.count * 0.5;
+                ctx.stroke();
+            }
+            else if (p.type === 'mana_steal_proj') {
+                p.progress += 0.03;
+                if (p.progress >= 1.0) {
+                    particles.splice(i, 1);
+                    for(let j=0; j<6; j++) {
+                        particles.push({ type: 'mana_burn', x: p.targetX + Math.random()*20-10, y: p.targetY + Math.random()*10-5, vx: Math.random()-0.5, vy: -(Math.random()*2+1), life: 0.5, maxLife: 0.5, color: '#9b59b6', size: Math.random()*3+2 });
+                    }
+                    continue;
+                }
+                const px = p.x + (p.targetX - p.x) * p.progress;
+                const py = p.y + (p.targetY - p.y) * p.progress;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(px, py, p.size, 0, Math.PI * 2); ctx.fill();
+                particles.push({ type: 'trail', x: px, y: py, life: 0.2, color: '#3498db', size: 4 });
+            }
+            else if (p.type === 'stun') {
+                p.life -= 0.016;
+                if(p.life <= 0) { particles.splice(i, 1); continue; }
+                p.angle += 0.1;
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+                ctx.fillStyle = '#f1c40f';
+                for(let j=0; j<3; j++) {
+                    ctx.beginPath(); ctx.ellipse(15, 0, 4, 2, 0, 0, Math.PI*2); ctx.fill(); ctx.rotate(Math.PI * 2 / 3);
+                }
+                ctx.restore();
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+    
+    setInterval(() => {
+        if(particles.filter(p => p.type === 'canvas' || p.type === 'projectile').length === 0) {
+            triggerEffect();
+        }
+    }, 2000);
+
+    drawBackground();
+    animate();
+</script>
+</body>
+</html>
