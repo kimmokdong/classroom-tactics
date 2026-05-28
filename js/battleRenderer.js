@@ -783,8 +783,17 @@ export class BattleRenderer {
             const center = this.getCellCenter(action.target);
             if (!center) return;
             if (action.fxType === 'art_canvas') {
-                const cellSize = this.cellSize || 70;
-                this.spawnFx('art_canvas', center.x, center.y, { life: 5.0, maxLife: 5.0, radius: 0, maxRadius: (action.radius || 1) * cellSize * 1.2 });
+                // 실제 셀 크기를 계산하여 정확한 radius 전달
+                const c0 = this.getCellCenter(0);
+                const c1 = this.getCellCenter(1);
+                const measuredCellSize = (c0 && c1) ? Math.abs(c1.x - c0.x) : 70;
+                const radius = action.radius || 1;
+                this.spawnFx('art_canvas', center.x, center.y, {
+                    life: 5.0,
+                    maxLife: 5.0,
+                    radius: 0,
+                    maxRadius: radius * measuredCellSize * 2.2
+                });
             } else if (action.fxType === 'satiety_tick') {
                 const count = action.count || 1;
                 for (let i=0; i<3 + count; i++) {

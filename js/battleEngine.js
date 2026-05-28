@@ -6,13 +6,13 @@ export class BattleEngine {
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
-                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: u.currHp !== undefined ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         for(let i=0; i<24; i++) {
             if (enemyBoard[i]) {
                 const u = enemyBoard[i];
-                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: u.currHp !== undefined ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         

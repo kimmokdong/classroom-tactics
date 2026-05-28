@@ -1511,24 +1511,42 @@ export class FxRenderer {
                 ctx.restore();
             }
         } else if (p.type === 'art_canvas') {
-            p.radius = p.radius + (p.maxRadius - p.radius) * 0.1;
+            p.radius = p.radius + (p.maxRadius - p.radius) * 0.12;
+            if (p.radius < 2) return; // 반지름이 너무 작으면 스킵
             const wave = Math.sin(Date.now() / 200 + p.life * 5) * 5;
-            
+            const lifePct = Math.max(0, Math.min(1, p.life / p.maxLife));
+            const fadeOut = lifePct < 0.2 ? lifePct / 0.2 : 1; // 마지막 20%에서 페이드아웃
+            const alpha = fadeOut;
+
             ctx.save();
+            ctx.globalAlpha = 1; // globalAlpha 무력화 (자체 알파 사용)
+
+            // 외곽 테두리 링
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.lineWidth = 10 + wave;
-            ctx.strokeStyle = `hsla(${(p.life * 50) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.4})`;
+            ctx.lineWidth = 12 + wave;
+            ctx.strokeStyle = `hsla(${(Date.now() / 15) % 360}, 90%, 65%, ${alpha * 0.85})`;
             ctx.stroke();
-            
+
+            // 두번째 안쪽 링
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius * 0.75, 0, Math.PI * 2);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = `hsla(${(Date.now() / 15 + 60) % 360}, 90%, 75%, ${alpha * 0.5})`;
+            ctx.stroke();
+
+            // 내부 그라데이션 채우기
             const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-            grad.addColorStop(0, `hsla(${(p.life * 50 + 60) % 360}, 70%, 60%, ${Math.min(1, p.life) * 0.15})`);
-            grad.addColorStop(1, `hsla(${(p.life * 50) % 360}, 70%, 60%, 0)`);
+            grad.addColorStop(0, `hsla(${(Date.now() / 15 + 120) % 360}, 70%, 70%, ${alpha * 0.25})`);
+            grad.addColorStop(0.6, `hsla(${(Date.now() / 15 + 60) % 360}, 80%, 60%, ${alpha * 0.12})`);
+            grad.addColorStop(1, `hsla(${(Date.now() / 15) % 360}, 90%, 55%, 0)`);
             ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // 물감 튀기는(Splatter) 파티클 간헐적 생성
-            if (Math.random() < 0.1 && p.life > 0.5) {
+            if (Math.random() < 0.12 && p.life > 0.5) {
                 const a = Math.random() * Math.PI * 2;
                 const r = Math.random() * p.radius;
                 this.fxSystem.spawnFx('paint_splatter', p.x + Math.cos(a)*r, p.y + Math.sin(a)*r, { life: 0.5 });

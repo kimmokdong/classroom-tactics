@@ -1054,6 +1054,7 @@ function applySynergiesToStats(board, isEnemy = false) {
         
         u.stats.ap += teamAp;
         u.stats.maxHp += teamHp;
+        if (!u.currHp || u.currHp <= 0) u.currHp = u.stats.hp; // currHp 미초기화 방지
         u.currHp += teamHp;
         u.stats.armor += teamDef;
         u.stats.mr += teamDef;
@@ -1087,7 +1088,12 @@ function applySynergiesToStats(board, isEnemy = false) {
                 if (subjEff.selfAp) u.stats.ap += subjEff.selfAp;
             }
             if (u.subject === '체육') { u.stats.maxHp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); u.currHp = u.stats.maxHp; }
-            if (u.subject === '미술') { u.combat.isFirelight = true; u.combat.tickHeal = subjEff.tickHeal; u.combat.bonusMagicDmg = subjEff.bonusMagicDmg; }
+            if (u.subject === '미술') {
+                u.combat.canvasDuration = subjEff.canvasDuration || 0;
+                u.combat.canvasRadius = subjEff.canvasRadius || 1;
+                u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc || 0;
+                u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp || 0;
+            }
             if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
             if (u.subject === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
             if (u.subject === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
@@ -1134,6 +1140,12 @@ function startBattle() {
     battleEngine = new BattleEngine(pBoard, eBoard, augmentsArray);
     const logs = battleEngine.run();
     
+    // fxCanvas 크기를 boardEl 기준으로 명시적으로 설정
+    const boardRect = boardEl.getBoundingClientRect();
+    fxCanvas.width = boardRect.width || 700;
+    fxCanvas.height = boardRect.height || 525;
+    console.log('[샌드박스] fxCanvas 크기:', fxCanvas.width, fxCanvas.height);
+
     // Copy rendered board elements for BattleRenderer
     battleRenderer = new BattleRenderer(logs, boardEl, fxCanvas);
     battleRenderer.play((winner, endLog) => {

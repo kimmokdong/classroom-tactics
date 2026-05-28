@@ -507,6 +507,20 @@ export class FxSystem {
             return;
         }
 
+        // [미술 시너지] 색채의 캔버스 장판 이펙트
+        if (type === 'art_canvas') {
+            this.particles.push({
+                type: 'art_canvas',
+                x: x,
+                y: y,
+                radius: 0,
+                maxRadius: options.maxRadius || 84,
+                life: options.life || 5.0,
+                maxLife: options.maxLife || 5.0
+            });
+            return;
+        }
+
         if (type === 'aug_heal_bomb') {
             const xVal = x, yVal = y;
             for (let i = 0; i < 2; i++) {
