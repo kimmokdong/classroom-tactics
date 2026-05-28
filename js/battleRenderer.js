@@ -742,6 +742,29 @@ export class BattleRenderer {
                 size: 60,
                 life: 1.5
             });
+        } else if (action.type === 'sudden_death') {
+            // 연장전 발동 배너 표시
+            const logEl = document.getElementById('battle-log');
+            if (logEl) {
+                const li = document.createElement('li');
+                li.style.color = '#f39c12';
+                li.style.fontWeight = 'bold';
+                li.style.fontSize = '1.1rem';
+                li.style.borderBottom = '2px solid #f39c12';
+                li.style.paddingBottom = '6px';
+                li.style.textAlign = 'center';
+                li.style.background = 'rgba(243, 156, 18, 0.1)';
+                li.style.borderRadius = '8px';
+                li.style.padding = '8px';
+                li.innerHTML = `⚡ <strong style="color:#e74c3c;">연장전(Sudden Death) 발동!</strong><br><span style="font-size:0.8rem; color:#7f8c8d;">공속 ×4 | 주문력 ×2 | 회복/보호막/CC -66%</span>`;
+                logEl.appendChild(li);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            // 화면 플래시 효과
+            if (this.fxCanvas) {
+                this.screenFlash = 0.6;
+                this.hitStopUntil = performance.now() + 800;
+            }
         }
     }
 

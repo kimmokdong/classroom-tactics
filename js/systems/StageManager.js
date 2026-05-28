@@ -188,7 +188,17 @@ export class StageManager {
                 title = '승리!';
                 msg = `<span style="color:#2563eb; font-weight:800;">⚔️ 전투 승리!</span> (+${totalGold}G)`;
                 if (st.winStreak >= 3) msg += `<br><span style="color:#e84393;">🔥 ${st.winStreak}연승 보너스 +${streakBonus}G</span>`;
-            } else {
+            } else if (winner === 'draw') {
+                // 무승부: 연승/연패 초기화, 체력 피해 없음
+                st.winStreak = 0;
+                st.lossStreak = 0;
+                let totalGold = 3 + interest;
+                if (st.snackShop) { totalGold += 1; }
+                st.gold += totalGold;
+                title = '무승부!';
+                type = 'draw';
+                msg = `<span style="color:#f39c12; font-weight:800;">⚡ 연장전 무승부!</span><br><span style="font-size:0.9rem; color:#636e72;">양쪽 모두 생존 — 체력 피해 없음 (+${totalGold}G)</span>`;
+            } else if (winner === 'enemy') {
                 st.lossStreak++;
                 st.winStreak = 0;
                 const streakBonus = getStreakBonus(st.lossStreak);

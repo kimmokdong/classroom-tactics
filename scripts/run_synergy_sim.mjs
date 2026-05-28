@@ -3,10 +3,10 @@
  * - 보스 단계를 world=3, round=3 (적 레벨 7) 대신 더 적절한 난이도로 조정
  * - 시너지별 평균 승률 통계 수집
  */
-import { UNIT_POOL, SYNERGIES } from './js/data.js';
-import { ITEMS } from './js/items.js';
-import { BattleEngine } from './js/battleEngine.js';
-import { generateEnemyBoard } from './js/enemyAi.js';
+import { UNIT_POOL, SYNERGIES } from '../js/data.js';
+import { ITEMS } from '../js/items.js';
+import { BattleEngine } from '../js/battleEngine.js';
+import { generateEnemyBoard } from '../js/enemyAi.js';
 
 // ── 설정값 ──────────────────────────────────────────────────
 const WORLD = 4;        // 적 월드 (4 = 레벨 8, 꽤 강한 적)

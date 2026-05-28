@@ -26,7 +26,7 @@ export const STAT_NAMES_KO = {
     stackAdApPct: "타격당 공격력/주문력 증가",
     vampBuff: "피해 흡혈",
     teamManaRegen: "아군 전체 초당 마나 재생",
-    artManaRegen: "미술 유닛 추가 마나 재생",
+    artManaRegen: "음악 유닛 추가 마나 재생",
     adBuff: "기본 공격력",
     splashAdRatio: "광역 피해량 비율"
 };

@@ -54,7 +54,7 @@ export class SkillEngine {
                 const dist = engine.getDist(unit.gridIndex, target.gridIndex);
                 currentDmgAmp += dist * (unit.combat.distAmp || 0);
             }
-            if (currentDmgAmp > 0 && type !== 'true') finalDmg *= (1 + currentDmgAmp);
+            if (currentDmgAmp !== 0 && type !== 'true') finalDmg *= Math.max(0.1, (1 + currentDmgAmp));
             if (unit.combat.itemEffects?.giantSlayer) {
                 finalDmg *= 1.1; // 기본 10% 증가
                 if (target && target.stats.maxHp > 1500) finalDmg *= 1.25; // 1500 초과 시 추가 증폭
@@ -68,21 +68,35 @@ export class SkillEngine {
             }
 
             if (type === 'physical') {
-                let dr = target.combat?.dmgReduc || 0;
-                if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
+                // ① 방어력 감쇄 먼저 적용
                 let armor = target.stats.armor;
                 if (unit.buffs.some(b => b.type === 'precision')) armor = 0;
                 else {
                     let shredBuffs = target.buffs.filter(b => b.type === 'armorShred');
                     let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                    armor *= (1 - maxShred);
+                    // 공격자의 방관 적용 (armorPen이 있으면 추가 관통)
+                    let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                    if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 가고일 있으면 방관 면역 (선택 사항, 여기선 일단 생략) - 생략
+                    armor *= (1 - maxShred) * armorPenMult;
                 }
-                finalDmg *= (1 - dr) * (100 / (100 + armor));
+                finalDmg *= (100 / (100 + armor));
+                // ② dmgReduc 적용 (하드캡 75%)
+                let dr = target.combat?.dmgReduc || 0;
+                if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
+                dr = Math.min(dr, 0.75);
+                finalDmg *= (1 - dr);
             } else if (type === 'magic') {
+                // ① 마법 저항력 감쇄 먼저 적용
                 let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
                 let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                let actualMr = target.stats.mr * (1 - maxShred);
+                let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
                 finalDmg *= (100 / (100 + actualMr));
+                // ② dmgReduc 적용 (하드캡 75%) - 마법 피해에도 적용
+                let dr = target.combat?.dmgReduc || 0;
+                if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
+                dr = Math.min(dr, 0.75);
+                finalDmg *= (1 - dr);
             } else if (type === 'true') {
                 finalDmg = dmg;
             }
@@ -107,7 +121,7 @@ export class SkillEngine {
             // 스킬 피해도 근성 마나 획득 적용 (고정 10)
             let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
             let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
-            target.currMana = Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult));
+            target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult)));
 
             // [p15] 바른 생활의 분노 (평타 피격 시 반사)
             if (engine.playerAugments.includes('p15') && target.team === 'player' && target.subject === '도덕' && unit.team === 'enemy' && finalDmg > 0) {
@@ -131,7 +145,7 @@ export class SkillEngine {
                 });
                 
                 if (unit.combat.vamp > 0) {
-                    unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + finalDmg * unit.combat.vamp);
+                    unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + finalDmg * unit.combat.vamp * engine.healEfficiency);
                 }
             }
 

@@ -6,18 +6,48 @@ export class BattleEngine {
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
-                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: u.stats.hp, currMana: u.stats.mana || (u.combat.bonusMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         for(let i=0; i<24; i++) {
             if (enemyBoard[i]) {
                 const u = enemyBoard[i];
-                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: u.stats.hp, currMana: u.stats.mana || (u.combat.bonusMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
+        
+        // 보건부 부활 정보 초기화
+        this.playerReviveCharges = 0;
+        this.playerReviveHpPct = 0;
+        this.playerReviveBurst = false;
+        this.enemyReviveCharges = 0;
+        this.enemyReviveHpPct = 0;
+        this.enemyReviveBurst = false;
+
+        for (let i = 0; i < 48; i++) {
+            const u = this.board[i];
+            if (u) {
+                if (u.team === 'player' && u.combat && u.combat.reviveCount > 0) {
+                    this.playerReviveCharges = Math.max(this.playerReviveCharges, u.combat.reviveCount);
+                    this.playerReviveHpPct = Math.max(this.playerReviveHpPct, u.combat.reviveHpPct);
+                    if (u.combat.reviveBurst) this.playerReviveBurst = true;
+                } else if (u.team === 'enemy' && u.combat && u.combat.reviveCount > 0) {
+                    this.enemyReviveCharges = Math.max(this.enemyReviveCharges, u.combat.reviveCount);
+                    this.enemyReviveHpPct = Math.max(this.enemyReviveHpPct, u.combat.reviveHpPct);
+                    if (u.combat.reviveBurst) this.enemyReviveBurst = true;
+                }
+            }
+        }
+
         this.logs = [];
         this.tick = 0;
         this.maxTicks = 600;
+        // ── 연장전(Sudden Death) 시스템 ──
+        this.suddenDeath = false;
+        this.suddenDeathTick = 300;    // 30초(300틱) 시점 발동
+        this.healEfficiency = 1.0;     // 연장전 시 0.34 (-66%)
+        this.shieldEfficiency = 1.0;   // 연장전 시 0.34 (-66%)
+        this.ccDurationMult = 1.0;     // 연장전 시 0.34 (-66%)
         this.skillEngine = new SkillEngine();
     }
 
@@ -71,6 +101,20 @@ export class BattleEngine {
                 break;
             }
 
+            // ── 연장전(Sudden Death) 발동 체크 ──
+            if (this.tick >= this.suddenDeathTick && !this.suddenDeath) {
+                this.suddenDeath = true;
+                this.healEfficiency = 0.34;     // 회복 효율 -66%
+                this.shieldEfficiency = 0.34;    // 보호막 효율 -66%
+                this.ccDurationMult = 0.34;      // CC 지속시간 -66%
+                activeUnits.forEach(u => {
+                    if (u.currHp <= 0) return;
+                    u.stats.as *= 4.0;    // 공격 속도 +300%
+                    u.stats.ap *= 2.0;    // 주문력 +100%
+                });
+                this.logs.push({ tick: this.tick, type: 'sudden_death' });
+            }
+
             // 버프 타이머 처리
             activeUnits.forEach(u => {
                 if (u.currHp <= 0) return;
@@ -100,7 +144,7 @@ export class BattleEngine {
                     activeUnits.forEach(u => {
                         if (u.currHp <= 0) return;
                         if (u.combat.itemEffects?.dclaw) {
-                            u.currHp = Math.min(u.stats.maxHp, u.currHp + u.stats.maxHp * 0.05 * u.combat.itemEffects.dclaw);
+                            u.currHp = Math.min(u.stats.maxHp, u.currHp + u.stats.maxHp * 0.05 * u.combat.itemEffects.dclaw * this.healEfficiency);
                         }
                     });
                 }
@@ -111,7 +155,7 @@ export class BattleEngine {
                         if (u.combat.itemEffects?.redemption) {
                             activeUnits.forEach(a => {
                                 if (a.team === u.team && this.getDist(u.gridIndex, a.gridIndex) <= 1) {
-                                    a.currHp = Math.min(a.stats.maxHp, a.currHp + (a.stats.maxHp - a.currHp) * 0.10 * u.combat.itemEffects.redemption);
+                                    a.currHp = Math.min(a.stats.maxHp, a.currHp + (a.stats.maxHp - a.currHp) * 0.10 * u.combat.itemEffects.redemption * this.healEfficiency);
                                     this.addBuff(a, 'dmgReduc25', null, 0, 30);
                                 }
                             });
@@ -160,7 +204,8 @@ export class BattleEngine {
                                 
                                 if (u.manaType === '근성') {
                                     let targetManaGainMult = Math.max(0, 1 + (u.combat.manaGain || 0));
-                                    u.currMana = Math.min(u.stats.maxMana, (u.currMana || 0) + (10 * targetManaGainMult));
+                                    let gainMana = 10 * targetManaGainMult;
+                                    u.currMana = Math.max(u.currMana, Math.min(u.stats.maxMana, (u.currMana || 0) + gainMana));
                                 }
                                 
                                 this.checkHpThresholds(u, activeUnits);
@@ -193,11 +238,12 @@ export class BattleEngine {
                     let regen = 0;
                     if (u.manaType === '집중') regen += 2;
                     if (u.combat && u.combat.teamManaRegen) regen += u.combat.teamManaRegen;
-                    if (u.combat && u.combat.artManaRegen && u.subject === '미술') regen += u.combat.artManaRegen;
+                    if (u.combat && u.combat.artManaRegen && u.subject === '음악') regen += u.combat.artManaRegen;
                     
                     if (regen > 0) {
                         let manaGainMult = Math.max(0, 1 + (u.combat.manaGain || 0));
-                        u.currMana = Math.min(u.stats.maxMana, u.currMana + (regen * manaGainMult));
+                        let gainMana = regen * manaGainMult;
+                        u.currMana = Math.max(u.currMana, Math.min(u.stats.maxMana, u.currMana + gainMana));
                     }
                 });
             }
@@ -207,7 +253,7 @@ export class BattleEngine {
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
                     if (u.combat.isFirelight) {
-                        u.currHp = Math.min(u.stats.maxHp, u.currHp + (u.stats.maxHp * u.combat.tickHeal));
+                        u.currHp = Math.min(u.stats.maxHp, u.currHp + (u.stats.maxHp * u.combat.tickHeal * this.healEfficiency));
                         u.combat.firelightCharge = true;
                     }
                 });
@@ -233,7 +279,8 @@ export class BattleEngine {
                 const isManaSealed = unit.buffs.some(b => b.type === 'manaSeal');
                 if (unit.stats.maxMana > 0 && unit.currMana >= unit.stats.maxMana && unit.skill && !isStunned && !isManaSealed) {
                     this.skillEngine.execute(unit, activeUnits, this);
-                    unit.currMana = unit.combat.itemEffects?.blueBuff ? 10 : 0; // 마나 리셋 (블루 버프 시 10 회복)
+                    let excess = Math.max(0, unit.currMana - unit.stats.maxMana);
+                    unit.currMana = excess + (unit.combat.itemEffects?.blueBuff ? 10 : 0);
                     if (unit.combat.shroudPenalty) {
                         unit.stats.maxMana -= unit.combat.shroudPenalty;
                         unit.combat.shroudPenalty = 0;
@@ -284,7 +331,7 @@ export class BattleEngine {
                     if (unit.combat.isSniper) {
                         currentDmgAmp += dist * (unit.combat.distAmp || 0);
                     }
-                    if (currentDmgAmp > 0) dmg *= (1 + currentDmgAmp);
+                    if (currentDmgAmp !== 0) dmg *= Math.max(0.1, (1 + currentDmgAmp));
                     if (unit.combat.itemEffects?.giantSlayer) {
                         dmg *= 1.1;
                         if (target.stats.maxHp > 1500) dmg *= 1.25;
@@ -329,19 +376,26 @@ export class BattleEngine {
                         }
                     }
                     
-                    let dr = target.combat.dmgReduc || 0;
-                    if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
-                    if (target.combat.isWatcher && (target.currHp / target.stats.maxHp) >= 0.5) dr *= 2;
-                    dmg *= (1 - dr);
-                    
+                    // 브랜블 (크리티컬 무효화)
                     if (target.combat.itemEffects?.bramble && isCrit) dmg /= unit.combat.critDmg;
                     
+                    // ① 방어력 감쇄 먼저 적용
                     let shred = target.buffs.some(b => b.type === 'armorPct') ? 0.5 : 1;
-                    let actualArmor = target.stats.armor * shred;
+                    // ② 공격자의 방관 적용
+                    let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                    let actualArmor = target.stats.armor * shred * armorPenMult;
+                    let actualMr = target.stats.mr * armorPenMult; // 마법 저항력도 동일하게 관통
                     let totalDmg = dmg * (100 / (100 + actualArmor));
+
+                    
+                    // ② dmgReduc 적용 (하드캡 75%)
+                    let dr = target.combat.dmgReduc || 0;
+                    if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
+                    dr = Math.min(dr, 0.75); // 하드캡
+                    totalDmg *= (1 - dr);
                     
                     if (unit.combat.firelightCharge) {
-                        totalDmg += unit.combat.bonusMagicDmg * (100 / (100 + target.stats.mr));
+                        totalDmg += unit.combat.bonusMagicDmg * (100 / (100 + actualMr));
                         unit.combat.firelightCharge = false;
                     }
                     
@@ -391,16 +445,16 @@ export class BattleEngine {
                     let baseGainMana = unit.manaType === '전투' ? 10 : unit.manaType === '집중' ? 5 : 0;
                     let manaGainMult = Math.max(0, 1 + (unit.combat.manaGain || 0)); // 디버프가 -1.1 이면 0으로 막음
                     let gainMana = baseGainMana * manaGainMult;
-                    unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + gainMana);
+                    unit.currMana = Math.max(unit.currMana, Math.min(unit.stats.maxMana, unit.currMana + gainMana));
                     
                     let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
                     let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
                     let targetGainMana = baseTargetGainMana * targetManaGainMult;
-                    target.currMana = Math.min(target.stats.maxMana, target.currMana + targetGainMana);
+                    target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, target.currMana + targetGainMana));
                     
                     // 흡혈 (과학탐구원 스킬 vampBuff, 아이템 vamp 등 combat.vamp > 0 이면 적용)
                     if (unit.combat.vamp > 0) {
-                        unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + totalDmg * unit.combat.vamp);
+                        unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + totalDmg * unit.combat.vamp * this.healEfficiency);
                     }
                     // vampBuff 타이머 처리
                     if (unit.combat.vampBuffTimer > 0) {
@@ -440,7 +494,7 @@ export class BattleEngine {
                         const count = unit.combat.itemEffects.gunbladeHeal;
                         const allies = activeUnits.filter(u => u.team === unit.team && u.currHp > 0).sort((a,b)=>(a.currHp/a.stats.maxHp)-(b.currHp/b.stats.maxHp));
                         if(allies[0]) {
-                            const healAmount = totalDmg * 0.22 * count;
+                            const healAmount = totalDmg * 0.22 * count * this.healEfficiency;
                             allies[0].currHp = Math.min(allies[0].stats.maxHp, allies[0].currHp + healAmount);
                             this.logs.push({
                                 tick: this.tick, type: 'heal', target: allies[0].gridIndex,
@@ -554,6 +608,12 @@ export class BattleEngine {
             });
             this.tick++;
         }
+        // 타임오버: 양쪽 모두 생존 → 무승부
+        if (!this.logs.some(l => l.type === 'end')) {
+            const survivingEnemies = activeUnits.filter(u => u.team === 'enemy' && u.currHp > 0).length;
+            const survivingPlayers = activeUnits.filter(u => u.team === 'player' && u.currHp > 0).length;
+            this.logs.push({ tick: this.tick, type: 'end', winner: 'draw', survivingEnemies, survivingPlayers });
+        }
         return this.logs;
     }
 
@@ -562,9 +622,14 @@ export class BattleEngine {
         if (!target.buffs) target.buffs = [];
         const ccImmune = target.buffs.some(b => b.type === 'ccImmune');
         if (ccImmune && (type === 'stun' || type === 'taunt' || type === 'zephyr')) return;
+        // 연장전 CC 지속시간 감소
+        if (this.suddenDeath && (type === 'stun' || type === 'taunt' || type === 'zephyr')) {
+            duration = Math.max(1, Math.round(duration * this.ccDurationMult));
+        }
         target.buffs.push({ type, stat, val, duration, sourceIdx });
         // 즉시 스탯 적용
         if (stat === 'hp') {
+            if (val > 0) val *= this.healEfficiency; // 연장전 힐 효율
             const hasAntiHeal = target.buffs.some(b => b.type === 'antiHeal');
             if (hasAntiHeal && val > 0) val *= 0.5;
             const oldHp = target.currHp;
@@ -599,7 +664,7 @@ export class BattleEngine {
                 }
             }
         }
-        else if (stat === 'shield') target.currShield += val;
+        else if (stat === 'shield') target.currShield += val * this.shieldEfficiency; // 연장전 쉴드 효율
         else if (stat && target.stats[stat] !== undefined) {
             target.stats[stat] += val; // ad, ap, as, armor, mr, range 등 즉시 반영
         }
@@ -620,7 +685,7 @@ export class BattleEngine {
         if (target.combat.itemEffects.bloodthirsterShield && ratio <= 0.4 && !target.combat.btTriggered) {
             const count = target.combat.itemEffects.bloodthirsterShield;
             target.combat.btTriggered = true;
-            target.currShield += maxHp * 0.25 * count;
+            target.currShield += maxHp * 0.25 * count * this.shieldEfficiency;
         }
         if (target.combat.itemEffects.steraks && ratio <= 0.6 && !target.combat.steraksTriggered) {
             const count = target.combat.itemEffects.steraks;
@@ -634,7 +699,7 @@ export class BattleEngine {
             target.combat.vowTriggered = true;
             activeUnits.forEach(u => {
                 if (u.team === target.team && this.getDist(target.gridIndex, u.gridIndex) <= 1) {
-                    u.currShield += u.stats.maxHp * 0.25 * count;
+                    u.currShield += u.stats.maxHp * 0.25 * count * this.shieldEfficiency;
                     u.stats.armor += 20 * count;
                     u.stats.mr += 20 * count;
                 }
@@ -644,6 +709,60 @@ export class BattleEngine {
 
     handleDeath(target, activeUnits) {
         if (target.currHp > 0 || target.isDead) return;
+
+        // 보건부 부활 체크
+        const teamReviveCharges = target.team === 'player' ? this.playerReviveCharges : this.enemyReviveCharges;
+        if (teamReviveCharges > 0) {
+            if (target.team === 'player') this.playerReviveCharges--;
+            else this.enemyReviveCharges--;
+
+            const reviveHpPct = target.team === 'player' ? this.playerReviveHpPct : this.enemyReviveHpPct;
+            const reviveBurst = target.team === 'player' ? this.playerReviveBurst : this.enemyReviveBurst;
+
+            target.currHp = Math.round(target.stats.maxHp * reviveHpPct);
+            target.isDead = false;
+            target.currMana = target.stats.maxMana;
+
+            this.logs.push({
+                tick: this.tick,
+                type: 'revive',
+                unitId: target.gridIndex,
+                hp: target.currHp
+            });
+
+            // 부활 광포화 버프: 50틱 동안 AD/AP/AS +50%
+            this.addBuff(target, 'buff', 'ad', Math.round(target.stats.ad * 0.50), 50);
+            this.addBuff(target, 'buff', 'ap', Math.round(target.stats.ap * 0.50), 50);
+            this.addBuff(target, 'buff', 'as', target.stats.as * 0.50, 50);
+
+            if (reviveBurst) {
+                const enemies = activeUnits.filter(u => u.team !== target.team && u.currHp > 0 && !u.isDead);
+                enemies.forEach(e => {
+                    if (this.getDist(target.gridIndex, e.gridIndex) <= 1) {
+                        const burstDmg = target.stats.maxHp * 0.35;
+                        const actualDmg = burstDmg * (100 / (100 + e.stats.mr));
+                        e.currHp -= actualDmg;
+                        this.logs.push({
+                            tick: this.tick,
+                            type: 'damage',
+                            target: e.gridIndex,
+                            source: target.gridIndex,
+                            dmg: Math.round(actualDmg),
+                            dmgType: 'magic',
+                            isCrit: false,
+                            fxType: 'fire_red',
+                            currHp: e.currHp,
+                            maxHp: e.stats.maxHp,
+                            currShield: e.currShield
+                        });
+                        this.checkHpThresholds(e, activeUnits);
+                        if (e.currHp <= 0) this.handleDeath(e, activeUnits);
+                    }
+                });
+            }
+            return;
+        }
+
         target.isDead = true;
         this.logs.push({ tick: this.tick, type: 'die', target: target.gridIndex, unitName: target.name, team: target.team });
         

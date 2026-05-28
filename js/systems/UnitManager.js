@@ -573,7 +573,7 @@ export class UnitManager {
                 <div>📈 피해 증폭: <span id="info-dmgAmp" style="color:#ef5350">+${Math.round((unit.combat?.dmgAmp || 0) * 100)}%</span></div>
                 <div>📉 피해 감소: <span id="info-dmgReduc" style="color:#29b6f6">${Math.round((unit.combat?.dmgReduc || 0) * 100)}%</span></div>
                 <div>🩸 흡혈률: <span id="info-vamp" style="color:#ec407a">${Math.round((unit.combat?.vamp || 0) * 100)}%</span></div>
-                <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((unit.combat?.teamManaRegen || 0) + (unit.subject === '미술' ? (unit.combat?.artManaRegen || 0) : 0))}</span></div>
+                <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((unit.combat?.teamManaRegen || 0) + (unit.subject === '음악' ? (unit.combat?.artManaRegen || 0) : 0))}</span></div>
             </div>
             ${skillHtml}
         `;

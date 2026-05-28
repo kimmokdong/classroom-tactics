@@ -694,7 +694,7 @@ function showUnitInfo(u, isEnemySide, uDiv) {
             <div>📈 피해 증폭: <span id="info-dmgAmp" style="color:#ef5350">+${Math.round((combat.dmgAmp || 0)*100)}%</span></div>
             <div>📉 피해 감소: <span id="info-dmgReduc" style="color:#29b6f6">${Math.round((combat.dmgReduc || 0)*100)}%</span></div>
             <div>🩸 흡혈률: <span id="info-vamp" style="color:#ec407a">${Math.round((combat.vamp || 0)*100)}%</span></div>
-            <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((combat.teamManaRegen || 0) + (u.subject === '미술' ? (combat.artManaRegen || 0) : 0))}</span></div>
+            <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((combat.teamManaRegen || 0) + (u.subject === '음악' ? (combat.artManaRegen || 0) : 0))}</span></div>
         </div>
         ${skillHtml}
     `;
@@ -824,7 +824,25 @@ function getActiveSynergyLevel(count, levelsArr, exactMatch = false) {
 
 function generateSandboxSynergyTooltip(synData, type, name, currentBoard, count, maxLevel) {
     let html = `<div style="font-weight:bold; color:#475569; font-size:1rem; margin-bottom:4px;">${type==='subject'?'📚':'🏷️'} ${name} <span style="font-size:0.75rem; color:#666;">(${count}/${maxLevel})</span></div>`;
-    html += `<div style="color:#475569; margin-bottom: 4px;">${synData.desc}</div>`;
+    html += `<div style="color:#475569; margin-bottom: 8px;">${synData.desc}</div>`;
+
+    html += `<div style="margin-bottom: 12px; font-size: 0.75rem; color: #555; display: flex; flex-direction: column; gap: 4px;">`;
+    const levels = Object.keys(synData.levels).map(Number).sort((a,b)=>a-b);
+    levels.forEach(lvl => {
+        const lvlData = synData.levels[lvl];
+        if (lvlData.desc) {
+            const isReached = synData.exactMatch ? (count === lvl) : (count >= lvl);
+            const color = isReached ? '#0f172a' : '#94a3b8';
+            const weight = isReached ? 'bold' : 'normal';
+            const bg = isReached ? '#cbd5e1' : '#f1f5f9';
+            
+            html += `<div style="color: ${color}; font-weight: ${weight}; line-height: 1.2; display: flex; align-items: flex-start;">
+                        <span style="background: ${bg}; padding: 1px 4px; border-radius: 3px; font-size: 0.7rem; margin-right: 4px; border: 1px solid ${isReached ? '#94a3b8' : '#e2e8f0'}; display: inline-block;">${lvl}</span> 
+                        <span style="flex: 1;">${lvlData.desc}</span>
+                     </div>`;
+        }
+    });
+    html += `</div>`;
 
     const seenIds = new Set();
     currentBoard.forEach(u => {
@@ -1019,6 +1037,9 @@ function applySynergiesToStats(board, isEnemy = false) {
         return activeLvl > 0 ? synData.levels[activeLvl] : null;
     };
 
+    const healthLevel = counts?.clubs?.['보건부'] || 0;
+    const healthEff = getLevelData('clubs', '보건부', healthLevel);
+
     let teamAp = 0, teamHp = 0, teamDef = 0;
     for (let [subj, count] of Object.entries(counts.subjects)) {
         const eff = getLevelData('subjects', subj, count);
@@ -1036,6 +1057,12 @@ function applySynergiesToStats(board, isEnemy = false) {
         u.currHp += teamHp;
         u.stats.armor += teamDef;
         u.stats.mr += teamDef;
+
+        if (healthEff) {
+            u.combat.reviveCount = healthEff.reviveCount || 0;
+            u.combat.reviveHpPct = healthEff.reviveHpPct || 0;
+            if (healthEff.reviveBurst) u.combat.reviveBurst = true;
+        }
 
         const subjEff = getLevelData('subjects', u.subject, counts.subjects[u.subject]);
         if (subjEff) {
@@ -1057,22 +1084,32 @@ function applySynergiesToStats(board, isEnemy = false) {
             }
             if (u.subject === '영어') {
                 if (subjEff.manaReduc) u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * (1 - subjEff.manaReduc)));
+                if (subjEff.selfAp) u.stats.ap += subjEff.selfAp;
             }
             if (u.subject === '체육') { u.stats.maxHp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); u.currHp = u.stats.maxHp; }
-            if (u.subject === '음악') { u.combat.isFirelight = true; u.combat.tickHeal = subjEff.tickHeal; u.combat.bonusMagicDmg = subjEff.bonusMagicDmg; }
+            if (u.subject === '미술') { u.combat.isFirelight = true; u.combat.tickHeal = subjEff.tickHeal; u.combat.bonusMagicDmg = subjEff.bonusMagicDmg; }
             if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
-            if (u.subject === '미술' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
+            if (u.subject === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
             if (u.subject === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
         }
 
         const clubEff = getLevelData('clubs', u.club, counts.clubs[u.club]);
         if (clubEff) {
             if (u.club === '선도부') { u.combat.shield += u.stats.maxHp * clubEff.startShieldPct; u.combat.dmgAmp += clubEff.dmgAmp; }
-            if (u.club === '방송부') { u.combat.isSniper = true; u.combat.distAmp = clubEff.distAmp; u.stats.range += (clubEff.rangeBuff || 0); }
-            if (u.club === '육상부') { u.combat.isQuickstriker = true; u.combat.maxAsBuff = clubEff.maxAsBuff; }
-            if (u.club === '보건부') { u.combat.isWatcher = true; u.combat.dmgReduc += clubEff.dmgReduc; }
+            if (u.club === '방송부') { 
+                u.combat.isSniper = true; 
+                u.combat.distAmp = clubEff.distAmp; 
+                u.stats.range += (clubEff.rangeBuff || 0); 
+                if (clubEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + clubEff.startMana;
+            }
+            if (u.club === '육상부') { 
+                u.combat.isQuickstriker = true; 
+                u.combat.maxAsBuff = clubEff.maxAsBuff; 
+                if (clubEff.baseAs) u.stats.as *= (1 + clubEff.baseAs); 
+                if (clubEff.dmgReduc) u.combat.dmgReduc += clubEff.dmgReduc;
+            }
             if (u.club === '급식부') { u.combat.isDominator = true; u.combat.shield += clubEff.startShield; u.combat.stackAdApPct = clubEff.stackAdApPct; if (clubEff.vampBuff) u.combat.vamp = (u.combat.vamp || 0) + clubEff.vampBuff; }
-            if (u.club === '장난꾸러기') { u.stats.ad *= (1 + clubEff.adBuff); }
+            if (u.club === '장난꾸러기') { u.stats.ad *= (1 + clubEff.adBuff); if (clubEff.asBuff) u.stats.as *= (1 + clubEff.asBuff); }
         }
     });
 

@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { UNIT_POOL } from './js/data.js';
-import { ITEMS } from './js/items.js';
-import { BattleEngine } from './js/battleEngine.js';
-import { generateEnemyBoard } from './js/enemyAi.js';
+import { UNIT_POOL } from '../js/data.js';
+import { ITEMS } from '../js/items.js';
+import { BattleEngine } from '../js/battleEngine.js';
+import { generateEnemyBoard } from '../js/enemyAi.js';
 
 function applyItemsToStats(board) {
     const cloned = JSON.parse(JSON.stringify(board));
