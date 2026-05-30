@@ -164,6 +164,7 @@ export class SynergyManager {
                     u.combat.canvasRadius = subjEff.canvasRadius;
                     u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc;
                     u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp;
+                    u.combat.canvasManaRegen = subjEff.canvasManaRegen || 0;
                 }
                 if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
                 if (u.subject === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }

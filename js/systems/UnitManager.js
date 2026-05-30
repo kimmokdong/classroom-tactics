@@ -124,7 +124,11 @@ export class UnitManager {
         this.app.state.bench[sourceIdx] = null;
 
         // 환불 로직: 유닛 티어만큼 골드 환불 + 장착 아이템 모두 반환
-        this.app.state.gold += unit.tier;
+        // TODO: 2성/3성 판매 시 골드 환불량 증가 (현재는 티어만큼만 환불됨)
+        let copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
+        this.app.state.gold += unit.tier * copies; 
+        this.app.state.sharedPool[unit.id] = (this.app.state.sharedPool[unit.id] || 0) + copies;
+
         if (unit.items && unit.items.length > 0) {
             unit.items.forEach(itemId => {
                 this.app.itemManager.addItemToInventory(itemId);

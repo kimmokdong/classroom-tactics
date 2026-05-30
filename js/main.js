@@ -12,7 +12,7 @@ import { generateEnemyBoard } from './enemyAi.js';
 import { BattleEngine } from './battleEngine.js';
 import { BattleRenderer } from './battleRenderer.js';
 import { eventBus } from './core/EventBus.js';
-import { STAT_NAMES_KO, SHOP_PROBABILITIES, formatStat } from './core/constants.js';
+import { STAT_NAMES_KO, SHOP_PROBABILITIES, formatStat, POOL_SIZES } from './core/constants.js';
 import { createInitialState } from './core/GameState.js';
 import { ShopManager } from './systems/ShopManager.js';
 import { SynergyManager } from './systems/SynergyManager.js';
@@ -28,6 +28,11 @@ class GameApp {
         this.AUGMENTS = AUGMENTS;   // AugmentManager needs this
         this.UNIT_POOL = UNIT_POOL; // AugmentManager needs this
         this.SYNERGIES = SYNERGIES; // UnitManager needs this
+        
+        // 공용 풀 초기화
+        for (let u of UNIT_POOL) {
+            this.state.sharedPool[u.id] = POOL_SIZES[u.tier] || 10;
+        }
         
         this.shopManager = new ShopManager(this);
         this.synergyManager = new SynergyManager(this);

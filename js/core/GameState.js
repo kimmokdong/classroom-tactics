@@ -24,6 +24,11 @@ export function createInitialState() {
         honorStudent: false,
         snackShop: false,
         winStreak: 0,
-        lossStreak: 0
+        lossStreak: 0,
+        sharedPool: createSharedPool()
     };
+}
+
+function createSharedPool() {
+    return {}; // We will initialize this in main.js to avoid circular dependencies
 }

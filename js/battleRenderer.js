@@ -792,7 +792,7 @@ export class BattleRenderer {
                     life: 5.0,
                     maxLife: 5.0,
                     radius: 0,
-                    maxRadius: radius * measuredCellSize * 2.2
+                    maxRadius: radius * measuredCellSize * 1.6
                 });
             } else if (action.fxType === 'satiety_tick') {
                 const count = action.count || 1;

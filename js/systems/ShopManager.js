@@ -58,8 +58,26 @@ export class ShopManager {
             }
         }
 
+        // Return unsold units to the shared pool
+        if (this.app.state.shop) {
+            for (let u of this.app.state.shop) {
+                if (u !== null) {
+                    this.app.state.sharedPool[u.id] = (this.app.state.sharedPool[u.id] || 0) + 1;
+                }
+            }
+        }
+
         const effectiveLevel = Math.min(10, this.app.state.level + (this.app.state.highEndShopping ? 1 : 0));
         const probs = SHOP_PROBABILITIES[effectiveLevel] || SHOP_PROBABILITIES[9];
+
+        // 3-star ban logic: Check player board and bench for 3-star units
+        const owned3Stars = new Set();
+        const allPlayerUnits = [...this.app.state.board, ...this.app.state.bench];
+        for (let u of allPlayerUnits) {
+            if (u && u.star === 3) {
+                owned3Stars.add(u.id);
+            }
+        }
 
         this.app.state.shop = Array(5).fill(null).map(() => {
             let roll = Math.random() * 100;
@@ -70,8 +88,24 @@ export class ShopManager {
             }
             if (selectedTier === 1 && this.app.state.globalBuffs && this.app.state.globalBuffs.noTier1) selectedTier = 2;
 
-            const pool = UNIT_POOL.filter(u => u.tier === selectedTier);
-            return pool.length > 0 ? { ...pool[Math.floor(Math.random() * pool.length)] } : null;
+            // Build weighted pool from sharedPool
+            const availableUnits = UNIT_POOL.filter(u => u.tier === selectedTier && !owned3Stars.has(u.id) && this.app.state.sharedPool[u.id] > 0);
+            
+            if (availableUnits.length > 0) {
+                // Flatten the pool according to remaining copies
+                let weightedPool = [];
+                for (let u of availableUnits) {
+                    let copies = this.app.state.sharedPool[u.id];
+                    for (let c = 0; c < copies; c++) weightedPool.push(u);
+                }
+                
+                if (weightedPool.length > 0) {
+                    const picked = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+                    this.app.state.sharedPool[picked.id] -= 1;
+                    return { ...picked };
+                }
+            }
+            return null;
         });
 
         this.app.updateHeader();

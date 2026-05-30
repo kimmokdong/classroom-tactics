@@ -265,6 +265,14 @@ export class BattleEngine {
                     if (u.manaType === '집중') regen += 2;
                     if (u.combat && u.combat.teamManaRegen) regen += u.combat.teamManaRegen;
                     if (u.combat && u.combat.artManaRegen && u.subject === '음악') regen += u.combat.artManaRegen;
+
+                    // [미술 시너지] 장판 내 아군 마나 회복
+                    for (const canvas of this.canvases) {
+                        if (canvas.manaRegen > 0 && canvas.team === u.team) {
+                            const inRange = this.getDist(canvas.centerIdx, u.gridIndex) <= canvas.radius;
+                            if (inRange) regen += canvas.manaRegen;
+                        }
+                    }
                     
                     if (regen > 0) {
                         let manaGainMult = Math.max(0, 1 + (u.combat.manaGain || 0));
@@ -329,15 +337,16 @@ export class BattleEngine {
                             duration: unit.combat.canvasDuration,
                             allyDmgReduc: unit.combat.canvasAllyDmgReduc || 0,
                             enemyDmgAmp: unit.combat.canvasEnemyDmgAmp || 0,
+                            manaRegen: unit.combat.canvasManaRegen || 0,
                             team: unit.team
                         });
                         this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'art_canvas', target: unit.gridIndex, radius: unit.combat.canvasRadius || 1 });
                     }
                     
-                    // [장난꾸러기 시너지] 스킬 3회 사용 시 장난 발동
+                    // [장난꾸러기 시너지] 스킬 2회 사용 시 장난 발동
                     if (unit.combat.prankLevel > 0) {
                         unit.combat.prankCount = (unit.combat.prankCount || 0) + 1;
-                        if (unit.combat.prankCount >= 3) {
+                        if (unit.combat.prankCount >= 2) {
                             unit.combat.prankCount = 0;
                             const prankEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
                             const prankTarget = prankEnemies.length > 0 ? prankEnemies[Math.floor(Math.random() * prankEnemies.length)] : null;
@@ -355,8 +364,8 @@ export class BattleEngine {
                                 } else if (unit.combat.prankLevel === 3) {
                                     const allEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
                                     allEnemies.forEach(e => {
-                                        this.addBuff(e, 'stun', null, 0, 15);
-                                        let prankDmg = e.stats.maxHp * 0.10 * (100 / (100 + e.stats.mr));
+                                        this.addBuff(e, 'stun', null, 0, 25);
+                                        let prankDmg = e.stats.maxHp * 0.20 * (100 / (100 + e.stats.mr));
                                         e.currHp -= prankDmg;
                                         this.logs.push({ tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield });
                                         this.checkHpThresholds(e, activeUnits);
@@ -868,8 +877,8 @@ export class BattleEngine {
             });
 
             // [보건부 리워크] 광포화 삭제 -> 정화 및 응급조치 부여
-            // 1초간 디버프 면역(정화)
-            this.addBuff(target, 'ccImmune', null, 0, 10);
+            // 2초간 디버프 면역(정화)
+            this.addBuff(target, 'ccImmune', null, 0, 20);
 
             // 주변 1칸 아군 보호막
             if (reviveShieldPct > 0) {
