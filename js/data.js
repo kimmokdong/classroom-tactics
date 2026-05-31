@@ -118,101 +118,101 @@ export const UNIT_POOL = [
 
   // 2-Cost (10 units)
   {
-    id: 'u2_1', name: '과학실험부장', position: '주문력 마법사', role: ['dealer'], subject: '과학', club: '방송부', tier: 2, icon: '🧪', manaType: '집중', stats: { hp: 600, mana: 30, maxMana: 90, ad: 35, ap: 100, armor: 20, mr: 20, as: 0.65, range: 3 },
+    id: 'u2_1', name: '과학실험부장', position: '주문력 마법사', role: ['dealer'], subject: '과학', club: '방송부', tier: 2, icon: '🧪', manaType: '집중', stats: { hp: 550, mana: 30, maxMana: 90, ad: 30, ap: 100, armor: 20, mr: 20, as: 0.65, range: 3 },
     skill: { name: '폭발 실험', desc: '대상 주변 1칸에 마법 피해', type: 'aoe_magic', vfx: 'fire_red', aoeRange: 1, apRatio: [2.0, 3.2, 5.0] }
   },
   {
-    id: 'u2_2', name: '체육부장', position: '물리 전사', role: ['dealer','tank'], subject: '체육', club: '선도부', tier: 2, icon: '⚽', manaType: '근성', stats: { hp: 650, mana: 20, maxMana: 80, ad: 45, ap: 100, armor: 35, mr: 35, as: 0.6, range: 1 },
+    id: 'u2_2', name: '체육부장', position: '물리 전사', role: ['dealer','tank'], subject: '체육', club: '선도부', tier: 2, icon: '⚽', manaType: '근성', stats: { hp: 600, mana: 20, maxMana: 80, ad: 40, ap: 100, armor: 35, mr: 35, as: 0.6, range: 1 },
     skill: { name: '태클 돌진', desc: '대상에게 물리 피해 + 기절', type: 'single_damage_cc', vfx: 'dash_blue', hpRatio: [0.15, 0.15, 0.20], stunDuration: [20, 25, 30] }
   },
   {
-    id: 'u2_3', name: '문학소녀', position: '주문력 인챈터', role: ['support'], subject: '국어', club: '보건부', tier: 2, icon: '📚', manaType: '집중', stats: { hp: 500, mana: 20, maxMana: 60, ad: 45, ap: 100, armor: 20, mr: 30, as: 0.6, range: 3 },
+    id: 'u2_3', name: '문학소녀', position: '주문력 인챈터', role: ['support'], subject: '국어', club: '보건부', tier: 2, icon: '📚', manaType: '집중', stats: { hp: 450, mana: 20, maxMana: 60, ad: 40, ap: 100, armor: 20, mr: 30, as: 0.6, range: 3 },
     skill: { name: '영감의 시', desc: '아군 전체 공격 속도 증가 + 적 전체 마저 감소', type: 'team_buff_enemy_debuff', vfx: 'buff_green', buffStat: 'as', buffPct: [0.3, 0.4, 0.5], enemyMrReduc: [10, 20, 30], buffDuration: [50, 60, 80] }
   },
   {
-    id: 'u2_4', name: '수학천재', position: '물리 원딜', role: ['dealer'], subject: '수학', club: '육상부', tier: 2, icon: '📐', manaType: '전투', stats: { hp: 500, mana: 0, maxMana: 60, ad: 70, ap: 100, armor: 20, mr: 20, as: 0.8, range: 2 },
+    id: 'u2_4', name: '수학천재', position: '물리 원딜', role: ['dealer'], subject: '수학', club: '육상부', tier: 2, icon: '📐', manaType: '전투', stats: { hp: 450, mana: 0, maxMana: 60, ad: 65, ap: 100, armor: 20, mr: 20, as: 0.8, range: 2 },
     skill: { name: '피타고라스의 일격', desc: '대상에게 삼각자를 던져 물리 피해를 입히고, 주변의 다른 적에게 최대 수회 튕기며 추가 물리 피해', type: 'bounce_damage', vfx: 'triangle_ruler', adRatio: [2.0, 2.0, 1.8], charges: [3, 4, 4] }
   },
   {
-    id: 'u2_5', name: '역사 매니아', position: '체력비례 전문가', role: ['dealer'], subject: '사회', club: '경제부', tier: 2, icon: '📜', manaType: '집중', stats: { hp: 650, mana: 0, maxMana: 80, ad: 40, ap: 100, armor: 30, mr: 20, as: 0.65, range: 2 },
-    skill: { name: '고대의 지혜', desc: '대상 최대 체력 비례 고정 피해를 입힙니다.', type: 'true_damage', vfx: 'debuff_dark', trueDmgPct: [0.12, 0.18, 0.25], apRatio: [0.02, 0.02, 0.02] }
+    id: 'u2_5', name: '역사 매니아', position: '체력비례 전문가', role: ['dealer'], subject: '사회', club: '경제부', tier: 2, icon: '📜', manaType: '집중', stats: { hp: 600, mana: 0, maxMana: 80, ad: 35, ap: 100, armor: 30, mr: 20, as: 0.65, range: 2 },
+    skill: { name: '고대의 지혜', desc: '대상 최대 체력 비례 고정 피해를 입힙니다.', type: 'true_damage', vfx: 'debuff_dark', trueDmgPct: [0.10, 0.15, 0.20], apRatio: [0.02, 0.02, 0.02] }
   },
   {
-    id: 'u2_6', name: '팝송 매니아', position: '마나제어 전문가', role: ['dealer'], subject: '영어', club: '보건부', tier: 2, icon: '🎧', manaType: '집중', stats: { hp: 450, mana: 15, maxMana: 50, ad: 45, ap: 100, armor: 15, mr: 25, as: 0.7, range: 3 },
+    id: 'u2_6', name: '팝송 매니아', position: '마나제어 전문가', role: ['dealer'], subject: '영어', club: '보건부', tier: 2, icon: '🎧', manaType: '집중', stats: { hp: 400, mana: 15, maxMana: 50, ad: 40, ap: 100, armor: 15, mr: 25, as: 0.7, range: 3 },
     skill: { name: '리듬 디스', desc: '무작위 적 3명에게 마법 피해 + 마나 획득 감소', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 3, apRatio: [1.2, 1.8, 3.0], manaReducPct: [0.5, 0.5, 0.6], debuffDuration: [20, 30, 40] }
   },
   {
-    id: 'u2_7', name: '급식 당번', position: '주문력 힐러', role: ['support'], subject: '미술', club: '급식부', tier: 2, icon: '🍱', manaType: '집중', stats: { hp: 700, mana: 0, maxMana: 100, ad: 40, ap: 100, armor: 30, mr: 30, as: 0.55, range: 2 },
+    id: 'u2_7', name: '급식 당번', position: '주문력 힐러', role: ['support'], subject: '미술', club: '급식부', tier: 2, icon: '🍱', manaType: '집중', stats: { hp: 650, mana: 0, maxMana: 100, ad: 35, ap: 100, armor: 30, mr: 30, as: 0.55, range: 2 },
     skill: { name: '영양 만점 급식', desc: '아군 전체 회복', type: 'team_heal', vfx: 'heal_white', hpRatio: [0.08, 0.08, 0.12] }
   },
   {
-    id: 'u2_8', name: '골목대장', position: '물리 전사', role: ['dealer','tank'], subject: '체육', club: '장난꾸러기', tier: 2, icon: '🧢', manaType: '근성', stats: { hp: 600, mana: 0, maxMana: 60, ad: 50, ap: 100, armor: 25, mr: 20, as: 0.75, range: 1 },
+    id: 'u2_8', name: '골목대장', position: '물리 전사', role: ['dealer','tank'], subject: '체육', club: '장난꾸러기', tier: 2, icon: '🧢', manaType: '근성', stats: { hp: 550, mana: 0, maxMana: 60, ad: 45, ap: 100, armor: 25, mr: 20, as: 0.75, range: 1 },
     skill: { name: '주먹이 운다', desc: '대상에게 강력한 물리 피해 + 주변 1칸 스플래시 피해 + 본인 공격력 영구 증가', type: 'single_damage_stack', vfx: 'slam_yellow', adRatio: [3.0, 3.3, 4.2], hpRatioSplash: [0.05, 0.05, 0.05], splashRange: 1, permAdBuff: [0.15, 0.25, 0.35] }
   },
   {
-    id: 'u2_9', name: '합창단 에이스', position: '주문력 인챈터', role: ['support'], subject: '음악', club: '방송부', tier: 2, icon: '🎤', manaType: '집중', stats: { hp: 550, mana: 30, maxMana: 90, ad: 35, ap: 100, armor: 15, mr: 20, as: 0.7, range: 3 },
+    id: 'u2_9', name: '합창단 에이스', position: '주문력 인챈터', role: ['support'], subject: '음악', club: '방송부', tier: 2, icon: '🎤', manaType: '집중', stats: { hp: 500, mana: 30, maxMana: 90, ad: 30, ap: 100, armor: 15, mr: 20, as: 0.7, range: 3 },
     skill: { name: '하모니', desc: '가까운 아군 2명에게 보호막 부여', type: 'ally_shield', vfx: 'shield_gray', targetCount: 2, apRatio: [2.0, 3.0, 4.2] }
   },
   {
-    id: 'u2_11', name: '진로진학 멘토', position: '주문력 인챈터', role: ['support','dealer'], subject: '창체', club: '소속없음', tier: 2, icon: '🧭', manaType: '집중', stats: { hp: 550, mana: 20, maxMana: 70, ad: 40, ap: 100, armor: 25, mr: 25, as: 0.65, range: 3 },
+    id: 'u2_11', name: '진로진학 멘토', position: '주문력 인챈터', role: ['support','dealer'], subject: '창체', club: '소속없음', tier: 2, icon: '🧭', manaType: '집중', stats: { hp: 500, mana: 20, maxMana: 70, ad: 35, ap: 100, armor: 25, mr: 25, as: 0.65, range: 3 },
     skill: { name: '맞춤형 처방', desc: '가장 체력 비율이 낮은 아군을 치유하고, 회복한 수치만큼 무작위 적 1명에게 마법 피해를 입힙니다.', type: 'heal_and_damage', vfx: 'heal_white', apRatio: [2.0, 3.0, 4.2] }
   },
   {
-    id: 'u2_10', name: '바른생활 사나이', position: '공격형 탱커', role: ['tank'], subject: '도덕', club: '선도부', tier: 2, icon: '🙋‍♂️', manaType: '근성', stats: { hp: 580, mana: 0, maxMana: 70, ad: 45, ap: 100, armor: 35, mr: 30, as: 0.6, range: 1 },
-    skill: { name: '규칙 엄수', desc: '주변 적 전체 공격력 감소', type: 'aoe_debuff', vfx: 'debuff_dark', aoeRange: 1, armorRatio: [0.4, 0.4, 0.4], debuffDuration: [50, 60, 60] }
+    id: 'u2_10', name: '바른생활 사나이', position: '공격형 탱커', role: ['tank'], subject: '도덕', club: '선도부', tier: 2, icon: '🙋‍♂️', manaType: '근성', stats: { hp: 530, mana: 0, maxMana: 70, ad: 40, ap: 100, armor: 35, mr: 30, as: 0.6, range: 1 },
+    skill: { name: '규칙 엄수', desc: '주변 적 전체 공격력 감소', type: 'aoe_debuff', vfx: 'debuff_dark', aoeRange: 1, armorRatio: [0.2, 0.2, 0.2], debuffDuration: [40, 50, 50] }
   },
   {
-    id: 'u2_12', name: '칠판 낙서꾼', position: '디버프 전문가', role: ['support','dealer'], subject: '수학', club: '장난꾸러기', tier: 2, icon: '🖍️', manaType: '집중', stats: { hp: 550, mana: 0, maxMana: 70, ad: 60, ap: 100, armor: 25, mr: 25, as: 0.7, range: 2 },
+    id: 'u2_12', name: '칠판 낙서꾼', position: '디버프 전문가', role: ['support','dealer'], subject: '수학', club: '장난꾸러기', tier: 2, icon: '🖍️', manaType: '집중', stats: { hp: 500, mana: 0, maxMana: 70, ad: 55, ap: 100, armor: 25, mr: 25, as: 0.7, range: 2 },
     skill: { name: '난해한 수식', desc: '적 밀집 지역에 마법 피해를 주고 3초간 침묵 상태(스킬 사용 불가)로 만듭니다.', type: 'aoe_magic_silence', vfx: 'magic_purple', aoeRange: 1, apRatio: [1.2, 1.8, 2.5], silenceDuration: [30, 30, 30] }
   },
 
   // 3-Cost (9 units)
   {
-    id: 'u3_1', name: '올림피아드 금상', position: '공격력 마법사', role: ['dealer'], subject: '수학', club: '선도부', tier: 3, icon: '🏆', manaType: '전투', stats: { hp: 800, mana: 0, maxMana: 60, ad: 50, ap: 100, armor: 40, mr: 40, as: 0.65, range: 1 },
+    id: 'u3_1', name: '올림피아드 금상', position: '공격력 마법사', role: ['dealer'], subject: '수학', club: '선도부', tier: 3, icon: '🏆', manaType: '전투', stats: { hp: 900, mana: 0, maxMana: 60, ad: 60, ap: 100, armor: 40, mr: 40, as: 0.65, range: 1 },
     skill: { name: '완벽한 풀이', desc: '대상에게 방어력을 관통하는 단일 물리 피해', type: 'single_damage', vfx: 'slam_yellow', adRatio: [6.0, 7.0, 9.0], armorPen: [0.55, 0.715, 0.88] }
   },
   {
-    id: 'u3_2', name: '양호실 도우미', position: '주문력 인챈터', role: ['support','tank'], subject: '도덕', club: '보건부', tier: 3, icon: '💊', manaType: '근성', stats: { hp: 750, mana: 30, maxMana: 90, ad: 60, ap: 100, armor: 35, mr: 60, as: 0.65, range: 1 },
+    id: 'u3_2', name: '양호실 도우미', position: '주문력 인챈터', role: ['support','tank'], subject: '도덕', club: '보건부', tier: 3, icon: '💊', manaType: '근성', stats: { hp: 850, mana: 30, maxMana: 90, ad: 70, ap: 100, armor: 35, mr: 60, as: 0.65, range: 1 },
     skill: { name: '응급 처치', desc: '체력 비율이 가장 낮은 아군 회복 + 보호막', type: 'heal_shield', vfx: 'heal_white', mrRatio: [2.5, 2.5, 2.5] }
   },
   {
-    id: 'u3_3', name: '육상부 에이스', position: '하이브리드 원딜', role: ['dealer'], subject: '체육', club: '육상부', tier: 3, icon: '🥇', manaType: '전투', stats: { hp: 730, mana: 0, maxMana: 50, ad: 75, ap: 100, armor: 20, mr: 20, as: 0.85, range: 1 },
+    id: 'u3_3', name: '육상부 에이스', position: '하이브리드 원딜', role: ['dealer'], subject: '체육', club: '육상부', tier: 3, icon: '🥇', manaType: '전투', stats: { hp: 830, mana: 0, maxMana: 50, ad: 85, ap: 100, armor: 20, mr: 20, as: 0.85, range: 1 },
     skill: { name: '미친 스퍼트', desc: '공격 속도 대폭 증가', type: 'self_buff', vfx: 'buff_green', buffType: 'attackSpeed', asBuff: [0.5, 0.8, 1.5], buffDuration: [20, 30, 50] }
   },
   {
-    id: 'u3_4', name: '발명품 매니아', position: '주문력 마법사', role: ['dealer'], subject: '과학', club: '장난꾸러기', tier: 3, icon: '💡', manaType: '전투', stats: { hp: 650, mana: 0, maxMana: 80, ad: 60, ap: 100, armor: 20, mr: 30, as: 0.75, range: 2 },
+    id: 'u3_4', name: '발명품 매니아', position: '주문력 마법사', role: ['dealer'], subject: '과학', club: '장난꾸러기', tier: 3, icon: '💡', manaType: '전투', stats: { hp: 750, mana: 0, maxMana: 80, ad: 70, ap: 100, armor: 20, mr: 30, as: 0.75, range: 2 },
     skill: { name: '폭탄 투척', desc: '가장 밀집된 적 주변 광역 마법 피해', type: 'aoe_magic_cluster', vfx: 'fire_red', aoeRange: 1, adRatio: [2.75, 3.0, 3.7] }
   },
   {
-    id: 'u3_5', name: '사회탐구 1타', position: '주문력 암살자', role: ['dealer'], subject: '사회', club: '방송부', tier: 3, icon: '🗺️', manaType: '집중', stats: { hp: 600, mana: 40, maxMana: 100, ad: 45, ap: 100, armor: 25, mr: 40, as: 0.7, range: 4 },
+    id: 'u3_5', name: '사회탐구 1타', position: '주문력 암살자', role: ['dealer'], subject: '사회', club: '방송부', tier: 3, icon: '🗺️', manaType: '집중', stats: { hp: 700, mana: 40, maxMana: 100, ad: 55, ap: 100, armor: 25, mr: 40, as: 0.7, range: 4 },
     skill: { name: '세계화 전략', desc: '가장 먼 적에게 마법 피해', type: 'farthest_magic', vfx: 'magic_purple', apRatio: [3.5, 5.0, 8.0] }
   },
   {
-    id: 'u3_6', name: '시조 읊는 선비', position: '주문력 마법사', role: ['dealer','support'], subject: '국어', club: '급식부', tier: 3, icon: '🍵', manaType: '집중', stats: { hp: 700, mana: 0, maxMana: 90, ad: 50, ap: 100, armor: 30, mr: 45, as: 0.65, range: 2 },
+    id: 'u3_6', name: '시조 읊는 선비', position: '주문력 마법사', role: ['dealer','support'], subject: '국어', club: '급식부', tier: 3, icon: '🍵', manaType: '집중', stats: { hp: 800, mana: 0, maxMana: 90, ad: 60, ap: 100, armor: 30, mr: 45, as: 0.65, range: 2 },
     skill: { name: '연쇄 시조음', desc: '적들에게 튕기는 시조음결을 던져 마법 피해와 치유 감소(50%) 부여', type: 'bounce_magic', vfx: 'magic_purple', apRatio: [2.5, 3.5, 5.0], charges: [4, 5, 7], antiHealDuration: [50, 50, 50], bounceRatio: 1.0 }
   },
   {
-    id: 'u3_7', name: '영어 프리토커', position: '마나제어 전문가', role: ['dealer','support'], subject: '영어', club: '방송부', tier: 3, icon: '🗣️', manaType: '집중', stats: { hp: 600, mana: 20, maxMana: 80, ad: 55, ap: 100, armor: 20, mr: 25, as: 0.75, range: 3 },
+    id: 'u3_7', name: '영어 프리토커', position: '마나제어 전문가', role: ['dealer','support'], subject: '영어', club: '방송부', tier: 3, icon: '🗣️', manaType: '집중', stats: { hp: 700, mana: 20, maxMana: 80, ad: 65, ap: 100, armor: 20, mr: 25, as: 0.75, range: 3 },
     skill: { name: '토론 압살', desc: '대상 마나 소멸 + 마법 피해', type: 'mana_burn', vfx: 'debuff_dark', manaBurnPct: [0.3, 0.5, 0.8], apRatio: [3.0, 4.5, 7.5] }
   },
   {
-    id: 'u3_8', name: '오케스트라 단장', position: '주문력 인챈터', role: ['support'], subject: '음악', club: '급식부', tier: 3, icon: '🎼', manaType: '집중', stats: { hp: 650, mana: 50, maxMana: 90, ad: 40, ap: 100, armor: 25, mr: 30, as: 0.65, range: 3 },
+    id: 'u3_8', name: '오케스트라 단장', position: '주문력 인챈터', role: ['support'], subject: '음악', club: '급식부', tier: 3, icon: '🎼', manaType: '집중', stats: { hp: 750, mana: 50, maxMana: 90, ad: 50, ap: 100, armor: 25, mr: 30, as: 0.65, range: 3 },
     skill: { name: '교향곡', desc: '아군 전체 힐 + 공속 증가', type: 'team_heal_buff', vfx: 'heal_white', healPct: [0.15, 0.20, 0.30], asBuff: [0.30, 0.45, 0.60], buffDuration: [30, 40, 50] }
   },
   {
-    id: 'u3_9', name: '수채화 장인', position: '마나제어 전문가', role: ['dealer','support'], subject: '미술', club: '선도부', tier: 3, icon: '🎨', manaType: '집중', stats: { hp: 750, mana: 30, maxMana: 100, ad: 45, ap: 100, armor: 40, mr: 30, as: 0.6, range: 2 },
+    id: 'u3_9', name: '수채화 장인', position: '마나제어 전문가', role: ['dealer','support'], subject: '미술', club: '선도부', tier: 3, icon: '🎨', manaType: '집중', stats: { hp: 850, mana: 30, maxMana: 100, ad: 55, ap: 100, armor: 40, mr: 30, as: 0.6, range: 2 },
     skill: { name: '색의 마법', desc: '랜덤 적 2명에게 마법 피해 + 마나 봉인', type: 'random_aoe_debuff', vfx: 'magic_purple', targetCount: 2, apRatio: [1.5, 2.5, 4.0], manaReducPct: [1.0, 1.0, 1.0], debuffDuration: [30, 40, 50] }
   },
   {
-    id: 'u3_10', name: '미술 치료사', position: '주문력 인챈터', role: ['support'], subject: '미술', club: '보건부', tier: 3, icon: '👩‍⚕️', manaType: '집중', stats: { hp: 700, mana: 20, maxMana: 90, ad: 40, ap: 100, armor: 30, mr: 40, as: 0.65, range: 3 },
+    id: 'u3_10', name: '미술 치료사', position: '주문력 인챈터', role: ['support'], subject: '미술', club: '보건부', tier: 3, icon: '👩‍⚕️', manaType: '집중', stats: { hp: 800, mana: 20, maxMana: 90, ad: 50, ap: 100, armor: 30, mr: 40, as: 0.65, range: 3 },
     skill: { name: '마음 그리기', desc: '체력이 가장 낮은 아군의 방해 효과를 해제하고 보호막을 부여하며 4초간 공격력과 주문력을 증가시킵니다.', type: 'cleanse_shield_buff', vfx: 'heal_white', shieldFlat: [200, 300, 500], buffPct: [0.3, 0.3, 0.3], buffDuration: [40, 40, 40] }
   },
   {
-    id: 'u3_11', name: '또래 상담 에이스', position: '주문력 인챈터', role: ['support','tank'], subject: '창체', club: '소속없음', tier: 3, icon: '💬', manaType: '근성', stats: { hp: 850, mana: 30, maxMana: 100, ad: 50, ap: 100, armor: 45, mr: 45, as: 0.6, range: 1 },
+    id: 'u3_11', name: '또래 상담 에이스', position: '주문력 인챈터', role: ['support','tank'], subject: '창체', club: '소속없음', tier: 3, icon: '💬', manaType: '근성', stats: { hp: 950, mana: 30, maxMana: 100, ad: 60, ap: 100, armor: 45, mr: 45, as: 0.6, range: 1 },
     skill: { name: '마음의 방벽', desc: '반경 2칸 내 아군에게 보호막을 씌우고, 보호막 유지 중 군중 제어기(CC) 면역 부여', type: 'aoe_shield_cc_immune', vfx: 'shield_gray', aoeRange: 2, shieldFlat: [350, 500, 800] }
   },
   {
-    id: 'u3_12', name: '해외 보따리상', position: '처형 전문가', role: ['dealer'], subject: '영어', club: '경제부', tier: 3, icon: '📦', manaType: '전투', stats: { hp: 650, mana: 0, maxMana: 80, ad: 45, ap: 100, armor: 25, mr: 25, as: 0.75, range: 3 },
+    id: 'u3_12', name: '해외 보따리상', position: '처형 전문가', role: ['dealer'], subject: '영어', club: '경제부', tier: 3, icon: '📦', manaType: '전투', stats: { hp: 750, mana: 0, maxMana: 80, ad: 55, ap: 100, armor: 25, mr: 25, as: 0.75, range: 3 },
     skill: { name: '관세 폭탄', desc: '현재 체력이 가장 적은 적을 우선 지정하여 마법 피해를 줍니다. 이 스킬로 대상을 처치하면 50% 확률로 1골드를 획득합니다.', type: 'lowest_hp_magic_gold', vfx: 'magic_purple', apRatio: [3.5, 5.0, 7.5] }
   },
 
