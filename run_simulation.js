@@ -58,10 +58,29 @@ function estimateUnitCost(u, rollLevel) {
     else odds = [10, 15, 30, 30, 15];
     
     let prob = odds[u.tier - 1] / 100;
-    if (prob === 0) return Infinity;
-    let rollCost = (1 / prob) * 2 * copies * 0.15; // slightly higher roll tax
+    if (prob === 0) return Infinity; // 확률 0%면 절대 불가능
     
-    return base + rollCost;
+    // 해당 티어의 유닛 종류 수 계산
+    let tierCount = UNIT_POOL.filter(x => x.tier === u.tier).length;
+    if (tierCount === 0) return Infinity;
+    
+    // 특정 기물 1개가 상점 한 칸에서 뜰 확률
+    let targetProbPerSlot = prob / tierCount;
+    // 1회 리롤(5칸) 당 뜰 기댓값
+    let expectedPerRoll = targetProbPerSlot * 5;
+    // 1장을 얻기 위해 필요한 평균 리롤 횟수
+    let expectedRolls = 1 / expectedPerRoll;
+    // 리롤 1번당 비용 (2골드)
+    let rollCostPerCopy = expectedRolls * 2;
+    
+    // 분산 패널티: 3성을 찍거나 고티어 2성을 찾을 때는 평균값보다 훨씬 많은 소모가 필요함을 감안
+    let varianceTax = 1.0;
+    if (u.star === 3) varianceTax = 1.3;
+    if (u.tier === 5 && u.star === 2) varianceTax = 1.2;
+    
+    let totalRollCost = rollCostPerCopy * copies * varianceTax;
+    
+    return base + totalRollCost;
 }
 
 function generateRandomDeck(type) {
@@ -521,6 +540,11 @@ function runGAForType(type, popSize, generations) {
     for(let g=0; g<generations; g++) {
         population.forEach(p => { p.wins = 0; p.matches = 0; });
         for(let i=0; i<population.length; i++) {
+            let cost = estimateCost(population[i].deck, type);
+            if (cost > TOTAL_GOLD) {
+                population[i].wins = -9999; // Budget exceeded, eliminate
+                continue;
+            }
             for(let m=0; m<BATTLES_PER_EVAL; m++) {
                 let j = Math.floor(Math.random() * population.length);
                 if(i === j) continue;
@@ -578,7 +602,17 @@ function runGAForType(type, popSize, generations) {
     
     population.forEach(p => { p.wins = 0; p.matches = 0; });
     for(let i=0; i<population.length; i++) {
+        let costI = estimateCost(population[i].deck, type);
+        if (costI > TOTAL_GOLD) {
+            population[i].wins = -9999;
+            continue;
+        }
         for(let j=i+1; j<population.length; j++) {
+            let costJ = estimateCost(population[j].deck, type);
+            if (costJ > TOTAL_GOLD) {
+                population[j].wins = -9999;
+                continue;
+            }
             if(fight(population[i].deck, population[j].deck)) {
                 population[i].wins++;
             } else {
