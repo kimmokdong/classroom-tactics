@@ -431,7 +431,7 @@ async function main() {
     console.log("=== Agent-based Pure Random Evaluation Started ===");
     console.log(`Total Gold: ${TOTAL_GOLD}`);
     
-    let allDecks = [];
+    let finalDecks = [];
     let types = ['6L', '7L', '8L', '9L'];
     
     for (let type of types) {
@@ -449,37 +449,53 @@ async function main() {
                 typeDecks.push({ deck: bot.deck, wins: 0, matches: 0, type: type, sig: getDeckSignature(bot.deck) });
             }
         }
-        allDecks = allDecks.concat(typeDecks);
+        
+        console.log(`Running Preliminary Group Stage for ${type}...`);
+        for(let i=0; i<typeDecks.length; i++) {
+            for(let j=i+1; j<typeDecks.length; j++) {
+                if(fight(typeDecks[i].deck, typeDecks[j].deck)) typeDecks[i].wins++;
+                else typeDecks[j].wins++;
+                typeDecks[i].matches++;
+                typeDecks[j].matches++;
+            }
+        }
+        
+        typeDecks.sort((a,b) => (b.wins/b.matches) - (a.wins/a.matches));
+        
+        let topUnique = [];
+        let seenSigs = new Set();
+        for (let p of typeDecks) {
+            if (!seenSigs.has(p.sig)) {
+                seenSigs.add(p.sig);
+                p.wins = 0;
+                p.matches = 0;
+                topUnique.push(p);
+            }
+            if (topUnique.length >= 10) break;
+        }
+        
+        finalDecks = finalDecks.concat(topUnique);
     }
     
-    console.log(`Total unique decks created: ${allDecks.length}`);
-    console.log("Starting Battle Royale Tournament...");
+    console.log(`Total final decks for Battle Royale: ${finalDecks.length}`);
+    console.log("Starting Final Battle Royale Tournament...");
     
-    for(let i=0; i<allDecks.length; i++) {
-        for(let j=i+1; j<allDecks.length; j++) {
-            if(fight(allDecks[i].deck, allDecks[j].deck)) allDecks[i].wins++;
-            else allDecks[j].wins++;
-            allDecks[i].matches++;
-            allDecks[j].matches++;
+    for(let i=0; i<finalDecks.length; i++) {
+        for(let j=i+1; j<finalDecks.length; j++) {
+            if(fight(finalDecks[i].deck, finalDecks[j].deck)) finalDecks[i].wins++;
+            else finalDecks[j].wins++;
+            finalDecks[i].matches++;
+            finalDecks[j].matches++;
         }
     }
     
-    allDecks.sort((a,b) => (b.wins/b.matches) - (a.wins/a.matches));
+    finalDecks.sort((a,b) => (b.wins/b.matches) - (a.wins/a.matches));
     
-    let topUnique = [];
-    let seenSigs = new Set();
-    for (let p of allDecks) {
-        if (!seenSigs.has(p.sig)) {
-            seenSigs.add(p.sig);
-            topUnique.push(p);
-        }
-    }
-    
-    let top45 = topUnique.slice(0, 45);
+    let top45 = finalDecks.slice(0, 45);
     
     let markdown = `# 🤖 에이전트(무작위 밸류 진화) 시뮬레이션 리포트\n`;
     markdown += `> **예산**: ${TOTAL_GOLD} 골드 / **기물 풀**: 4코 10장, 5코 7장 고증 반영 / **분석 시간**: ${new Date().toLocaleString()}\n`;
-    markdown += `> **평가 방식**: 시너지를 전혀 고려하지 않고 맹목적 목표 달성과 랜덤 배치로 짜여진 봇들의 덱 ${allDecks.length}개가 토너먼트 배틀로얄을 치른 후 살아남은 승률 기반 순위표입니다.\n\n---\n\n`;
+    markdown += `> **평가 방식**: 각 레벨별 예선(100개 풀 리그)을 통과한 상위 10개씩, 총 40개의 정예 덱들이 결선 토너먼트 배틀로얄을 치른 승률 기반 순위표입니다.\n\n---\n\n`;
     
     markdown += `## 🏆 최종 최적해 순위 통계 (Top 45)\n\n`;
     markdown += `| 순위 | 덱 타입 | 덱 명칭 (발견된 시너지) | 승률 | 🛡️ 메인 탱커 | ⚔️ 메인 딜러 | 🎯 서브 딜러 | 코스트 | 구성 유닛 상세 |\n`;
