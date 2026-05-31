@@ -508,14 +508,14 @@ async function main() {
         let dealer = items.find(u => u.items.includes('ie') || u.items.includes('rabadon')) || items[1];
         let sub = items.find(u => u !== tank && u !== dealer) || items[2];
         
-        let tName = tank ? `${tank.name}(${tank.star}★)` : '-';
-        let dName = dealer ? `${dealer.name}(${dealer.star}★)` : '-';
-        let sName = sub ? `${sub.name}(${sub.star}★)` : '-';
+        let tName = tank ? `${tank.name}(${tank.tier}코${tank.star}★)` : '-';
+        let dName = dealer ? `${dealer.name}(${dealer.tier}코${dealer.star}★)` : '-';
+        let sName = sub ? `${sub.name}(${sub.tier}코${sub.star}★)` : '-';
         
         let cost = p.deck.reduce((sum, u) => sum + (u.tier * (u.star===3?9:(u.star===2?3:1))), 0);
         
         let deckDetail = p.deck.map(u => {
-            let str = `${u.name}(${u.star}★)`;
+            let str = `${u.name}(${u.tier}코${u.star}★)`;
             if (u === tank || u === dealer || u === sub) str = `**${str}**`;
             return str;
         }).join(', ');
