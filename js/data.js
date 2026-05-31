@@ -1,4 +1,4 @@
-export const EXP_TABLE = { 1: 2, 2: 4, 3: 8, 4: 14, 5: 24, 6: 36, 7: 50, 8: 70, 9: 90 };
+export const EXP_TABLE = { 1: 2, 2: 2, 3: 6, 4: 10, 5: 20, 6: 36, 7: 60, 8: 68, 9: 68 };
 
 export const SYNERGIES = {
   subjects: {
