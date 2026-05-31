@@ -28,18 +28,18 @@ const dummyApp = new DummyApp();
 const synergyManager = new SynergyManager(dummyApp);
 
 // --- AGENT PARAMS ---
-const TOTAL_GOLD = parseInt(process.env.TOTAL_GOLD) || 320; // 벤치마크 스크립트에서 주입받음
+const TOTAL_GOLD = parseInt(process.env.TOTAL_GOLD) || 280; // 벤치마크 스크립트에서 주입받음
 const BOT_COUNT_PER_TYPE = 100; // 각 타입별 100마리 (총 400마리 배틀로얄)
 const TANK_ITEMS = ['gargoyle', 'warmog', 'dclaw'];
 const AD_ITEMS = ['ie', 'guinsoo', 'gs'];
 const AP_ITEMS = ['rabadon', 'jg', 'blue'];
-// 현재 레벨에서 다음 레벨로 가는 비용 (최신 EXP_TABLE 기준: 6->7:36, 7->8:60, 8->9:68)
-const LEVEL_UP_COST = { 6: 36, 7: 60, 8: 68 }; 
-// 1렙부터 해당 레벨까지 순수하게 골드로 샀을 때 누적 필요 경험치(비용)
-const BASE_LEVEL_COST = { '6L': 38, '7L': 72, '8L': 132, '9L': 200 };
+// 현재 레벨에서 다음 레벨로 가는 비용
+const LEVEL_UP_COST = { 6: 30, 7: 50, 8: 68 }; 
+// 레벨 도달을 위해 기본적으로 빼는 예산 (이전 레벨업 비용 누적 + 기물 1성 구매비)
+const BASE_LEVEL_COST = { '6L': 38, '7L': 68, '8L': 118, '9L': 186 };
 
 // 1인용 솔로플레이 환경에 맞게 기물 풀 대폭 축소 (기물 독점 난이도 증가)
-const TIER_COPIES = { 1: 18, 2: 15, 3: 12, 4: 10, 5: 7 };
+const TIER_COPIES = { 1: 22, 2: 18, 3: 16, 4: 8, 5: 7 };
 const SHOP_ODDS = {
     6: [35, 40, 20, 5, 0],
     7: [19, 30, 35, 15, 1],
@@ -53,8 +53,9 @@ function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)];
 class AgentBot {
     constructor(targetType) {
         this.targetType = targetType;
-        this.level = parseInt(targetType[0]);
-        this.gold = TOTAL_GOLD - BASE_LEVEL_COST[targetType];
+        let baseType = targetType === 'Synergy' ? '8L' : targetType;
+        this.level = parseInt(baseType[0]);
+        this.gold = TOTAL_GOLD - BASE_LEVEL_COST[baseType];
         this.deck = [];
         this.bench = [];
         this.pool = this.initPool();
@@ -164,8 +165,15 @@ class AgentBot {
                 
                 let baseUnit = UNIT_POOL.find(u => String(u.id) === id);
                 if (baseUnit) {
-                    let upgraded = Object.assign({}, baseUnit);
+                    let upgraded = JSON.parse(JSON.stringify(baseUnit));
                     upgraded.star = star + 1;
+                    
+                    // Apply stat scaling based on star level (from 1-star base)
+                    for (let s = 2; s <= upgraded.star; s++) {
+                        upgraded.stats.hp = Math.round(upgraded.stats.hp * 1.8);
+                        upgraded.stats.ad = Math.round(upgraded.stats.ad * 1.5);
+                    }
+                    
                     if (removedFromDeck > 0) {
                         this.deck.push(upgraded);
                     } else {
@@ -342,6 +350,77 @@ function simulate9L(bot) {
     }
 }
 
+function simulateSynergyBot(bot, targetName, targetCount) {
+    let isTargetDone = () => {
+        let uniqueSynergyUnits = new Set();
+        bot.bench.forEach(u => {
+            if (u.subject === targetName || u.club === targetName) {
+                uniqueSynergyUnits.add(u.name);
+            }
+        });
+        return uniqueSynergyUnits.size >= targetCount;
+    };
+
+    while (bot.gold >= 2) {
+        let shop = bot.rollShop();
+        if (shop.length === 0) break;
+        
+        let needSynergy = !isTargetDone();
+        
+        for (let u of shop) {
+            let isSynergyUnit = (u.subject === targetName || u.club === targetName);
+            
+            // 보유 중인 같은 이름의 기물이 있다면 성급업을 위해 무조건 구매 (시너지 유닛이든 아니든)
+            let hasCopy = bot.bench.some(b => b.name === u.name);
+            if (hasCopy) {
+                bot.buy(u);
+                continue;
+            }
+            
+            if (isSynergyUnit && needSynergy) {
+                bot.buy(u);
+            } else if (u.tier >= 3 && bot.bench.length < 8) {
+                // 남는 자리 굿스터프
+                bot.buy(u);
+            }
+        }
+        
+        if (bot.bench.length >= 30) {
+            // 시너지 유닛 제외하고 가장 약한 유닛 판매
+            let sorted = bot.bench.map((u, i) => ({u, i}))
+                                  .filter(x => x.u.subject !== targetName && x.u.club !== targetName);
+            sorted.sort((a,b) => (a.u.tier + a.u.star*2) - (b.u.tier + b.u.star*2));
+            if (sorted.length > 0) bot.sell(sorted[0].i);
+            else bot.sell(0); // 전부 시너지 유닛이면 아무거나
+        }
+    }
+    
+    // 덱 구성
+    // 시너지 유닛 중복 없이 가장 강한 것부터 targetCount만큼 덱에 투입
+    let synergyUnits = bot.bench.filter(u => u.subject === targetName || u.club === targetName);
+    synergyUnits.sort((a,b) => (b.tier + b.star*10) - (a.tier + a.star*10));
+    
+    let addedNames = new Set();
+    for (let u of synergyUnits) {
+        if (!addedNames.has(u.name) && addedNames.size < targetCount) {
+            addedNames.add(u.name);
+            bot.deck.push(u);
+            bot.bench.splice(bot.bench.indexOf(u), 1);
+        }
+    }
+    
+    // 남은 벤치 유닛을 강한 순서대로 정렬해서 8칸 채움
+    bot.bench.sort((a,b) => (b.tier + b.star*10) - (a.tier + a.star*10));
+    while(bot.deck.length < 8 && bot.bench.length > 0) {
+        let u = bot.bench.shift();
+        bot.deck.push(u);
+    }
+    
+    if (bot.deck.length === 0) {
+        console.error(`ERROR: Deck length 0 for ${targetName} ${targetCount}. Bench length: ${bot.bench.length}, Gold: ${bot.gold}`);
+    }
+}
+
 function assignItems(deck, type) {
     let units = deck.map((u, i) => {
         let isTank = Array.isArray(u.role) && u.role.includes('tank');
@@ -432,21 +511,45 @@ async function main() {
     console.log(`Total Gold: ${TOTAL_GOLD}`);
     
     let finalDecks = [];
-    let types = ['6L', '7L', '8L', '9L'];
+    let types = ['6L', '7L', '8L', '9L', 'Synergy'];
+    
+    const SYNERGY_TARGETS = [
+        ['국어', 4], ['수학', 4], ['사회', 4], ['과학', 4], ['영어', 4], ['체육', 4], ['음악', 4], ['미술', 4],
+        ['도덕', 4], ['도덕', 6], ['선도부', 4], ['선도부', 6], ['방송부', 5], ['방송부', 7],
+        ['육상부', 4], ['육상부', 6], ['보건부', 4], ['보건부', 6], ['급식부', 5], ['급식부', 7],
+        ['장난꾸러기', 4], ['장난꾸러기', 6]
+    ];
     
     for (let type of types) {
         console.log(`Simulating Bots for ${type}...`);
         let typeDecks = [];
-        for(let i=0; i<BOT_COUNT_PER_TYPE; i++) {
+        
+        let botCount = type === 'Synergy' ? SYNERGY_TARGETS.length * 5 : BOT_COUNT_PER_TYPE; // 22 targets * 5 = 110 bots
+        
+        for(let i=0; i<botCount; i++) {
             let bot = new AgentBot(type);
+            
             if (type === '6L' || type === '7L') simulate6L_7L(bot);
             else if (type === '8L') simulate8L(bot);
             else if (type === '9L') simulate9L(bot);
+            else if (type === 'Synergy') {
+                let target = SYNERGY_TARGETS[i % SYNERGY_TARGETS.length];
+                simulateSynergyBot(bot, target[0], target[1]);
+            }
             
             bot.deck = bot.deck.filter(u => u !== null && u !== undefined);
             if(bot.deck.length > 0) {
                 assignItems(bot.deck, type);
-                typeDecks.push({ deck: bot.deck, wins: 0, matches: 0, type: type, sig: getDeckSignature(bot.deck) });
+                
+                // 시너지 덱은 이름에 타겟 정보를 붙여서 리포트에서 알아보기 쉽게 함
+                let sig = getDeckSignature(bot.deck);
+                let typeName = type;
+                if (type === 'Synergy') {
+                    let target = SYNERGY_TARGETS[i % SYNERGY_TARGETS.length];
+                    typeName = `Syn(${target[0]}${target[1]})`;
+                }
+                
+                typeDecks.push({ deck: bot.deck, wins: 0, matches: 0, type: typeName, sig: sig });
             }
         }
         
@@ -471,7 +574,8 @@ async function main() {
                 p.matches = 0;
                 topUnique.push(p);
             }
-            if (topUnique.length >= 10) break;
+            let limit = type === 'Synergy' ? 20 : 10;
+            if (topUnique.length >= limit) break;
         }
         
         finalDecks = finalDecks.concat(topUnique);
@@ -491,17 +595,21 @@ async function main() {
     
     finalDecks.sort((a,b) => (b.wins/b.matches) - (a.wins/a.matches));
     
-    let top45 = finalDecks.slice(0, 45);
+    let topDecks = finalDecks.slice(0, 60);
     
-    let markdown = `# 🤖 에이전트(무작위 밸류 진화) 시뮬레이션 리포트\n`;
-    markdown += `> **예산**: ${TOTAL_GOLD} 골드 / **기물 풀**: 4코 10장, 5코 7장 고증 반영 / **분석 시간**: ${new Date().toLocaleString()}\n`;
-    markdown += `> **평가 방식**: 각 레벨별 예선(100개 풀 리그)을 통과한 상위 10개씩, 총 40개의 정예 덱들이 결선 토너먼트 배틀로얄을 치른 승률 기반 순위표입니다.\n\n---\n\n`;
+    let markdown = `# 🤖 에이전트(무작위 밸류 진화) 시뮬레이션 리포트
+> **예산**: ${TOTAL_GOLD} 골드 / **분석 시간**: ${new Date().toLocaleString()}
+> **평가 방식**: 각 레벨별 예선(풀 리그)을 통과한 총 60개의 정예 덱들이 결선 토너먼트 배틀로얄을 치른 승률 기반 순위표입니다. (시너지 타겟 덱 합류)
+
+---
+
+## 🏆 최종 최적해 순위 통계 (Top 60)
+
+| 순위 | 덱 타입 | 덱 명칭 (발견된 시너지) | 승률 | 🛡️ 메인 탱커 | ⚔️ 메인 딜러 | 🎯 서브 딜러 | 코스트 | 구성 유닛 상세 |
+|:---:|:---:|:---|:---:|:---|:---|:---|:---:|:---|
+`;
     
-    markdown += `## 🏆 최종 최적해 순위 통계 (Top 45)\n\n`;
-    markdown += `| 순위 | 덱 타입 | 덱 명칭 (발견된 시너지) | 승률 | 🛡️ 메인 탱커 | ⚔️ 메인 딜러 | 🎯 서브 딜러 | 코스트 | 구성 유닛 상세 |\n`;
-    markdown += `|:---:|:---:|:---|:---:|:---|:---|:---|:---:|:---|\n`;
-    
-    top45.forEach((p, index) => {
+    topDecks.forEach((p, index) => {
         let winrate = ((p.wins / p.matches) * 100).toFixed(1);
         let items = p.deck.filter(u => u.items && u.items.length > 0);
         let tank = items.find(u => u.items.includes('gargoyle')) || items[0];
@@ -526,8 +634,10 @@ async function main() {
         markdown += `| ${rankBadge} | ${p.type} | **${rawName}** | **${winrate}%** | ${tName} | ${dName} | ${sName} | ${cost}G | ${deckDetail} |\n`;
     });
     
-    console.log(`Simulation complete! Report saved to report_${TOTAL_GOLD}G.txt`);
-    fs.writeFileSync(`report_${TOTAL_GOLD}G.txt`, markdown);
+    if (fs.existsSync('report_2.txt')) fs.renameSync('report_2.txt', 'report_3.txt');
+    if (fs.existsSync('report_1.txt')) fs.renameSync('report_1.txt', 'report_2.txt');
+    fs.writeFileSync('report_1.txt', markdown);
+    console.log(`Simulation complete! Report saved to report_1.txt`);
 }
 
 main();

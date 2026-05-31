@@ -236,12 +236,6 @@ export class UnitManager {
                 newUnit.stats.ad = Math.round(newUnit.stats.ad * 1.5);
                 // AP는 진화 시 오르지 않음 (스킬 고유 계수로만 성장)
 
-                // [신규 기획] 1~3코스트 3성 달성 시 보너스 깡스탯 부여 (밸런스를 위해 절반 하향)
-                if (newUnit.star === 3 && newUnit.tier <= 3) {
-                    newUnit.stats.armor += Math.round(25 - (newUnit.tier * 5)); // 1코:+20, 2코:+15, 3코:+10
-                    newUnit.stats.mr += Math.round(25 - (newUnit.tier * 5));
-                    newUnit.stats.hp += Math.round(250 - (newUnit.tier * 50)); // 1코:+200, 2코:+150, 3코:+100
-                }
                 newUnit.permGrowth = summedPermGrowth;
                 newUnit.justUpgraded = true;
 

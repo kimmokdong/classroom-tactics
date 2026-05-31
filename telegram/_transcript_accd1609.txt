@@ -1,0 +1,28 @@
+﻿**********************
+Windows PowerShell 기록 시작
+시작 시간: 20260531205643
+사용자 이름: Mokdong\hyunseung
+RunAs 사용자: Mokdong\hyunseung
+구성 이름: 
+Machine: MOKDONG (Microsoft Windows NT 10.0.26200.0)
+호스트 응용 프로그램: powershell -NoProfile -NonInteractive -Command 
+$ErrorActionPreference = 'SilentlyContinue'
+Start-Transcript -Path "C:\Users\hyunseung\Desktop\classroom-tactics\telegram\_transcript_accd1609.txt" -Force | Out-Null
+& "C:\Users\hyunseung\AppData\Local\agy\bin\agy.exe" --print "시뮬레이션 돌리고 보고서 html로 작성해" --continue --dangerously-skip-permissions
+Stop-Transcript | Out-Null
+
+프로세스 ID: 7184
+PSVersion: 5.1.26100.8457
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8457
+BuildVersion: 10.0.26100.8457
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+**********************
+Windows PowerShell 기록 끝
+종료 시간: 20260531210148
+**********************
