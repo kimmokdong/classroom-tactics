@@ -65,6 +65,16 @@ export class UnitManager {
         const maxMana = unit.stats.maxMana || 1; // 0 나누기 방지
         const manaPct = unit.currMana !== undefined ? (unit.currMana / maxMana * 100) : ((unit.stats.mana / maxMana * 100) || 0);
 
+        let actualItems = [...(unit.items || [])];
+        if (unit.donationItems) actualItems.push(...unit.donationItems);
+        if (actualItems.includes('comb_crit_crit') && unit.thievesItems) {
+            actualItems = ['comb_crit_crit', ...unit.thievesItems];
+        }
+        let itemIconsHtml = actualItems.slice(0, 3).map(itemId => {
+            const icon = this.app.itemManager.getIconForItem(itemId);
+            return `<div style="width: 12px; height: 12px; font-size: 0.6rem; background: rgba(255,255,255,0.8); border: 1px solid #aaa; border-radius: 2px; display: flex; justify-content: center; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.3);">${icon}</div>`;
+        }).join('');
+
         uDiv.innerHTML = `
             <div class="status-icons"></div>
             <div style="font-size: 0.6rem; margin-bottom: 2px;">${starText}</div>
@@ -76,6 +86,9 @@ export class UnitManager {
                     <div class="shield-fill" style="width: ${Math.min(100, shieldPct)}%;"></div>
                 </div>
                 <div class="mana-container"><div class="mana-fill" style="width: ${unit.stats.maxMana > 0 ? manaPct : 0}%;"></div></div>
+            </div>
+            <div class="board-items-container" style="display:flex; justify-content:center; gap:2px; margin-top:2px; height: 14px;">
+                ${itemIconsHtml}
             </div>
         `;
         uDiv.dataset.type = type;
@@ -124,9 +137,13 @@ export class UnitManager {
         this.app.state.bench[sourceIdx] = null;
 
         // 환불 로직: 유닛 티어만큼 골드 환불 + 장착 아이템 모두 반환
-        // TODO: 2성/3성 판매 시 골드 환불량 증가 (현재는 티어만큼만 환불됨)
+        // [패치] 2성/3성 판매 시 합체 가격에서 1골드 페널티
         let copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
-        this.app.state.gold += unit.tier * copies; 
+        let refundGold = unit.tier * copies;
+        if (unit.star >= 2) {
+            refundGold -= 1;
+        }
+        this.app.state.gold += refundGold; 
         this.app.state.sharedPool[unit.id] = (this.app.state.sharedPool[unit.id] || 0) + copies;
 
         if (unit.items && unit.items.length > 0) {
@@ -304,6 +321,8 @@ export class UnitManager {
         if (skill.apRatio) {
             if (skill.type.includes('shield') && !skill.type.includes('damage') && !skill.type.includes('magic')) {
                 details.push(`주문력 비례 보호막: ${formatArr(skill.apRatio, true, '', COLORS.ap, '🔮')}`);
+            } else if (skill.type === 'heal_and_damage') {
+                details.push(`회복 및 피해량: ${formatArr(skill.apRatio, true, '', COLORS.ap, '🔮')}`);
             } else {
                 details.push(`마법 피해량: ${formatArr(skill.apRatio, true, '', COLORS.ap, '🔮')}`);
             }
@@ -580,7 +599,7 @@ export class UnitManager {
                 <div>📈 피해 증폭: <span id="info-dmgAmp" style="color:#ef5350">+${Math.round((unit.combat?.dmgAmp || 0) * 100)}%</span></div>
                 <div>📉 피해 감소: <span id="info-dmgReduc" style="color:#29b6f6">${Math.round((unit.combat?.dmgReduc || 0) * 100)}%</span></div>
                 <div>🩸 흡혈률: <span id="info-vamp" style="color:#ec407a">${Math.round((unit.combat?.vamp || 0) * 100)}%</span></div>
-                <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((unit.combat?.teamManaRegen || 0) + (unit.subject === '음악' ? (unit.combat?.artManaRegen || 0) : 0))}</span></div>
+                <div>🌱 추가 재생: <span id="info-manaRegen" style="color:#42a5f5">+${((unit.combat?.teamManaRegen || 0) + ((Array.isArray(unit.subject) ? unit.subject.includes('음악') : unit.subject === '음악') ? (unit.combat?.artManaRegen || 0) : 0))}</span></div>
             </div>
             ${skillHtml}
         `;

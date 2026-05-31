@@ -138,14 +138,75 @@ export class ItemManager {
                         this.app.hideCustomTooltip();
                         e.dataTransfer.setData('itemIdx', i);
                         e.dataTransfer.setData('itemId', itemId);
+                        window.__draggedInventoryItemId = itemId;
+                        window.__draggedInventoryItemIdx = i;
+                    };
+                    itemDiv.ondragend = (e) => {
+                        window.__draggedInventoryItemId = null;
+                        window.__draggedInventoryItemIdx = null;
+                        this.app.hideCustomTooltip();
                     };
                     slot.appendChild(itemDiv);
                 }
             }
 
-            slot.ondragover = (e) => e.preventDefault();
+            slot.ondragover = (e) => {
+                e.preventDefault();
+                
+                // 툴팁 위치 업데이트
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip && tooltip.style.display !== 'none' && window.__draggedInventoryItemId) {
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY + 15) + 'px';
+                }
+            };
+            
+            let dragCounter = 0;
+            slot.ondragenter = (e) => {
+                e.preventDefault();
+                dragCounter++;
+                if (dragCounter > 1) return;
+                const targetIdx = parseInt(slot.dataset.index);
+                const targetItemId = this.app.state.inventory[targetIdx];
+                const sourceItemId = window.__draggedInventoryItemId;
+                const sourceIdx = window.__draggedInventoryItemIdx;
+
+                if (sourceItemId && targetItemId && sourceIdx !== targetIdx) {
+                    const sourceDef = this.app.ITEMS.find(i => i.id === sourceItemId);
+                    const targetDef = this.app.ITEMS.find(i => i.id === targetItemId);
+                    
+                    if (sourceDef && targetDef && sourceDef.type === 'base' && targetDef.type === 'base') {
+                        const comboDef = this.app.ITEMS.find(i => i.type === 'combined' && i.recipe &&
+                            ((i.recipe[0] === sourceItemId && i.recipe[1] === targetItemId) ||
+                                (i.recipe[0] === targetItemId && i.recipe[1] === sourceItemId))
+                        );
+
+                        if (comboDef) {
+                            const iconStr = this.getIconForItem(comboDef.id);
+                            this.app.showCustomTooltip(e, `
+                                <div style="font-weight:bold; color:#10b981; font-size:0.85rem; margin-bottom:6px;">✨ 조합 미리보기</div>
+                                <div style="font-weight:bold; color:#d97706; font-size:1rem; margin-bottom:4px;">
+                                    ${iconStr} ${comboDef.name}
+                                    <span style="font-size:0.75rem; color:#666; font-weight:normal; margin-left:4px;">${this.formatItemStats(comboDef.stats)}</span>
+                                </div>
+                                <div style="color:#475569;">${comboDef.desc}</div>
+                            `);
+                        }
+                    }
+                }
+            };
+
+            slot.ondragleave = (e) => {
+                dragCounter--;
+                if (dragCounter === 0) {
+                    this.app.hideCustomTooltip();
+                }
+            };
+
             slot.ondrop = (e) => {
                 e.preventDefault();
+                dragCounter = 0;
+                this.app.hideCustomTooltip();
                 const sourceIdxStr = e.dataTransfer.getData('itemIdx');
                 if (!sourceIdxStr) return;
                 const sourceIdx = parseInt(sourceIdxStr);

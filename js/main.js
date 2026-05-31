@@ -323,7 +323,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
         let pool = [...UNIT_POOL];
         if (filter !== 'all') {
-            pool = pool.filter(u => u.subject === filter || u.club === filter);
+            pool = pool.filter(u => {
+                const subjMatch = Array.isArray(u.subject) ? u.subject.includes(filter) : u.subject === filter;
+                const clubMatch = Array.isArray(u.club) ? u.club.includes(filter) : u.club === filter;
+                return subjMatch || clubMatch;
+            });
         }
         if (currentDictCostFilter > 0) {
             pool = pool.filter(u => u.tier === currentDictCostFilter);

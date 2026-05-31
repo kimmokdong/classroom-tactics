@@ -136,7 +136,7 @@ export class ShopManager {
             card.innerHTML = `
                 <div style="font-size: 2rem; margin-bottom: 5px;">${randomUnit.icon || '🧑‍🎓'}</div>
                 <h4 style="margin-bottom: 3px;">${randomUnit.name}</h4>
-                <p style="font-size: 0.8rem; color: #666;">${randomUnit.subject} / ${randomUnit.club}</p>
+                <p style="font-size: 0.8rem; color: #666;">${Array.isArray(randomUnit.subject) ? randomUnit.subject.join('/') : randomUnit.subject} / ${Array.isArray(randomUnit.club) ? randomUnit.club.join('/') : randomUnit.club}</p>
                 <b style="color: #d81b60; margin-top: auto;">${randomUnit.tier}G</b>
             `;
 
@@ -158,7 +158,7 @@ export class ShopManager {
                 tooltip.innerHTML = `
                     <div style="font-size: 1.1rem; margin-bottom: 5px;"><strong>⭐ ${randomUnit.name}</strong> <span style="color:var(--gold-color);">(${randomUnit.tier}G)</span></div>
                     <div style="color: #666; font-size: 0.85rem; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
-                        📚 ${randomUnit.subject} &nbsp;|&nbsp; 🏷️ ${randomUnit.club}
+                        📚 ${Array.isArray(randomUnit.subject) ? randomUnit.subject.join('/') : randomUnit.subject} &nbsp;|&nbsp; 🏷️ ${Array.isArray(randomUnit.club) ? randomUnit.club.join('/') : randomUnit.club}
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #444;">
                         <div>❤️ 체력: <span style="color:#4caf50">${randomUnit.stats.hp}</span></div>

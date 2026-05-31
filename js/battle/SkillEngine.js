@@ -4,7 +4,7 @@ export class SkillEngine {
     execute(unit, activeUnits, engine) {
         const s = unit.skill;
         const starIdx = (unit.star || 1) - 1;
-        let enemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.buffs.some(b=>b.type==='invincible' || b.type==='zephyr'));
+        let enemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.buffs.some(b=>b.type==='invincible' || b.type==='zephyr' || b.type==='untargetable'));
         if (enemies.length === 0) enemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0); // fallback
         const allies = activeUnits.filter(u => u.team === unit.team && u.currHp > 0);
         
@@ -33,6 +33,7 @@ export class SkillEngine {
         
         const { ad, ap, armor, mr, maxHp, as } = unit.stats;
         const apMult = ap / 100;
+        const skillAmpMult = 1 + (unit.combat.skillAmp || 0);
         
         const getBaseDmg = (s, starIdx) => {
             let d = 0;
@@ -42,11 +43,12 @@ export class SkillEngine {
             if (s.armorRatio) d += armor * s.armorRatio[starIdx];
             if (s.mrRatio) d += mr * s.mrRatio[starIdx];
             if (s.defMrRatio) d += (armor + mr) * s.defMrRatio[starIdx];
-            return d;
+            
+            return d * skillAmpMult;
         };
 
         const applyDmg = (target, dmg, type = 'magic', isCrit = false) => {
-            if (target.buffs.some(b => b.type === 'invincible' || b.type === 'zephyr')) return;
+            if (target.buffs.some(b => b.type === 'invincible' || b.type === 'zephyr' || b.type === 'untargetable')) return;
             let finalDmg = Math.max(1, dmg);
             
             let currentDmgAmp = unit.combat.dmgAmp || 0;
@@ -153,7 +155,7 @@ export class SkillEngine {
             target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult)));
 
             // [p15] 바른 생활의 분노 (평타 피격 시 반사)
-            if (engine.playerAugments.includes('p15') && target.team === 'player' && target.subject === '도덕' && unit.team === 'enemy' && finalDmg > 0) {
+            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team === 'enemy' && finalDmg > 0) {
                 const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
                 let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                 unit.currHp -= actualReflect;
@@ -203,6 +205,38 @@ export class SkillEngine {
 
         // 스킬 타입별 처리 분기
         switch(s.type) {
+            case 'lowest_hp_magic_gold':
+                if (enemies.length > 0) {
+                    const lowestHpEnemies = [...enemies].sort((a,b) => a.currHp - b.currHp);
+                    const targetEnemy = lowestHpEnemies[0];
+                    targets.push(targetEnemy);
+                    let baseDmg = unit.stats.ap * s.apRatio[starIdx];
+                    applyDmg(targetEnemy, baseDmg, 'magic');
+                    
+                    if (targetEnemy.currHp <= 0 && unit.team === 'player' && Math.random() < 0.5) {
+                        engine.earnedGold = (engine.earnedGold || 0) + 1;
+                        engine.logs.push({
+                            tick: engine.tick, type: 'gold_drop', amount: 1, target: targetEnemy.gridIndex, source: unit.gridIndex, unitName: unit.name
+                        });
+                    }
+                }
+                break;
+                
+            case 'single_physical_gold_scaling':
+                if (enemies[0]) {
+                    targets.push(enemies[0]);
+                    let baseDmg = s.baseDmg ? s.baseDmg[starIdx] : (s.adRatio ? unit.stats.ad * s.adRatio[starIdx] : 200);
+                    let currentGold = engine.playerGold || 0;
+                    let goldAmp = Math.floor(currentGold / 10) * 0.20; 
+                    let totalDmg = baseDmg * (1 + goldAmp);
+                    applyDmg(enemies[0], totalDmg, 'physical');
+                    
+                    if (enemies[0].currHp <= 0 && s.killManaRestore) {
+                        unit.currMana = Math.min(unit.stats.maxMana, (unit.currMana || 0) + s.killManaRestore);
+                    }
+                }
+                break;
+                
             case 'single_dot':
                 if (enemies[0]) {
                     targets.push(enemies[0]);
@@ -251,6 +285,7 @@ export class SkillEngine {
                 
             case 'aoe_damage_buff':
             case 'aoe_damage_cc_shield':
+            case 'aoe_magic_silence':
                 if (enemies[0]) {
                     const center = s.type === 'aoe_damage_buff' ? unit : enemies[0];
                     enemies.forEach(e => {
@@ -258,6 +293,7 @@ export class SkillEngine {
                             targets.push(e);
                             applyDmg(e, getBaseDmg(s, starIdx), 'magic');
                             if (s.stunDuration) addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
+                            if (s.silenceDuration) addBuff(e, 'manaSeal', null, 0, s.silenceDuration[starIdx]);
                         }
                     });
                     if (s.selfDefBuff) addBuff(unit, 'buff', 'armor', unit.stats.armor * s.selfDefBuff[starIdx], s.buffDuration[starIdx]);
@@ -342,22 +378,72 @@ export class SkillEngine {
 
             case 'heal':
             case 'heal_shield':
+            case 'cleanse_shield_buff':
                 if (allies[0]) {
                     targets.push(allies[0]);
+                    
+                    if (s.type === 'cleanse_shield_buff') {
+                        if (allies[0].buffs) {
+                            allies[0].buffs = allies[0].buffs.filter(b => ['buff','shield','heal','hyper','hyper_range','guaranteedCrit','precision'].includes(b.type));
+                        }
+                        if (s.buffPct) {
+                            let buffVal = s.buffPct[starIdx] * (unit.stats.ap / 100);
+                            addBuff(allies[0], 'buff', 'ad', allies[0].stats.ad * buffVal, s.buffDuration[starIdx]);
+                            addBuff(allies[0], 'buff', 'ap', allies[0].stats.ap * buffVal, s.buffDuration[starIdx]);
+                        }
+                    }
+                    
                     let healAmt = 0;
                     if (s.healPct) healAmt += allies[0].stats.maxHp * s.healPct[starIdx];
                     if (s.mrRatio) healAmt += mr * s.mrRatio[starIdx];
-                    healAmt *= (unit.stats.ap / 100);
-                    if (healAmt > 0) addBuff(allies[0], 'heal', 'hp', healAmt, 1);
+                    if (healAmt > 0) {
+                        healAmt *= (unit.stats.ap / 100);
+                        addBuff(allies[0], 'heal', 'hp', healAmt, 1);
+                    }
                     
                     let shieldAmt = 0;
                     if (s.shieldFlat) shieldAmt += s.shieldFlat[starIdx];
-                    if (s.mrRatio) shieldAmt += mr * s.mrRatio[starIdx];
+                    if (s.mrRatio && s.type !== 'cleanse_shield_buff') shieldAmt += mr * s.mrRatio[starIdx];
                     shieldAmt *= (unit.stats.ap / 100);
-                    if (shieldAmt > 0) addBuff(allies[0], 'shield', 'shield', shieldAmt, 9999);
+                    if (shieldAmt > 0) addBuff(allies[0], 'shield', 'shield', shieldAmt, s.buffDuration ? s.buffDuration[starIdx] : 9999);
                 }
                 break;
                 
+            case 'heal_and_damage':
+                if (allies[0]) {
+                    const targetAlly = allies[0];
+                    let healAmt = unit.stats.ap * s.apRatio[starIdx] * skillAmpMult;
+                    if (healAmt > 0) {
+                        addBuff(targetAlly, 'heal', 'hp', healAmt, 1);
+                        if (enemies.length > 0) {
+                            const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                            targets.push(randomEnemy);
+                            applyDmg(randomEnemy, healAmt, 'magic');
+                        }
+                    }
+                }
+                break;
+
+            case 'aoe_shield_cc_immune':
+                allies.forEach(a => {
+                    if (engine.getDist(unit.gridIndex, a.gridIndex) <= s.aoeRange) {
+                        let shieldAmt = s.shieldFlat[starIdx] * skillAmpMult;
+                        addBuff(a, 'shield', 'shield', shieldAmt, 9999);
+                        // 현재 엔진 구조상 보호막 파괴와 디버프 해제를 연동하기 어려우므로, 5초(50틱) 지속으로 구현합니다.
+                        addBuff(a, 'ccImmune', null, 0, 50);
+                    }
+                });
+                break;
+
+            case 'global_heal_shield':
+                allies.forEach(a => {
+                    let shieldAmt = s.shieldFlat[starIdx] * skillAmpMult;
+                    let healAmt = s.healFlat[starIdx] * skillAmpMult;
+                    if (shieldAmt > 0) addBuff(a, 'shield', 'shield', shieldAmt, 9999);
+                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1);
+                });
+                break;
+
             case 'team_heal':
             case 'team_heal_buff':
             case 'team_heal_plus':
@@ -570,10 +656,12 @@ export class SkillEngine {
         else if (unit.id === 'u4_5') { fxType = 'school_shield'; castTime = 1000; }
         else if (unit.id === 'u4_6') { fxType = 'school_heal'; castTime = 1600; }
         else if (unit.id === 'u4_7') { fxType = 'school_piano'; castTime = 1600; }
+        else if (unit.id === 'u4_8') { fxType = 'school_quant'; castTime = 1000; }
         else if (unit.id === 'u5_1') { fxType = 'school_foreign'; castTime = 1200; }
         else if (unit.id === 'u5_2') { fxType = 'school_blackhole'; castTime = 2400; screenFlash = true; }
         else if (unit.id === 'u5_3') { fxType = 'school_picasso'; castTime = 2000; }
         else if (unit.id === 'u5_4') { fxType = 'school_principal'; castTime = 2200; screenFlash = true; }
+        else if (unit.id === 'u5_5') { fxType = 'school_donation'; castTime = 2000; screenFlash = true; }
         else if (unit.tier <= 3) {
             fxType = unit.id;
             castTime = 500;

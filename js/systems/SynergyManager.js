@@ -19,8 +19,16 @@ export class SynergyManager {
 
         const counts = { subjects: {}, clubs: {} };
         uniqueUnits.forEach(u => {
-            counts.subjects[u.subject] = (counts.subjects[u.subject] || 0) + 1;
-            counts.clubs[u.club] = (counts.clubs[u.club] || 0) + 1;
+            if (Array.isArray(u.subject)) {
+                u.subject.forEach(sub => counts.subjects[sub] = (counts.subjects[sub] || 0) + 1);
+            } else {
+                counts.subjects[u.subject] = (counts.subjects[u.subject] || 0) + 1;
+            }
+            if (Array.isArray(u.club)) {
+                u.club.forEach(clb => counts.clubs[clb] = (counts.clubs[clb] || 0) + 1);
+            } else {
+                counts.clubs[u.club] = (counts.clubs[u.club] || 0) + 1;
+            }
         });
 
         return counts;
@@ -55,6 +63,40 @@ export class SynergyManager {
             }
             return newU;
         });
+
+        // [기부천사 패시브] 전투 시작 전 인접한 아군에게 완성 아이템 임시 부여
+        if (!isEnemy && this.app && this.app.ITEMS) {
+            buffedBoard.forEach((u, index) => {
+                if (!u || u.id !== 'u5_5') return;
+                const star = (u.star || 1) - 1;
+                const adjItemSkill = u.skill && u.skill.adjPassiveItems;
+                if (!adjItemSkill) return;
+                const giftCount = adjItemSkill[Math.min(star, adjItemSkill.length - 1)];
+                const ux = index % 8;
+                const uy = Math.floor(index / 8);
+                const adjacent = buffedBoard.filter((a, aIdx) => {
+                    if (!a || a === u) return false;
+                    const ax = aIdx % 8;
+                    const ay = Math.floor(aIdx / 8);
+                    return (Math.abs(ax - ux) + Math.abs(ay - uy)) === 1;
+                });
+                
+                const ITEMS_DATA = this.app.ITEMS;
+                const combined = ITEMS_DATA.filter(it => it.type === 'combined');
+                if (!combined.length) return;
+                
+                adjacent.forEach(a => {
+                    const existingItems = (a.items || []).length;
+                    const slots = Math.min(giftCount, 3 - existingItems);
+                    if (slots <= 0) return;
+                    if (!a.donationItems) a.donationItems = [];
+                    for (let i = 0; i < slots; i++) {
+                        const randomItem = combined[Math.floor(Math.random() * combined.length)];
+                        a.donationItems.push(randomItem.id);
+                    }
+                });
+            });
+        }
 
         const getLevelData = (type, name, count) => {
             const synData = SYNERGIES[type][name];
@@ -132,79 +174,99 @@ export class SynergyManager {
                 }
             }
 
-            const subjEff = getLevelData('subjects', u.subject, activeSynergies.subjects[u.subject]);
-            if (subjEff) {
-                if (u.subject === '국어') u.stats.ap += subjEff.selfAp || 0;
-                if (u.subject === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; if (subjEff.armorPen) u.combat.armorPen = subjEff.armorPen; }
-                if (u.subject === '과학') {
-                    u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
-                    if (subjEff.skillCrit) u.combat.skillCrit = true;
-                    if (subjEff.critChance) u.combat.critChance = (u.combat.critChance || 0) + subjEff.critChance;
-                }
-                if (u.subject === '사회') {
-                    if (subjEff.shield) u.combat.shield += subjEff.shield;
-                    if (subjEff.allStats) {
-                        const mult = 1 + subjEff.allStats;
-                        u.stats.hp *= mult;
-                        u.stats.ad *= mult;
-                        u.stats.ap *= mult;
-                        u.stats.armor *= mult;
-                        u.stats.mr *= mult;
+            const processSubject = (subj) => {
+                const subjEff = getLevelData('subjects', subj, activeSynergies.subjects[subj] || 0);
+                if (subjEff) {
+                    if (subj === '국어') u.stats.ap += subjEff.selfAp || 0;
+                    if (subj === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; if (subjEff.armorPen) u.combat.armorPen = subjEff.armorPen; }
+                    if (subj === '과학') {
+                        u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
+                        if (subjEff.skillCrit) u.combat.skillCrit = true;
+                        if (subjEff.critChance) u.combat.critChance = (u.combat.critChance || 0) + subjEff.critChance;
                     }
+                    if (subj === '사회') {
+                        if (subjEff.shield) u.combat.shield += subjEff.shield;
+                        if (subjEff.allStats) {
+                            const mult = 1 + subjEff.allStats;
+                            u.stats.hp *= mult;
+                            u.stats.ad *= mult;
+                            u.stats.ap *= mult;
+                            u.stats.armor *= mult;
+                            u.stats.mr *= mult;
+                        }
+                    }
+                    if (subj === '영어') {
+                        if (subjEff.manaReduc) u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * (1 - subjEff.manaReduc)));
+                        if (subjEff.manaBurnFlat) u.combat.manaBurnFlat = subjEff.manaBurnFlat;
+                        if (subjEff.burnToMana) u.combat.burnToMana = true;
+                        if (subjEff.bonusMagicDmg) u.combat.bonusMagicDmgEng = subjEff.bonusMagicDmg;
+                    }
+                    if (subj === '체육') { u.stats.hp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); }
+                    if (subj === '미술') { 
+                        u.combat.canvasDuration = subjEff.canvasDuration;
+                        u.combat.canvasRadius = subjEff.canvasRadius;
+                        u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc;
+                        u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp;
+                        u.combat.canvasManaRegen = subjEff.canvasManaRegen || 0;
+                    }
+                    if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
+                    if (subj === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
+                    if (subj === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
+
                 }
-                if (u.subject === '영어') {
-                    if (subjEff.manaReduc) u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * (1 - subjEff.manaReduc)));
-                    if (subjEff.manaBurnFlat) u.combat.manaBurnFlat = subjEff.manaBurnFlat;
-                    if (subjEff.burnToMana) u.combat.burnToMana = true;
-                    if (subjEff.bonusMagicDmg) u.combat.bonusMagicDmgEng = subjEff.bonusMagicDmg;
-                }
-                if (u.subject === '체육') { u.stats.hp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); }
-                if (u.subject === '미술') { 
-                    u.combat.canvasDuration = subjEff.canvasDuration;
-                    u.combat.canvasRadius = subjEff.canvasRadius;
-                    u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc;
-                    u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp;
-                    u.combat.canvasManaRegen = subjEff.canvasManaRegen || 0;
-                }
-                if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
-                if (u.subject === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
-                if (u.subject === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
+            };
+
+            if (Array.isArray(u.subject)) {
+                u.subject.forEach(processSubject);
+            } else {
+                processSubject(u.subject);
             }
 
-            const clubEff = getLevelData('clubs', u.club, activeSynergies.clubs[u.club]);
-            if (clubEff) {
-                if (u.club === '선도부') { u.combat.shield += u.stats.hp * clubEff.startShieldPct; u.combat.dmgAmp += clubEff.dmgAmp; }
-                if (u.club === '방송부') { 
-                    u.combat.isSniper = true; 
-                    u.combat.distAmp = clubEff.distAmp; 
-                    u.stats.range += (clubEff.rangeBuff || 0); 
-                    if (clubEff.armorPen) u.combat.armorPen = clubEff.armorPen;
-                    if (clubEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + clubEff.startMana;
+            const processClub = (clb) => {
+                const clubEff = getLevelData('clubs', clb, activeSynergies.clubs[clb] || 0);
+                if (clubEff) {
+                    if (clb === '선도부') { u.combat.shield += u.stats.hp * clubEff.startShieldPct; u.combat.dmgAmp += clubEff.dmgAmp; }
+                    if (clb === '방송부') { 
+                        u.combat.isSniper = true; 
+                        u.combat.distAmp = clubEff.distAmp; 
+                        u.stats.range += (clubEff.rangeBuff || 0); 
+                        if (clubEff.armorPen) u.combat.armorPen = clubEff.armorPen;
+                        if (clubEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + clubEff.startMana;
+                    }
+                    if (clb === '육상부') { 
+                        u.combat.isRunner = true;
+                        u.combat.runnerDash = clubEff.dash;
+                        u.combat.moveAsBuff = clubEff.moveAsBuff;
+                        u.combat.movePenBuff = clubEff.movePenBuff;
+                        u.combat.runnerMaxStacks = clubEff.maxStacks;
+                        u.combat.runnerMaxBonusAs = clubEff.maxBonusAs || 0;
+                        u.combat.runnerMaxBonusPen = clubEff.maxBonusPen || 0;
+                        u.combat.runnerKeepStacks = clubEff.keepStacks || false;
+                    }
+                    if (clb === '급식부') { u.combat.isCafeteria = true; u.combat.shield += clubEff.startShield; u.combat.satietyTick = clubEff.satietyTick; u.combat.stackHpPct = clubEff.stackHpPct; u.combat.stackArmorMr = clubEff.stackArmorMr; }
+                    if (clb === '장난꾸러기') { u.combat.prankLevel = clubEff.prankLevel; }
                 }
-                if (u.club === '육상부') { 
-                    u.combat.isRunner = true;
-                    u.combat.runnerDash = clubEff.dash;
-                    u.combat.moveAsBuff = clubEff.moveAsBuff;
-                    u.combat.movePenBuff = clubEff.movePenBuff;
-                    u.combat.runnerMaxStacks = clubEff.maxStacks;
-                    u.combat.runnerMaxBonusAs = clubEff.maxBonusAs || 0;
-                    u.combat.runnerMaxBonusPen = clubEff.maxBonusPen || 0;
-                    u.combat.runnerKeepStacks = clubEff.keepStacks || false;
-                }
-                if (u.club === '급식부') { u.combat.isCafeteria = true; u.combat.shield += clubEff.startShield; u.combat.satietyTick = clubEff.satietyTick; u.combat.stackHpPct = clubEff.stackHpPct; u.combat.stackArmorMr = clubEff.stackArmorMr; }
-                if (u.club === '장난꾸러기') { u.combat.prankLevel = clubEff.prankLevel; }
+            };
+
+            if (Array.isArray(u.club)) {
+                u.club.forEach(processClub);
+            } else {
+                processClub(u.club);
             }
 
-            if (u.items && u.items.length > 0) {
+            if ((u.items && u.items.length > 0) || (u.donationItems && u.donationItems.length > 0)) {
                 let itemAdPct = 0;
                 let itemApPct = 0;
                 u.combat.itemEffects = u.combat.itemEffects || {};
 
-                let actualItems = [...u.items];
+                let actualItems = [...(u.items || [])];
                 if (actualItems.includes("comb_crit_crit") && u.thievesItems) {
                     actualItems = ["comb_crit_crit", ...u.thievesItems];
-                    u.items = actualItems;
                 }
+                if (u.donationItems) {
+                    actualItems = [...actualItems, ...u.donationItems];
+                }
+                u.items = actualItems; // 전투 중에 아이템 효과가 정상적으로 발동하도록 덮어씀 (원본 보드에는 영향 없음)
 
                 actualItems.forEach(itemId => {
                     const itemDef = this.app.ITEMS.find(i => i.id === itemId);
@@ -308,7 +370,8 @@ export class SynergyManager {
             '육상부': 'images/icon_12_track.png',
             '보건부': 'images/icon_13_health.png',
             '급식부': 'images/icon_14_cafeteria.png',
-            '장난꾸러기': 'images/icon_15_trickster.png'
+            '장난꾸러기': 'images/icon_15_trickster.png',
+            '경제부': 'images/icon_16_economy.png'
         };
         const src = icons[name];
         if (src) {
@@ -345,7 +408,11 @@ export class SynergyManager {
                 if (u) seenIds.add(u.id);
             });
 
-            const allMatches = UNIT_POOL.filter(u => u[type] === name);
+            const allMatches = UNIT_POOL.filter(u => {
+                const sMatch = Array.isArray(u.subject) ? u.subject.includes(name) : u.subject === name;
+                const cMatch = Array.isArray(u.club) ? u.club.includes(name) : u.club === name;
+                return type === 'subject' ? sMatch : cMatch;
+            });
             if (allMatches.length > 0) {
                 html += `<div style="margin-top:10px; padding-top:12px; border-top:1px dashed #ccc; display:flex; gap:8px; flex-wrap:wrap;">`;
                 allMatches.forEach(u => {

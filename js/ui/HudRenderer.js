@@ -6,9 +6,21 @@ export class HudRenderer {
     updateHeader() {
         document.getElementById('player-hp').innerText = this.app.state.hp;
         document.getElementById('player-gold').innerText = this.app.state.gold;
-
         let interest = Math.floor(this.app.state.gold / 10);
-        if (!this.app.state.richFoundation) interest = Math.min(5, interest);
+        let maxInterest = 5;
+
+        // 경제부 시너지 반영
+        const playerSynergies = this.app.getSynergyData(this.app.state.board);
+        const ecoCount = playerSynergies.clubs['경제부'] || 0;
+        if (ecoCount > 0) {
+            // SYNERGIES를 임포트하지 않았으므로 앱의 함수로 직접 처리 불가능하다면?
+            // 아니면 그냥 단순하게 조건문으로 처리: 1->7, 2->999
+            if (ecoCount >= 2) maxInterest = 999;
+            else if (ecoCount >= 1) maxInterest = 7;
+        }
+
+        if (this.app.state.richFoundation) maxInterest = 999;
+        interest = Math.min(maxInterest, interest);
 
         const streakCount = this.app.state.winStreak || this.app.state.lossStreak;
         let streakBonus = 0;

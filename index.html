@@ -12,10 +12,10 @@
         <!-- Top HUD -->
         <header id="game-header">
             <div class="hud-left" style="display: flex; gap: 10px;">
-                <button id="btn-dictionary" class="stat btn" style="background:#1976d2; border:1px solid #1565c0; cursor:pointer;">📖 유닛 도감</button>
-                <button id="btn-guide" class="stat btn" style="background:#8e44ad; border:1px solid #732d91; cursor:pointer;">📖 교무수첩</button>
+                <button id="btn-dictionary" class="stat btn" style="background:#1976d2; border:1px solid #1565c0; cursor:pointer; white-space: nowrap;">📖 유닛 도감</button>
+                <button id="btn-guide" class="stat btn" style="background:#8e44ad; border:1px solid #732d91; cursor:pointer; white-space: nowrap;">📖 교무수첩</button>
                 <a href="sandbox.html" target="_blank" style="text-decoration: none;">
-                    <button class="stat btn" style="background:#e67e22; border:1px solid #d35400; cursor:pointer;">🛠️ 샌드박스</button>
+                    <button class="stat btn" style="background:#e67e22; border:1px solid #d35400; cursor:pointer; white-space: nowrap;">🛠️ 샌드박스</button>
                 </a>
             </div>
             <div class="hud-center" style="display: flex; flex-direction: row; align-items: center; gap: 15px;">
@@ -88,7 +88,7 @@
                             <div style="font-size: 1.8rem; font-weight: 900; color: #f57f17; margin-bottom: 5px;">💰 <span id="player-gold">0</span></div>
                             <div id="interest-info" style="font-size: 0.9rem; color: #7f8c8d; font-weight: bold;">예상 이자: +0G</div>
                             <div id="streak-info" style="font-size: 0.85rem; color: #34495e; font-weight: bold; margin-top: 3px;">연승/연패: 없음</div>
-                            <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">(승리+5G / 패배+3G)</div>
+                            <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px; text-align: center; line-height: 1.4;">기본 획득골드 5<br>(승리+1 / 패배+0)</div>
                         </div>
 
                         <div id="shop-area">

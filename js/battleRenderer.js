@@ -496,6 +496,32 @@ export class BattleRenderer {
                 logEl.appendChild(li);
                 logEl.scrollTop = logEl.scrollHeight;
             }
+        } else if (action.type === 'gold_drop') {
+            const cell = this.cells[action.target];
+            if (cell) {
+                const goldText = document.createElement('div');
+                goldText.className = 'dmg-text heal';
+                goldText.style.color = '#f1c40f'; // Gold color
+                goldText.style.textShadow = '0 0 4px #000';
+                goldText.innerText = `+${action.amount}G`;
+                cell.appendChild(goldText);
+                setTimeout(() => { if(goldText.parentNode) goldText.parentNode.removeChild(goldText); }, 1000);
+            }
+            if (window.gameApp && window.gameApp.state) {
+                window.gameApp.state.gold += action.amount;
+                window.gameApp.updateHeader();
+            }
+            const logEl = document.getElementById('battle-log');
+            if (logEl) {
+                const li = document.createElement('li');
+                li.style.color = '#f39c12';
+                li.style.fontSize = '0.85rem';
+                li.style.borderBottom = '1px dashed #eee';
+                li.style.paddingBottom = '3px';
+                li.innerHTML = `💰 <strong>${action.unitName}</strong>(이)가 적을 처치하여 ${action.amount}골드 획득!`;
+                logEl.appendChild(li);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
         } else if (action.type === 'heal') {
             const toCell = this.cells[action.target];
             if (!toCell) return;
@@ -625,11 +651,11 @@ export class BattleRenderer {
                 if (action.vfx && action.vfx.includes('slam')) color = '#ffd700';
 
                 let prevCenter = casterCenter;
-                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole'];
+                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole', 'school_donation', 'school_quant'];
                 const lowTierIds = [
                     'u1_1','u1_2','u1_3','u1_4','u1_5','u1_6','u1_7','u1_8','u1_9','u1_10',
-                    'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10',
-                    'u3_1','u3_2','u3_3','u3_4','u3_5','u3_6','u3_7','u3_8','u3_9'
+                    'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10','u2_11','u2_12',
+                    'u3_1','u3_2','u3_3','u3_4','u3_5','u3_6','u3_7','u3_8','u3_9','u3_10','u3_11','u3_12'
                 ];
                 
                 if (lowTierIds.includes(action.fxType)) {
@@ -855,6 +881,69 @@ export class BattleRenderer {
             if (this.fxCanvas) {
                 this.screenFlash = 0.6;
                 this.hitStopUntil = performance.now() + 800;
+            }
+        } else if (action.type === 'changche_lv1' && this.fxCanvas) {
+            if (action.targets) {
+                action.targets.forEach(tIdx => {
+                    const center = this.getCellCenter(tIdx);
+                    if (center) this.spawnFx('changche_1_hit', center.x, center.y);
+                });
+            }
+        } else if (action.type === 'changche_lv3' && this.fxCanvas) {
+            for (let i = 0; i < this.cells.length; i++) {
+                const uDiv = this.cells[i].querySelector('.unit-character');
+                if (uDiv && !uDiv.classList.contains('is-enemy')) {
+                    const center = this.getCellCenter(i);
+                    if (center) this.spawnFx('changche_3_buff', center.x, center.y);
+                }
+            }
+        } else if (action.type === 'donation_items' && this.fxCanvas) {
+            const center = this.getCellCenter(action.target);
+            if (center) {
+                // 기부천사 주변 상하좌우 아군 위치 탐색하여 투사체 대상으로 전달
+                const allyPositions = [];
+                const cols = 7; // 7x4 그리드
+                const row = Math.floor(action.target / cols);
+                const col = action.target % cols;
+                const adjacentOffsets = [
+                    { dr: -1, dc: 0 }, // 상
+                    { dr: 1, dc: 0 },  // 하
+                    { dr: 0, dc: -1 }, // 좌
+                    { dr: 0, dc: 1 }   // 우
+                ];
+                adjacentOffsets.forEach(({ dr, dc }) => {
+                    const nr = row + dr, nc = col + dc;
+                    if (nr >= 0 && nr < 4 && nc >= 0 && nc < cols) {
+                        const nIdx = nr * cols + nc;
+                        const cell = this.cells[nIdx];
+                        if (cell) {
+                            const uDiv = cell.querySelector('.unit-character');
+                            if (uDiv && !uDiv.classList.contains('is-enemy')) {
+                                const allyCenter = this.getCellCenter(nIdx);
+                                if (allyCenter) allyPositions.push(allyCenter);
+                            }
+                        }
+                    }
+                });
+                this.spawnFx('donation_items_buff', center.x, center.y, { allyPositions: allyPositions });
+            }
+        } else if (action.type === 'cpr_revive' && this.fxCanvas) {
+            const center = this.getCellCenter(action.target);
+            if (center) {
+                this.spawnFx('holy_heal', center.x, center.y, { life: 1.5 });
+                this.spawnFx('heal_sparkle', center.x, center.y, { life: 1.5 });
+            }
+            
+            const cell = this.cells[action.target];
+            if (cell) {
+                const uDiv = cell.querySelector('.unit-character');
+                if (uDiv) {
+                    uDiv.style.opacity = '1';
+                    uDiv.style.transition = 'none';
+                    uDiv.dataset.currHp = action.hp;
+                    const hpFill = cell.querySelector('.hp-fill');
+                    if (hpFill) hpFill.style.width = '30%'; // CPR heal % (approx)
+                }
             }
         }
     }

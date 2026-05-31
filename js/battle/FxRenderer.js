@@ -116,7 +116,7 @@ export class FxRenderer {
 
             if (p.t >= 1) {
                 p.life = 0;
-                this.fxSystem.spawnFx(p.hitType || 'low_magic_hit', p.tx, p.ty, { color: p.color, life: 1.5 });
+                this.fxSystem.spawnFx(p.hitType || 'low_magic_hit', p.tx, p.ty, { color: p.color, life: 1.5, targets: p.targets });
             }
         } else if (p.type === 'low_bounce') {
             if (p.seg >= p.pts.length - 1) {
@@ -199,14 +199,25 @@ export class FxRenderer {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = `rgba(255, 80, 80, ${p.life / p.maxLife})`;
-            ctx.fillText('!', p.x, p.y - r * 0.3);
         } else if (p.type === 'low_passive') {
             p.y -= 0.25;
-            ctx.font = 'bold 13px sans-serif';
+            ctx.save();
+            // 글씨가 너무 빨리 투명해져서 회색으로 보이는 것을 방지 (끝날 때만 살짝 투명)
+            ctx.globalAlpha = Math.min(1.0, (p.life / p.maxLife) * 2.0); 
+            ctx.font = '900 15px sans-serif'; // 아주 두껍게 (900)
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = `rgba(255, 220, 80, ${p.life / p.maxLife})`;
+            
+            // 텍스트 외곽선 (흰색 100% 불투명, 두께 3) - 배경과 완벽히 분리
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#ffffff';
+            ctx.strokeText(p.text || '↑', p.x, p.y);
+            
+            // 텍스트 본체
+            ctx.fillStyle = p.color || '#000000';
             ctx.fillText(p.text || '↑', p.x, p.y);
+            
+            ctx.restore();
         } else if (p.type === 'low_debuff') {
             if (!p.particles) {
                 p.particles = Array.from({ length: p.count || 8 }, () => ({
@@ -506,6 +517,191 @@ export class FxRenderer {
                 p.shook = true;
                 this.fxSystem.renderer.screenFlash = 0.5;
             }
+        } else if (p.type === 'donation_item_projectile') {
+            // 기부천사 패시브 투사체: 포물선 이동 + 꼬리 잔상 + 2D 벡터 아이콘 드로잉
+            p.t = Math.min(p.t + 0.02, 1);
+            
+            // 포물선 궤적 계산
+            const cx = p.startX + (p.tx - p.startX) * p.t;
+            const cy = p.startY + (p.ty - p.startY) * p.t - Math.sin(p.t * Math.PI) * 45;
+            
+            // 꼬리 잔상 흔적(trail)
+            p.trail.push({ x: cx, y: cy });
+            if (p.trail.length > 5) p.trail.shift();
+            
+            p.trail.forEach((pt, idx) => {
+                const alpha = (idx / p.trail.length) * 0.75;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 4.5 * (idx / p.trail.length), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 220, 80, ${alpha})`;
+                ctx.fill();
+            });
+            
+            // 회전 회오리 골든 입자 방출 효과
+            if (Math.random() > 0.45) {
+                this.fxSystem.particles.push({
+                    type: 'aug_heal_bomb_spark',
+                    x: cx, y: cy,
+                    vx: R(-1.2, 1.2), vy: R(-1.2, 1.2),
+                    life: R(0.4, 0.9), maxLife: 0.9,
+                    size: R(3, 5.5), hue: 50
+                });
+            }
+            
+            // 2D 벡터 그래픽 드로잉
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(p.t * Math.PI * 3.8); // 팽이 회전
+            
+            if (p.icon === 'gift') {
+                // 황금 리본 선물 상자
+                ctx.strokeStyle = '#ffe066';
+                ctx.fillStyle = '#ffaa00';
+                ctx.lineWidth = 1.8;
+                ctx.fillRect(-7, -4, 14, 11);
+                ctx.strokeRect(-7, -4, 14, 11);
+                
+                ctx.fillStyle = '#ffcc00';
+                ctx.fillRect(-8.5, -7, 17, 3);
+                ctx.strokeRect(-8.5, -7, 17, 3);
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.1;
+                ctx.beginPath();
+                ctx.moveTo(0, -7); ctx.lineTo(0, 7);
+                ctx.moveTo(-8.5, 1.5); ctx.lineTo(8.5, 1.5);
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-3.5, -9.5, 2.5, 0, Math.PI * 2);
+                ctx.arc(3.5, -9.5, 2.5, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (p.icon === 'sword') {
+                // 골든 소드
+                ctx.strokeStyle = '#ffe066';
+                ctx.fillStyle = '#ffffff';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(0, -11);
+                ctx.lineTo(2.5, -3);
+                ctx.lineTo(1.2, 5);
+                ctx.lineTo(-1.2, 5);
+                ctx.lineTo(-2.5, -3);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.moveTo(-5.5, 5);
+                ctx.lineTo(5.5, 5);
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#a0522d';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(0, 5);
+                ctx.lineTo(0, 11);
+                ctx.stroke();
+            } else if (p.icon === 'shield') {
+                // 골든 실드
+                ctx.strokeStyle = '#ffe066';
+                ctx.fillStyle = '#ffb300';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(0, -9);
+                ctx.lineTo(7.5, -5);
+                ctx.quadraticCurveTo(6.5, 4, 0, 9.5);
+                ctx.quadraticCurveTo(-6.5, 4, -7.5, -5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, -1, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.icon === 'stat') {
+                // 황금 번개
+                ctx.strokeStyle = '#ffe066';
+                ctx.fillStyle = '#fff600';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(0, -10.5);
+                ctx.lineTo(5.5, -3);
+                ctx.lineTo(1.2, -3);
+                ctx.lineTo(3.5, 10.5);
+                ctx.lineTo(-4.5, 1.5);
+                ctx.lineTo(-0.8, 1.5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            if (p.t >= 1) {
+                p.life = 0;
+                this.fxSystem.spawnFx('donation_confetti_burst', p.tx, p.ty, { color: '#ffea00' });
+            }
+        } else if (p.type === 'donation_confetti') {
+            // 생일 폭죽 효과: 다채로운 컨페티(종이가루) 흩날림 렌더링
+            p.parts.forEach(pt => {
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.vy += 0.085; // 중력 가속도
+                pt.rot += pt.rotSpd;
+                pt.life -= 0.016;
+                
+                if (pt.life > 0) {
+                    const alpha = Math.max(0, pt.life / pt.maxLife);
+                    ctx.save();
+                    ctx.translate(pt.x, pt.y);
+                    ctx.rotate(pt.rot);
+                    ctx.fillStyle = pt.color;
+                    ctx.globalAlpha = alpha;
+                    
+                    // 회전하는 사각형 종이가루 렌더링
+                    ctx.fillRect(-pt.size / 2, -pt.size / 2, pt.size, pt.size * 0.65);
+                    ctx.restore();
+                }
+            });
+        } else if (p.type === 'donation_global_circle') {
+            // 기부천사 액티브 맵 전체 광역 다중 금빛 링 마법진
+            const pct = 1 - p.life / p.maxLife;
+            const r = (p.maxR || 350) * Math.sin(pct * Math.PI / 2);
+            const alpha = Math.sin(pct * Math.PI) * 0.7;
+            
+            ctx.save();
+            ctx.strokeStyle = `rgba(255, 235, 120, ${alpha})`;
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = '#ffeaa0';
+            ctx.shadowBlur = 18;
+            
+            // 바깥 원
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 안쪽 원
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * 0.76, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 회전 점선 원
+            ctx.strokeStyle = `rgba(255, 215, 0, ${alpha * 0.65})`;
+            ctx.setLineDash([9, 13]);
+            ctx.lineWidth = 2.0;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(pct * 2.2);
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 0.88, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+            
+            ctx.restore();
         } else if (p.type === 'paint_swipe') {
             const w = fxCanvas.width || 800;
             const h = fxCanvas.height || 600;
@@ -1112,6 +1308,332 @@ export class FxRenderer {
             g.addColorStop(0, `hsla(${p.hue}, 100%, 90%, ${t})`); g.addColorStop(1, `hsla(${p.hue}, 100%, 60%, 0)`);
             ctx.beginPath(); ctx.arc(px, py, p.size * 2, 0, Math.PI * 2);
             ctx.fillStyle = g; ctx.fill();
+        } else if (p.type === 'golden_feather') {
+            // 황금빛 깃털 — 부드러운 낙하 및 좌우 흔들림
+            p.x += p.vx + Math.sin(p.life * 3) * 0.8;
+            p.y += p.vy;
+            p.rot += 0.02;
+            const t = p.life / p.maxLife;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = t * 0.85;
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // 깃털 외곽 (골든)
+            ctx.beginPath();
+            ctx.moveTo(0, -12);
+            ctx.quadraticCurveTo(8, -4, 5, 8);
+            ctx.quadraticCurveTo(1, 12, 0, 12);
+            ctx.quadraticCurveTo(-1, 12, -5, 8);
+            ctx.quadraticCurveTo(-8, -4, 0, -12);
+            ctx.closePath();
+            
+            const fg = ctx.createLinearGradient(0, -12, 0, 12);
+            fg.addColorStop(0, '#fff8dc');
+            fg.addColorStop(0.4, '#ffd700');
+            fg.addColorStop(1, '#ffaa00');
+            ctx.fillStyle = fg;
+            ctx.fill();
+            
+            // 깃털 가운데 줄기
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(0, -10);
+            ctx.lineTo(0, 10);
+            ctx.stroke();
+            
+            ctx.restore();
+        } else if (p.type === 'donation_beam') {
+            // 빛기둥 — 하늘에서 내리꽂히는 신성한 금빛 빔
+            if (p.delay && p.delay > 0) {
+                p.delay -= 0.016;
+                p.life += 0.016;
+            } else {
+                const t = p.life / p.maxLife;
+                const beamH = 250;
+                const beamW = 20 + t * 15;
+                
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                
+                // 메인 광선 그라디언트 (위에서 아래로)
+                const bg = ctx.createLinearGradient(p.x, p.y - beamH, p.x, p.y + 15);
+                bg.addColorStop(0, `rgba(255, 245, 200, 0)`);
+                bg.addColorStop(0.3, `rgba(255, 235, 130, ${t * 0.5})`);
+                bg.addColorStop(0.7, `rgba(255, 215, 0, ${t * 0.7})`);
+                bg.addColorStop(1, `rgba(255, 255, 255, ${t * 0.9})`);
+                
+                ctx.fillStyle = bg;
+                ctx.fillRect(p.x - beamW / 2, p.y - beamH, beamW, beamH + 15);
+                
+                // 밝은 코어 라인
+                const coreW = beamW * 0.3;
+                const cg = ctx.createLinearGradient(p.x, p.y - beamH, p.x, p.y + 15);
+                cg.addColorStop(0, `rgba(255, 255, 255, 0)`);
+                cg.addColorStop(0.5, `rgba(255, 255, 255, ${t * 0.6})`);
+                cg.addColorStop(1, `rgba(255, 255, 255, ${t * 0.9})`);
+                ctx.fillStyle = cg;
+                ctx.fillRect(p.x - coreW / 2, p.y - beamH, coreW, beamH + 15);
+                
+                // 바닥 착지 빛 번짐
+                const impactG = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 35);
+                impactG.addColorStop(0, `rgba(255, 235, 150, ${t * 0.8})`);
+                impactG.addColorStop(1, `rgba(255, 215, 0, 0)`);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 35, 0, Math.PI * 2);
+                ctx.fillStyle = impactG;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        } else if (p.type === 'donation_global_circle') {
+            // 사랑의 바자회: 바닥에 깔리는 거대하고 화려한 마법진 (파스텔 톤 섞기)
+            const t = p.life / p.maxLife; // 1 -> 0
+            const W = fxCanvas.width || 800;
+            const currentR = p.maxR * (1 - Math.pow(t, 3)); // 점점 커짐
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((1 - t) * Math.PI); // 천천히 회전
+            
+            // 페이드 인 / 아웃 부드럽게
+            ctx.globalAlpha = Math.sin(t * Math.PI) * 0.9; 
+            // lighter 모드를 빼서 각 색상(파스텔톤)이 하얗게 타버리지 않고 고유의 색을 유지하도록 함
+            
+            ctx.lineWidth = 4;
+            
+            // 다채로운 그라디언트 링
+            const grad = ctx.createLinearGradient(-currentR, -currentR, currentR, currentR);
+            grad.addColorStop(0, '#ffd700');   // 골드
+            grad.addColorStop(0.5, '#ff69b4'); // 핫핑크
+            grad.addColorStop(1, '#00ffff');   // 시안
+            
+            ctx.strokeStyle = grad;
+            
+            // 바깥쪽 큰 원
+            ctx.beginPath();
+            ctx.arc(0, 0, currentR, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 안쪽 기하학 무늬 (8각 별)
+            ctx.beginPath();
+            for (let i = 0; i <= 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const r = i % 2 === 0 ? currentR * 0.95 : currentR * 0.5;
+                if (i === 0) {
+                    ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                } else {
+                    ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+            }
+            ctx.closePath();
+            ctx.stroke(); // 채우기 제거
+            
+            // 더 안쪽 원 2개 (겹쳐서 화려하게)
+            ctx.beginPath();
+            ctx.arc(0, 0, currentR * 0.6, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 105, 180, 0.8)'; // 핫핑크 계열
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, currentR * 0.3, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)'; // 시안 계열
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.restore();
+        } else if (p.type === 'donation_item_projectile') {
+            // 패시브 스킬: 기부천사 -> 아군에게 날아가는 아이템 투사체
+            p.t += 0.025; // 수직 하강이므로 비행 속도 약간 더 빠르게
+            if (p.t >= 1) {
+                p.life = 0;
+                // 도달 시 폭죽 파티클 스폰
+                this.fxSystem.spawnFx('donation_confetti_burst', p.tx, p.ty);
+            }
+            // 가속도 적용 (중력처럼)
+            const easeT = p.t * p.t;
+            
+            const px = p.startX + (p.tx - p.startX) * easeT;
+            const py = p.startY + (p.ty - p.startY) * easeT; // 포물선 곡선(Math.sin) 제거하고 직선 자유낙하
+            
+            // 궤적 트레일 저장
+            p.trail.push({x: px, y: py});
+            if (p.trail.length > 8) p.trail.shift();
+            
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // 궤적 그리기 (오색 궤적)
+            if (p.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                for(let i=1; i<p.trail.length; i++) {
+                    ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                }
+                const trailGrad = ctx.createLinearGradient(p.trail[0].x, p.trail[0].y, px, py);
+                trailGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                trailGrad.addColorStop(1, '#ff69b4'); // 핫핑크 트레일
+                ctx.strokeStyle = trailGrad;
+                ctx.lineWidth = 5;
+                ctx.globalAlpha = 0.8;
+                ctx.stroke();
+            }
+            
+            // 투사체 아이콘 드로잉
+            ctx.translate(px, py);
+            ctx.rotate(p.t * Math.PI * 6); // 떨어지면서 빙글빙글 더 빠르게 돔
+            ctx.globalAlpha = 1.0;
+            
+            // 후광 (오로라 빛)
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            const g = ctx.createRadialGradient(0,0,0, 0,0,18);
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(0.4, '#00ffff'); // 시안색 후광
+            g.addColorStop(1, 'rgba(0,255,255,0)');
+            ctx.fillStyle = g;
+            ctx.fill();
+            
+            // 모양 그리기
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            if (p.icon === 'gift') {
+                ctx.fillRect(-8, -8, 16, 16);
+                ctx.fillStyle = '#ff3333';
+                ctx.fillRect(-2, -8, 4, 16);
+                ctx.fillRect(-8, -2, 16, 4);
+            } else if (p.icon === 'sword') {
+                ctx.moveTo(0, -12); ctx.lineTo(5, -5); ctx.lineTo(3, 10); ctx.lineTo(-3, 10); ctx.lineTo(-5, -5);
+                ctx.fill();
+            } else if (p.icon === 'shield') {
+                ctx.moveTo(-7, -9); ctx.lineTo(7, -9); ctx.lineTo(7, 3); ctx.lineTo(0, 12); ctx.lineTo(-7, 3);
+                ctx.fill();
+            } else { // stat (번개 모양)
+                ctx.moveTo(3, -9); ctx.lineTo(-7, 3); ctx.lineTo(-1, 3); ctx.lineTo(-3, 12); ctx.lineTo(7, -3); ctx.lineTo(1, -3);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        } else if (p.type === 'donation_confetti') {
+            // 폭죽 조각
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.3; // 중력 강화
+            if (p.rotSpeed === undefined) p.rotSpeed = (Math.random() - 0.5) * 0.4;
+            p.rot += p.rotSpeed;
+            
+            const t = p.life / p.maxLife;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = t;
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = p.color; // 네온 글로우 추가
+            ctx.fillRect(-p.size, -p.size/2, p.size * 2, p.size); // 조금 더 길쭉한 색종이 모양
+            ctx.restore();
+        } else if (p.type === 'quant_chart') {
+            // 천재퀀트 "주식 떡상" 타겟 전용 미니 차트 이펙트
+            const t = p.life / p.maxLife; // 1 -> 0
+            const progress = 1 - t; // 0 -> 1
+            
+            // 타겟 1칸 정도의 크기 설정
+            const chartW = 140;
+            const chartH = 160;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y - 20); // 타겟의 살짝 위쪽을 중심으로
+            ctx.globalAlpha = Math.sin(t * Math.PI) * 0.9;
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // 배경 그리드 (더 밝고 선명한 네온 그린)
+            ctx.strokeStyle = 'rgba(0, 255, 100, 0.7)'; 
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            // 가로선
+            for(let i=0; i<=5; i++) {
+                const yPos = -chartH/2 + i * (chartH / 5);
+                ctx.moveTo(-chartW/2, yPos);
+                ctx.lineTo(chartW/2, yPos);
+            }
+            // 세로선
+            for(let i=0; i<=6; i++) {
+                const xPos = -chartW/2 + i * (chartW / 6);
+                ctx.moveTo(xPos, -chartH/2);
+                ctx.lineTo(xPos, chartH/2);
+            }
+            ctx.stroke();
+            
+            // 양봉 캔들스틱 배경 효과 (상승하는 주식 막대바)
+            if (progress > 0.3) {
+                for (let i=0; i<3; i++) {
+                    const cx = -chartW * 0.3 + i * (chartW * 0.3);
+                    const ch = (chartH * 0.4) * progress * (1 + i*0.2);
+                    const cy = chartH/2 - 10 - ch;
+                    
+                    ctx.fillStyle = 'rgba(255, 50, 50, 0.4)'; // 반투명 빨간 양봉
+                    ctx.fillRect(cx - 10, cy, 20, ch);
+                    // 꼬리
+                    ctx.strokeStyle = 'rgba(255, 50, 50, 0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy - 15);
+                    ctx.lineTo(cx, cy + ch + 15);
+                    ctx.stroke();
+                }
+            }
+            
+            // 우상향 떡상 상승선 (강렬한 빨간선)
+            const startX = -chartW/2 + 10;
+            const startY = chartH/2 - 10;
+            const endX = chartW/2 - 10;
+            const endY = -chartH/2 + 10;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            // 지그재그 경로 그리기
+            let tempX = startX;
+            let tempY = startY;
+            for(let i=0.05; i<=progress; i+=0.05) {
+                const nextX = startX + (endX - startX) * i;
+                // 우상향 베이스에 흔들리는 진폭 적용
+                const nextY = startY + (endY - startY) * i - Math.sin(i*Math.PI*6)*15 - Math.random()*8;
+                ctx.lineTo(nextX, nextY);
+                tempX = nextX; tempY = nextY;
+            }
+            
+            ctx.strokeStyle = '#ff0033'; // 강렬한 레드
+            ctx.lineWidth = 6;
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+            
+            // 선 안쪽에 밝은 코어 그려서 빛나는 느낌
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 차트 끝부분 미니 화살표
+            if (progress > 0.05) {
+                ctx.translate(tempX, tempY);
+                ctx.rotate(-Math.PI/4.5); // 화살표 각도
+                ctx.beginPath();
+                ctx.moveTo(0, -15); ctx.lineTo(15, 15); ctx.lineTo(-15, 15);
+                ctx.fillStyle = '#ff0033';
+                ctx.fill();
+                // 화살표 속 코어
+                ctx.beginPath();
+                ctx.moveTo(0, -8); ctx.lineTo(8, 10); ctx.lineTo(-8, 10);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+            
+            ctx.restore();
         } else if (p.type === 'school_piano_staff') {
             if (p.delay > 0) { p.delay -= 0.016; p.life += 0.016; } else {
                 p.progress = Math.min(p.progress + 0.012, 1);
@@ -1643,6 +2165,92 @@ export class FxRenderer {
                     ctx.fillStyle = `rgba(155, 89, 182, ${pt.l})`; ctx.fill();
                 }
             });
+        } else if (p.type === 'donation_beam') {
+            // 위에서부터 타겟으로 떨어지는 거대한 황금/빛 기둥
+            const t = p.life / p.maxLife; // 1 -> 0
+            if (p.delay > 0) {
+                p.delay -= 0.016;
+            } else {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                const height = 400 * Math.sin(t * Math.PI); // 위아래로 쭉 뻗는 길이
+                const width = 40 * Math.sin(t * Math.PI);
+                const grad = ctx.createLinearGradient(p.x - width, 0, p.x + width, 0);
+                grad.addColorStop(0, 'rgba(255,255,150,0)');
+                grad.addColorStop(0.5, `rgba(255,255,255,${t})`);
+                grad.addColorStop(1, 'rgba(255,255,150,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(p.x - width, p.y - height, width * 2, height);
+                // 중심부 기둥
+                ctx.fillStyle = `rgba(255,255,200,${t * 0.8})`;
+                ctx.fillRect(p.x - width * 0.3, p.y - height, width * 0.6, height);
+                ctx.restore();
+            }
+        } else if (p.type === 'golden_feather') {
+            p.x += p.vx; p.y += p.vy;
+            p.vy += 0.02; // 중력
+            p.rot += 0.05;
+            p.vx *= 0.98; // 공기 저항
+            const t = p.life / p.maxLife;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.scale(t, t);
+            ctx.fillStyle = `rgba(255, 215, 0, ${t})`;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 4, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        } else if (p.type === 'quant_chart') {
+            const t = 1 - (p.life / p.maxLife); // 0 -> 1
+            ctx.save();
+            ctx.translate(p.x - 100, p.y + 50);
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            
+            const points = [
+                {x: 20, y: -10}, {x: 40, y: 10}, {x: 60, y: -30}, 
+                {x: 80, y: -10}, {x: 100, y: -60}, {x: 120, y: -40},
+                {x: 140, y: -100}, {x: 160, y: -80}, {x: 200, y: -250}
+            ];
+            
+            const currentPoints = Math.max(1, Math.floor(t * points.length));
+            for(let i=0; i<currentPoints; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.stroke();
+
+            // 주식 떡상 텍스트
+            if (t > 0.3) {
+                ctx.fillStyle = `rgba(46, 204, 113, ${Math.min(1, t * 2)})`;
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText('📈 주식 떡상!', 100, -100 - (t * 50));
+            }
+            ctx.restore();
+        } else if (p.type === 'gold_gain') {
+            const t = p.life / p.maxLife;
+            p.y -= 1; // 위로 떠오름
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            // 동전
+            ctx.beginPath();
+            ctx.arc(0, 0, 15 * t, 0, Math.PI * 2);
+            ctx.fillStyle = '#f1c40f';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#d35400';
+            ctx.stroke();
+
+            // +1G 텍스트
+            ctx.fillStyle = `rgba(255, 255, 255, ${t})`;
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('+1G', 0, 0);
+            ctx.restore();
         }
 
         ctx.restore();

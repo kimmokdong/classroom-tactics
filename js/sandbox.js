@@ -398,19 +398,27 @@ function setTool(type, id) {
 }
 
 function handleCellClick(index, e) {
-    if (isBattling) return;
     if (e.button === 2) return; // Right click is handled by contextmenu
+    
+    // 전투 중일 경우 유닛 추가/삭제 등 툴 사용 로직으로 넘어가지 않게 방어막이 아래에 있음
     
     const isEnemySide = index < 24;
     const board = isEnemySide ? enemyBoard : playerBoard;
     const localIdx = isEnemySide ? index : index - 24;
 
-    if (!currentTool) {
-        // 선택된 툴이 없을 때는 유닛 정보 표시
+    if (!currentTool || isBattling) {
+        // 선택된 툴이 없거나 전투 중일 때는 유닛 정보 표시
         const u = board[localIdx];
         if (u) {
             const cells = document.getElementById('battle-board').children;
+            // 다른 유닛들의 viewing 상태 해제
+            Array.from(cells).forEach(c => {
+                const el = c.querySelector('.unit-character');
+                if(el) el.dataset.viewing = 'false';
+            });
             const el = cells[index].querySelector('.unit-character');
+            if (el) el.dataset.viewing = 'true';
+            
             showUnitInfo(u, isEnemySide, el);
         }
         return;
@@ -574,14 +582,16 @@ function showUnitInfo(u, isEnemySide, uDiv) {
     // Calculate stats including items
     let stats = JSON.parse(JSON.stringify(u.stats));
     let combat = JSON.parse(JSON.stringify(u.combat || {}));
-    let displayItems = u.items || [];
+    let displayItems = [...(u.items || [])];
+    if (u.donationItems) displayItems.push(...u.donationItems);
     
     // If battling, sync displayItems with active engine
     if (isBattling && battleEngine && uDiv) {
         const idx = parseInt(uDiv.dataset.index);
         const activeU = battleEngine.board[idx];
-        if (activeU && activeU.items) {
-            displayItems = activeU.items;
+        if (activeU) {
+            displayItems = [...(activeU.items || [])];
+            if (activeU.donationItems) displayItems.push(...activeU.donationItems);
         }
     }
 
@@ -805,8 +815,17 @@ function getSynergyData(boardArray) {
 
     const counts = { subjects: {}, clubs: {} };
     uniqueUnits.forEach(u => {
-        counts.subjects[u.subject] = (counts.subjects[u.subject] || 0) + 1;
-        counts.clubs[u.club] = (counts.clubs[u.club] || 0) + 1;
+        if (Array.isArray(u.subject)) {
+            u.subject.forEach(sub => counts.subjects[sub] = (counts.subjects[sub] || 0) + 1);
+        } else {
+            counts.subjects[u.subject] = (counts.subjects[u.subject] || 0) + 1;
+        }
+        
+        if (Array.isArray(u.club)) {
+            u.club.forEach(clb => counts.clubs[clb] = (counts.clubs[clb] || 0) + 1);
+        } else {
+            counts.clubs[u.club] = (counts.clubs[u.club] || 0) + 1;
+        }
     });
     return counts;
 }
@@ -1024,6 +1043,46 @@ function calculateSynergy() {
 
 function applySynergiesToStats(board, isEnemy = false) {
     const counts = getSynergyData(board);
+
+    // [기부천사 패시브] 전투 시작 전 인접한 아군에게 완성 아이템 임시 부여
+    if (!isEnemy) {
+        board.forEach((u, index) => {
+            if (!u || u.id !== 'u5_5') return;
+            const star = (u.star || 1) - 1;
+            const adjItemSkill = u.skill && u.skill.adjPassiveItems;
+            if (!adjItemSkill) return;
+            const giftCount = adjItemSkill[Math.min(star, adjItemSkill.length - 1)];
+            const ux = index % 8;
+            const uy = Math.floor(index / 8);
+            const adjacent = board.filter((a, aIdx) => {
+                if (!a || a === u) return false;
+                const ax = aIdx % 8;
+                const ay = Math.floor(aIdx / 8);
+                return (Math.abs(ax - ux) + Math.abs(ay - uy)) === 1;
+            });
+            
+            // 무작위로 인접 아군을 섞음
+            let shuffledAdj = adjacent.sort(() => 0.5 - Math.random());
+            
+            const combined = ITEMS.filter(it => it.type === 'combined');
+            if (!combined.length) return;
+            
+            let givenCount = 0;
+            for (let i = 0; i < shuffledAdj.length; i++) {
+                if (givenCount >= giftCount) break;
+                
+                const a = shuffledAdj[i];
+                const existingItems = (a.items || []).length;
+                if (existingItems < 3) {
+                    if (!a.donationItems) a.donationItems = [];
+                    const randomItem = combined[Math.floor(Math.random() * combined.length)];
+                    a.donationItems.push(randomItem.id);
+                    a.triggerDonationFX = true; // 렌더러에서 애니메이션 처리를 위한 플래그
+                    givenCount++;
+                }
+            }
+        });
+    }
     
     // Helper function
     const getLevelData = (type, name, count) => {
@@ -1065,58 +1124,68 @@ function applySynergiesToStats(board, isEnemy = false) {
             if (healthEff.reviveBurst) u.combat.reviveBurst = true;
         }
 
-        const subjEff = getLevelData('subjects', u.subject, counts.subjects[u.subject]);
-        if (subjEff) {
-            if (u.subject === '국어') u.stats.ap += subjEff.selfAp || 0;
-            if (u.subject === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; }
-            if (u.subject === '과학') {
-                u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
-                if (subjEff.skillCrit) u.combat.skillCrit = true;
-                if (subjEff.critChance) u.combat.critChance = (u.combat.critChance || 0) + subjEff.critChance;
-            }
-            if (u.subject === '사회') {
-                if (subjEff.shield) u.combat.shield += subjEff.shield;
-                if (subjEff.allStats) {
-                    const mult = 1 + subjEff.allStats;
-                    u.stats.maxHp *= mult; u.currHp *= mult;
-                    u.stats.ad *= mult; u.stats.ap *= mult;
-                    u.stats.armor *= mult; u.stats.mr *= mult;
+        const processSubject = (subj) => {
+            const subjEff = getLevelData('subjects', subj, counts.subjects[subj]);
+            if (subjEff) {
+                if (subj === '국어') u.stats.ap += subjEff.selfAp || 0;
+                if (subj === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; }
+                if (subj === '과학') {
+                    u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
+                    if (subjEff.skillCrit) u.combat.skillCrit = true;
+                    if (subjEff.critChance) u.combat.critChance = (u.combat.critChance || 0) + subjEff.critChance;
                 }
+                if (subj === '사회') {
+                    if (subjEff.shield) u.combat.shield += subjEff.shield;
+                    if (subjEff.allStats) {
+                        const mult = 1 + subjEff.allStats;
+                        u.stats.maxHp *= mult; u.currHp *= mult;
+                        u.stats.ad *= mult; u.stats.ap *= mult;
+                        u.stats.armor *= mult; u.stats.mr *= mult;
+                    }
+                }
+                if (subj === '영어') {
+                    if (subjEff.manaReduc) u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * (1 - subjEff.manaReduc)));
+                    if (subjEff.selfAp) u.stats.ap += subjEff.selfAp;
+                }
+                if (subj === '체육') { u.stats.maxHp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); u.currHp = u.stats.maxHp; }
+                if (subj === '미술') {
+                    u.combat.canvasDuration = subjEff.canvasDuration || 0;
+                    u.combat.canvasRadius = subjEff.canvasRadius || 1;
+                    u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc || 0;
+                    u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp || 0;
+                }
+                if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
+                if (subj === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
+                if (subj === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
             }
-            if (u.subject === '영어') {
-                if (subjEff.manaReduc) u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * (1 - subjEff.manaReduc)));
-                if (subjEff.selfAp) u.stats.ap += subjEff.selfAp;
-            }
-            if (u.subject === '체육') { u.stats.maxHp += (subjEff.teamHp || 0) * ((subjEff.selfHpMult || 1) - 1); u.currHp = u.stats.maxHp; }
-            if (u.subject === '미술') {
-                u.combat.canvasDuration = subjEff.canvasDuration || 0;
-                u.combat.canvasRadius = subjEff.canvasRadius || 1;
-                u.combat.canvasAllyDmgReduc = subjEff.allyDmgReduc || 0;
-                u.combat.canvasEnemyDmgAmp = subjEff.enemyDmgAmp || 0;
-            }
-            if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
-            if (u.subject === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
-            if (u.subject === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
-        }
+        };
 
-        const clubEff = getLevelData('clubs', u.club, counts.clubs[u.club]);
-        if (clubEff) {
-            if (u.club === '선도부') { u.combat.shield += u.stats.maxHp * clubEff.startShieldPct; u.combat.dmgAmp += clubEff.dmgAmp; }
-            if (u.club === '방송부') { 
-                u.combat.isSniper = true; 
-                u.combat.distAmp = clubEff.distAmp; 
-                u.stats.range += (clubEff.rangeBuff || 0); 
-                if (clubEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + clubEff.startMana;
+        if (Array.isArray(u.subject)) u.subject.forEach(processSubject);
+        else processSubject(u.subject);
+
+        const processClub = (clb) => {
+            const clubEff = getLevelData('clubs', clb, counts.clubs[clb]);
+            if (clubEff) {
+                if (clb === '선도부') { u.combat.shield += u.stats.maxHp * clubEff.startShieldPct; u.combat.dmgAmp += clubEff.dmgAmp; }
+                if (clb === '방송부') { 
+                    u.combat.isSniper = true; 
+                    u.combat.distAmp = clubEff.distAmp; 
+                    u.stats.range += (clubEff.rangeBuff || 0); 
+                    if (clubEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + clubEff.startMana;
+                }
+                if (clb === '육상부') { 
+                    u.combat.isQuickstriker = true; 
+                    u.combat.maxAsBuff = clubEff.maxAsBuff; 
+                    if (clubEff.baseAs) u.stats.as *= (1 + clubEff.baseAs); 
+                    if (clubEff.dmgReduc) u.combat.dmgReduc += clubEff.dmgReduc;
+                }
+                if (clb === '급식부') { u.combat.isDominator = true; u.combat.shield += clubEff.startShield; u.combat.stackAdApPct = clubEff.stackAdApPct; if (clubEff.vampBuff) u.combat.vamp = (u.combat.vamp || 0) + clubEff.vampBuff; }
+                if (clb === '장난꾸러기') { u.stats.ad *= (1 + clubEff.adBuff); if (clubEff.asBuff) u.stats.as *= (1 + clubEff.asBuff); }
             }
-            if (u.club === '육상부') { 
-                u.combat.isQuickstriker = true; 
-                u.combat.maxAsBuff = clubEff.maxAsBuff; 
-                if (clubEff.baseAs) u.stats.as *= (1 + clubEff.baseAs); 
-                if (clubEff.dmgReduc) u.combat.dmgReduc += clubEff.dmgReduc;
-            }
-            if (u.club === '급식부') { u.combat.isDominator = true; u.combat.shield += clubEff.startShield; u.combat.stackAdApPct = clubEff.stackAdApPct; if (clubEff.vampBuff) u.combat.vamp = (u.combat.vamp || 0) + clubEff.vampBuff; }
-            if (u.club === '장난꾸러기') { u.stats.ad *= (1 + clubEff.adBuff); if (clubEff.asBuff) u.stats.as *= (1 + clubEff.asBuff); }
-        }
+        };
+
+        if (Array.isArray(u.club)) u.club.forEach(processClub);
+        else processClub(u.club);
     });
 
     return board;
@@ -1148,8 +1217,90 @@ function startBattle() {
 
     // Copy rendered board elements for BattleRenderer
     battleRenderer = new BattleRenderer(logs, boardEl, fxCanvas);
+    
+    // 전투 시작 전 셋업(패시브) 이펙트 트리거 (기부천사)
+    setTimeout(() => {
+        pBoard.forEach((u, i) => {
+            if (u && u.triggerDonationFX) {
+                u.triggerDonationFX = false;
+                // 샌드박스 보드는 0~23 적, 24~47 아군이므로 아군 타일은 i + 24 입니다.
+                const cell = document.querySelectorAll('#battle-board .cell')[i + 24];
+                if (cell) {
+                    const uDiv = cell.querySelector('.unit-character');
+                    if (uDiv) {
+                        const cRect = uDiv.getBoundingClientRect();
+                        const bRect = fxCanvas.getBoundingClientRect();
+                        const cx = cRect.left - bRect.left + cRect.width / 2;
+                        const cy = cRect.top - bRect.top + cRect.height / 2;
+                        
+                        battleRenderer.spawnFx('donation_item_projectile', cx, cy - 150, { 
+                            tx: cx, 
+                            ty: cy, 
+                            icon: 'gift' 
+                        });
+                        
+                        // 기부받은 아이템을 샌드박스 유닛 미니 UI에도 즉시 표시 (최대 3개)
+                        const oldContainer = uDiv.querySelector('.unit-item-overlay');
+                        if (oldContainer) oldContainer.remove();
+                        
+                        let actualItems = [...(u.items || [])];
+                        if (u.donationItems) actualItems.push(...u.donationItems);
+                        
+                        if (actualItems.length > 0) {
+                            const itemContainer = document.createElement('div');
+                            itemContainer.className = 'unit-item-overlay';
+                            itemContainer.style.position = 'absolute';
+                            itemContainer.style.top = '-8px';
+                            itemContainer.style.right = '-8px';
+                            itemContainer.style.display = 'flex';
+                            itemContainer.style.gap = '2px';
+                            
+                            actualItems.slice(0, 3).forEach(itemId => {
+                                const itemEl = document.createElement('div');
+                                const iconStr = getIconForItem(itemId);
+                                itemEl.innerHTML = iconStr;
+                                itemEl.style.width = '16px';
+                                itemEl.style.height = '16px';
+                                itemEl.style.fontSize = '0.7rem';
+                                itemEl.style.background = '#fef08a';
+                                itemEl.style.border = '1px solid #eab308';
+                                itemEl.style.borderRadius = '3px';
+                                itemEl.style.display = 'flex';
+                                itemEl.style.alignItems = 'center';
+                                itemEl.style.justifyContent = 'center';
+                                itemContainer.appendChild(itemEl);
+                            });
+                            uDiv.appendChild(itemContainer);
+                        }
+                    }
+                }
+            }
+        });
+    }, 150); // 렌더러와 DOM이 완벽히 자리잡을 때까지 약간 더 여유 확보
+    let uiUpdateInterval = setInterval(() => {
+        if (!isBattling) {
+            clearInterval(uiUpdateInterval);
+            return;
+        }
+        // viewing 상태인 유닛 갱신
+        const cells = document.getElementById('battle-board').children;
+        Array.from(cells).forEach((c, index) => {
+            const el = c.querySelector('.unit-character');
+            if (el && el.dataset.viewing === 'true') {
+                const isEnemySide = index < 24;
+                const board = isEnemySide ? enemyBoard : playerBoard;
+                const localIdx = isEnemySide ? index : index - 24;
+                const u = board[localIdx];
+                if (u) {
+                    showUnitInfo(u, isEnemySide, el);
+                }
+            }
+        });
+    }, 100); // 100ms마다 실시간 갱신
+
     battleRenderer.play((winner, endLog) => {
         isBattling = false;
+        clearInterval(uiUpdateInterval);
         document.getElementById('btn-start').disabled = false;
         alert(`종료! 승리: ${winner === 'player' ? '플레이어' : '적'}`);
         renderBoard(); // reset UI

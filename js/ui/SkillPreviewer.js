@@ -30,7 +30,8 @@ export class SkillPreviewer {
             'u5_1': 'school_foreign',
             'u5_2': 'school_blackhole',
             'u5_3': 'school_picasso',
-            'u5_4': 'school_principal'
+            'u5_4': 'school_principal',
+            'u4_8': 'school_quant'
         };
     }
 
@@ -129,7 +130,10 @@ export class SkillPreviewer {
         let casterY = 170;
 
         // 스킬 범위 타입에 따라 시전자 최적 위치 설정
-        if (skillType.includes('taunt') || skillType.includes('aoe_damage_buff') || skillType === 'aoe_debuff') {
+        if (unit.id === 'u5_5') {
+            casterX = 220;
+            casterY = 170;
+        } else if (skillType.includes('taunt') || skillType.includes('aoe_damage_buff') || skillType === 'aoe_debuff') {
             // 시전자 주변 범위기이므로 시전자를 중앙에 배치
             casterX = 260;
             casterY = 170;
@@ -153,7 +157,17 @@ export class SkillPreviewer {
         this.entities.push(caster);
 
         // 2. 스킬 특성에 맞춰 타겟 엔티티 추가 (단일 타겟, 3인 연쇄, 광역, 십자열 등)
-        if (skillType === 'passive') {
+        if (unit.id === 'u5_5') {
+            // 기부천사 특화 상하좌우 아군 배치 + 적군 배치
+            this.entities.push({ id: 'ally_1', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 (상)', x: casterX, y: casterY - 65, hp: 600, maxHp: 800, idx: 1, shakeTime: 0 });
+            this.entities.push({ id: 'ally_2', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 (하)', x: casterX, y: casterY + 65, hp: 500, maxHp: 800, idx: 2, shakeTime: 0 });
+            this.entities.push({ id: 'ally_3', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 (좌)', x: casterX - 65, y: casterY, hp: 550, maxHp: 800, idx: 3, shakeTime: 0 });
+            this.entities.push({ id: 'ally_4', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 (우)', x: casterX + 65, y: casterY, hp: 700, maxHp: 800, idx: 4, shakeTime: 0 });
+            
+            this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 A', x: 450, y: 110, hp: 1000, maxHp: 1000, idx: 5, shakeTime: 0 });
+            this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 B', x: 450, y: 230, hp: 1000, maxHp: 1000, idx: 6, shakeTime: 0 });
+        }
+        else if (skillType === 'passive') {
             // 수학 짝꿍 패시브: 단일 허수아비 1마리
             this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비', x: 480, y: 170, hp: 1000, maxHp: 1000, idx: 1, shakeTime: 0 });
         }
@@ -193,11 +207,17 @@ export class SkillPreviewer {
             this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 B', x: 350, y: 110, hp: 900, maxHp: 900, idx: 2, shakeTime: 0 });
             this.entities.push({ id: 'dummy_3', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 C', x: 350, y: 230, hp: 900, maxHp: 900, idx: 3, shakeTime: 0 });
         }
-        else if (skillType === 'aoe_magic' || skillType === 'aoe_magic_cluster') {
+        else if (skillType === 'aoe_magic' || skillType === 'aoe_magic_cluster' || skillType === 'aoe_magic_silence') {
             // 타겟 중심 밀집 광역기: 적 3마리 조밀하게 배치
             this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 A', x: 400, y: 170, hp: 1000, maxHp: 1000, idx: 1, shakeTime: 0 });
             this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 B', x: 480, y: 120, hp: 800, maxHp: 800, idx: 2, shakeTime: 0 });
             this.entities.push({ id: 'dummy_3', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 C', x: 480, y: 220, hp: 800, maxHp: 800, idx: 3, shakeTime: 0 });
+        }
+        else if (skillType === 'aoe_shield_cc_immune') {
+            // 또래 상담 에이스: 시전자 주변 아군들 배치
+            this.entities.push({ id: 'ally_1', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 A', x: 160, y: 170, hp: 800, maxHp: 800, idx: 1, shakeTime: 0 });
+            this.entities.push({ id: 'ally_2', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 B', x: 350, y: 110, hp: 800, maxHp: 800, idx: 2, shakeTime: 0 });
+            this.entities.push({ id: 'ally_3', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 C', x: 350, y: 230, hp: 800, maxHp: 800, idx: 3, shakeTime: 0 });
         }
         else if (skillType === 'single_damage_stack') {
             // 본 타겟 1명과 뒤에 스플래시 맞을 타겟 2명
@@ -220,7 +240,7 @@ export class SkillPreviewer {
             this.entities.push({ id: 'ally_1', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 A', x: 240, y: 100, hp: 400, maxHp: 800, idx: 1, shakeTime: 0 });
             this.entities.push({ id: 'ally_2', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 B', x: 240, y: 240, hp: 300, maxHp: 800, idx: 2, shakeTime: 0 });
         }
-        else if (skillType === 'team_buff_enemy_debuff' || skillType === 'global_magic_mana' || skillType === 'global_magic_team_buff') {
+        else if (skillType === 'team_buff_enemy_debuff' || skillType === 'global_magic_mana' || skillType === 'global_magic_team_buff' || skillType === 'global_heal_shield') {
             // 아군 버프 + 적군 디버프/광역: 아군 2마리 + 적군 2마리 혼합 배치
             this.entities.push({ id: 'ally_1', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 A', x: 240, y: 100, hp: 800, maxHp: 800, idx: 1, shakeTime: 0 });
             this.entities.push({ id: 'ally_2', isCaster: false, isEnemy: false, icon: '🛡️', name: '아군 B', x: 240, y: 240, hp: 800, maxHp: 800, idx: 2, shakeTime: 0 });
@@ -370,7 +390,7 @@ export class SkillPreviewer {
         // 시전자 가벼운 돌진/시전 애니메이션 흔들림 효과
         caster.shakeTime = 0.2;
 
-        if (this.unit.id === 'u5_2' || this.unit.id === 'u5_4') {
+        if (this.unit.id === 'u5_2' || this.unit.id === 'u5_4' || this.unit.id === 'u5_5') {
             this.screenFlash = 0.6; 
         }
 
@@ -422,6 +442,8 @@ export class SkillPreviewer {
                 targets = [lowestHpAlly.idx];
             } else if (skillType === 'ally_shield') {
                 targets = allies.map(e => e.idx).slice(0, 2);
+            } else if (skillType === 'aoe_shield_cc_immune') {
+                targets = allies.map(e => e.idx);
             } else {
                 targets = allies.map(e => e.idx);
             }
@@ -453,6 +475,9 @@ export class SkillPreviewer {
             else if (skillType === 'random_aoe' || skillType === 'random_aoe_debuff') {
                 dmgTargets = enemies.map(e => e.idx).slice(0, 3);
             } 
+            else if (skillType === 'aoe_magic_silence' || skillType === 'aoe_magic' || skillType === 'aoe_magic_cluster') {
+                dmgTargets = enemies.map(e => e.idx);
+            }
             else if (skillType === 'bounce_damage' || skillType === 'bounce_magic') {
                 dmgTargets = enemies.map(e => e.idx).slice(0, 4);
             }
@@ -580,11 +605,13 @@ export class SkillPreviewer {
                 let hasStun = skillType.includes('stun') || skillType.includes('cc') || desc.includes('기절');
                 let hasDebuff = skillType.includes('debuff') || desc.includes('감소');
                 let hasAntiHeal = desc.includes('회복 불가');
+                let hasSilence = skillType.includes('silence') || desc.includes('침묵');
 
                 targetEntity.buffs = targetEntity.buffs || {};
                 if (hasStun) targetEntity.buffs['stun'] = 2.0;
                 if (hasDebuff) targetEntity.buffs['debuff'] = 2.0;
                 if (hasAntiHeal) targetEntity.buffs['antiHeal'] = 2.0;
+                if (hasSilence) targetEntity.buffs['silence'] = 2.0;
 
                 this.spawnFloatingText(targetEntity.x, targetEntity.y, label, dmgColor);
                 
@@ -613,6 +640,13 @@ export class SkillPreviewer {
 
         // Fx 이펙트 발동!
         this.fxSystem.spawnFx(fxType, caster.x, caster.y, optionParams);
+
+        // 특별 처리: 기부천사(u5_5)는 스킬 시전 시 패시브 아이템 부여 이펙트도 함께 프리뷰에 보여줌
+        if (this.unit.id === 'u5_5') {
+            setTimeout(() => {
+                this.fxSystem.spawnFx('donation_items_buff', caster.x, caster.y, {});
+            }, 300);
+        }
     }
 
     /**
@@ -763,15 +797,51 @@ export class SkillPreviewer {
                 let buffX = entity.x + shakeX + 16;
                 let buffY = entity.y - 20;
                 Object.keys(entity.buffs).forEach(type => {
-                    let icon = '';
-                    if (type === 'stun') icon = '💫';
-                    else if (type === 'debuff') icon = '📉';
-                    else if (type === 'antiHeal') icon = '❤️‍🩹';
-                    
-                    if (icon) {
-                        ctx.font = '16px sans-serif';
-                        ctx.fillText(icon, buffX, buffY);
-                        buffX += 16; // 여러 개면 옆으로 나열
+                    if (type === 'silence') {
+                        // 이모지 배제: 분필 질감 2D 벡터 그래픽 (붉은 X가 들어간 말풍선)
+                        ctx.save();
+                        ctx.strokeStyle = '#f87171'; // 붉은 파스텔
+                        ctx.fillStyle = '#1c1917'; // 어두운 돌판 색상
+                        ctx.lineWidth = 2.0;
+                        
+                        // 말풍선 메인 타원
+                        ctx.beginPath();
+                        ctx.ellipse(buffX, buffY - 2, 9, 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // 말풍선 꼬리
+                        ctx.beginPath();
+                        ctx.moveTo(buffX - 3, buffY + 4);
+                        ctx.lineTo(buffX - 7, buffY + 9);
+                        ctx.lineTo(buffX + 1, buffY + 5);
+                        ctx.closePath();
+                        ctx.fillStyle = '#f87171';
+                        ctx.fill();
+                        
+                        // 말풍선 내부의 흰색 X
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 1.6;
+                        ctx.beginPath();
+                        ctx.moveTo(buffX - 3, buffY - 5);
+                        ctx.lineTo(buffX + 3, buffY + 1);
+                        ctx.moveTo(buffX + 3, buffY - 5);
+                        ctx.lineTo(buffX - 3, buffY + 1);
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                        buffX += 22;
+                    } else {
+                        let icon = '';
+                        if (type === 'stun') icon = '💫';
+                        else if (type === 'debuff') icon = '📉';
+                        else if (type === 'antiHeal') icon = '❤️‍🩹';
+                        
+                        if (icon) {
+                            ctx.font = '16px sans-serif';
+                            ctx.fillText(icon, buffX, buffY);
+                            buffX += 16; // 여러 개면 옆으로 나열
+                        }
                     }
                 });
             }

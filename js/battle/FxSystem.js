@@ -20,8 +20,8 @@ export class FxSystem {
         
         const lowTierIds = [
             'u1_1','u1_2','u1_3','u1_4','u1_5','u1_6','u1_7','u1_8','u1_9','u1_10',
-            'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10',
-            'u3_1','u3_2','u3_3','u3_4','u3_5','u3_6','u3_7','u3_8','u3_9'
+            'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10','u2_11','u2_12',
+            'u3_1','u3_2','u3_3','u3_4','u3_5','u3_6','u3_7','u3_8','u3_9','u3_10','u3_11','u3_12'
         ];
         if (lowTierIds.includes(type)) {
             const targets = options.targets || [];
@@ -257,6 +257,54 @@ export class FxSystem {
                         }, i * 400);
                     });
                     break;
+                case 'u2_11':
+                    // 진로진학 멘토 (단일 힐 + 단일 딜)
+                    if (targets.length > 0) {
+                        const t = this.getCellCenter(targets[0]); // 적군 딜 타겟 (SkillEngine이 1개만 보냄)
+                        this.particles.push({ type: 'low_heal', x: x, y: y, count: 5, life: 2.5, maxLife: 2.5 });
+                        setTimeout(() => {
+                            this.particles.push({ type: 'low_projectile', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.5, maxLife: 2.5, color: '#ffffff', size: 5, hitType: 'low_magic_hit' });
+                        }, 200);
+                    }
+                    break;
+                case 'u2_12':
+                    // 칠판 낙서꾼 (광역 딜 디버프)
+                    if (targets.length > 0) {
+                        const t = this.getCellCenter(targets[0]);
+                        this.particles.push({ type: 'low_projectile', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 1.5, maxLife: 1.5, color: '#ff33cc', size: 6, hitType: 'u2_12_boom', targets: targets });
+                    }
+                    break;
+                case 'u3_10':
+                    // 미술 치료사 (단일 실드/디버프해제)
+                    if (targets.length > 0) {
+                        const t = this.getCellCenter(targets[0]);
+                        this.particles.push({ type: 'low_shield', x: t.x, y: t.y, life: 2.5, maxLife: 2.5, color: '#99ffaa' });
+                        this.particles.push({ type: 'low_heal', x: t.x, y: t.y, count: 4, life: 2.5, maxLife: 2.5 });
+                    }
+                    break;
+                case 'u3_11':
+                    // 또래 상담 에이스 (범위 실드 CC면역)
+                    this.particles.push({ type: 'low_aoe_ring', x: x, y: y, r: 0, maxR: 110, life: 2.2, maxLife: 2.2, color: '#ccffff' });
+                    targets.forEach((tIdx, i) => {
+                        setTimeout(() => {
+                            const t = this.getCellCenter(tIdx);
+                            this.particles.push({ type: 'low_shield', x: t.x, y: t.y, life: 2.5, maxLife: 2.5, color: '#ccffff' });
+                            // CC면역 텍스트
+                            this.particles.push({ type: 'low_passive', x: t.x, y: t.y - 40, text: 'CC 면역!', life: 2.0, maxLife: 2.0, color: '#88ffff' });
+                        }, i * 150 + 200);
+                    });
+                    break;
+                case 'u3_12':
+                    // 해외 보따리상 (단일 딜, 처형)
+                    if (targets.length > 0) {
+                        const t = this.getCellCenter(targets[0]);
+                        this.particles.push({ type: 'low_projectile', x: x, y: y, tx: t.x, ty: t.y, t: 0, life: 2.5, maxLife: 2.5, color: '#ffdd22', size: 7, hitType: 'low_hit' });
+                        setTimeout(() => {
+                            this.particles.push({ type: 'low_aoe_ring', x: t.x, y: t.y, r: 0, maxR: 40, life: 2.0, maxLife: 2.0, color: '#ffdd22' });
+                            this.particles.push({ type: 'gold_gain', x: t.x, y: t.y - 30, life: 2.0, maxLife: 2.0 });
+                        }, 800);
+                    }
+                    break;
             }
             return;
         }
@@ -405,6 +453,66 @@ export class FxSystem {
                     const tCenter = this.getCellCenter(options.targets[RI(0, options.targets.length)]);
                     this.particles.push({ type: 'school_heal_firefly', x: W*0.5+Math.cos(a)*r, y: H*0.5+Math.sin(a)*r, tx: tCenter.x, ty: tCenter.y, t: 0, speed: R(0.002, 0.008), life: R(2,5), maxLife: 5, size: R(2,5), hue: R(100,160), phase: R(0,TAU) });
                 }
+            }
+            return;
+        } else if (type === 'school_donation') {
+            // 기부천사 액티브 글로벌 스킬: 거대한 천사의 날개와 황금/흰색 파티클 샤워
+            this.particles.push({ type: 'school_heal_wing', life: 3.5, maxLife: 3.5, wingAlpha: 1.0, wingPhase: 0, crossAlpha: 1.0 });
+            if (this.renderer) this.renderer.screenFlash = 0.6;
+            const W = this.fxCanvas.width || 800, H = this.fxCanvas.height || 600;
+            
+            // 거대한 빛 링 확산
+            this.particles.push({ type: 'low_aoe_ring', x: W/2, y: H/2, r: 0, maxR: W, life: 3.5, maxLife: 3.5, color: '#ffffaa' });
+            this.particles.push({ type: 'donation_global_circle', x: W/2, y: H/2, maxR: W * 0.7, life: 3.5, maxLife: 3.5 });
+            
+            // 깃털 파티클
+            for (let i = 0; i < 40; i++) {
+                this.particles.push({ 
+                    type: 'golden_feather', 
+                    x: W/2 + R(-100, 100), 
+                    y: H/2 + R(-100, 100), 
+                    vx: R(-3, 3), vy: R(1, 4), 
+                    rot: R(0, TAU), 
+                    life: R(2, 4), maxLife: 4 
+                });
+            }
+
+            // 무작위 글로벌 빛기둥 빔 (타겟 유무 관계없이 맵 전역에 꽂힘)
+            for (let i = 0; i < 12; i++) {
+                const rx = R(50, W - 50);
+                const ry = R(50, H - 50);
+                this.particles.push({ type: 'donation_beam', x: rx, y: ry, life: 1.5, maxLife: 1.5, delay: R(0.1, 1.2) });
+            }
+
+            if (options.targets && options.targets.length > 0) {
+                options.targets.forEach((tIdx, idx) => {
+                    const t = this.getCellCenter(tIdx);
+                    // 타겟마다 빛 기둥 꽂힘
+                    this.particles.push({ type: 'donation_beam', x: t.x, y: t.y, life: 1.5, maxLife: 1.5, delay: R(0, 0.4) });
+                    this.particles.push({ type: 'holy_heal', x: t.x, y: t.y, life: 2.0 });
+                    // 타겟 주변 반짝임
+                    for (let i=0; i<8; i++) {
+                        this.particles.push({ type: 'school_heal_firefly', x: t.x + R(-40,40), y: t.y + R(-40,40), tx: t.x, ty: t.y, t: 0, speed: 0, life: R(2.0,3.5), maxLife: 3.5, size: R(4,8), hue: 50, phase: R(0,TAU) });
+                    }
+                });
+            }
+            return;
+        } else if (type === 'school_quant') {
+            if (this.renderer) this.renderer.screenFlash = 0.5;
+            
+            if (options.targets) {
+                options.targets.forEach((tIdx) => {
+                    const t = this.getCellCenter(tIdx);
+                    // 타겟 중심에 축소된 차트 이펙트 스폰
+                    this.particles.push({ type: 'quant_chart', x: t.x, y: t.y, life: 2.5, maxLife: 2.5 });
+                    
+                    this.particles.push({ type: 'low_hit', x: t.x, y: t.y, life: 1.0, color: '#ff3333' });
+                    // 빨간 기둥 폭발 (주식 하락 타격)
+                    for(let i=0; i<15; i++) {
+                        const a = R(0, TAU), s = R(2, 8);
+                        this.particles.push({ type: 'aug_heal_bomb_spark', x: t.x, y: t.y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: R(0.5, 1.2), maxLife: 1.2, size: R(3,6), hue: 0 }); // Red
+                    }
+                });
             }
             return;
         } else if (type === 'school_piano') {
@@ -628,6 +736,136 @@ export class FxSystem {
                     done: false
                 });
             }
+            return;
+        } else if (type === 'donation_items_buff') {
+            // 전투 시작 시 기부천사 패시브 아이템 부여 이펙트 (이모지 배제, 상하좌우 아군에게 2D 벡터 투사체 발사)
+            // SkillPreviewer에는 entities가 있고, BattleRenderer에서는 options.allyPositions로 전달받음
+            const rawEntities = (this.renderer && this.renderer.entities) ? this.renderer.entities : [];
+            let allyCoords = rawEntities.filter(e => !e.isEnemy && !e.isCaster).map(e => ({ x: e.x, y: e.y }));
+            
+            // BattleRenderer에서 전달한 아군 좌표 (인게임 환경)
+            if (allyCoords.length === 0 && options.allyPositions && options.allyPositions.length > 0) {
+                allyCoords = options.allyPositions;
+            }
+            
+            // 시전자 주변(자신)에도 가벼운 황금 반짝임과 오라 형성
+            for (let i = 0; i < 12; i++) {
+                const a = R(0, TAU), spd = R(1.5, 4.0);
+                this.particles.push({
+                    type: 'aug_heal_bomb_spark',
+                    x: x, y: y - 20,
+                    vx: Math.cos(a) * spd,
+                    vy: Math.sin(a) * spd - R(0.5, 2.0),
+                    life: R(0.8, 1.6), maxLife: 1.6,
+                    size: R(4, 9), hue: 50 // 황금빛
+                });
+            }
+            this.particles.push({ type: 'low_shield', x: x, y: y, life: 2.0, maxLife: 2.0, color: '#ffea00' });
+
+            const itemTypes = ['gift', 'sword', 'shield', 'stat'];
+            allyCoords.forEach((ally, index) => {
+                setTimeout(() => {
+                    if (!this.renderer || !(this.renderer.canvas || this.renderer.fxCanvas) || !this.particles) return;
+                    
+                    // 아군 머리 위 허공에서 아이템이 뚝 떨어지는 연출
+                    this.particles.push({
+                        type: 'donation_item_projectile',
+                        x: ally.x,
+                        y: ally.y - 150, // 150px 위에서 시작
+                        startX: ally.x,
+                        startY: ally.y - 150,
+                        tx: ally.x,
+                        ty: ally.y - 15,
+                        t: 0,
+                        life: 1.0,
+                        maxLife: 1.0,
+                        icon: itemTypes[index % 4], // gift, sword, shield, stat (2D 벡터 드로잉 매핑)
+                        trail: []
+                    });
+                }, index * 160);
+            });
+            return;
+        } else if (type === 'donation_item_projectile') {
+            // 외부에서 직접 1개의 기부 아이템을 떨어뜨리라고 명령할 때
+            this.particles.push({
+                type: 'donation_item_projectile',
+                x: x,
+                y: y,
+                startX: x,
+                startY: y,
+                tx: options.tx || x,
+                ty: options.ty || (y + 135),
+                t: 0,
+                life: 1.0,
+                maxLife: 1.0,
+                icon: options.icon || 'gift',
+                trail: []
+            });
+            return;
+        } else if (type === 'donation_confetti_burst') {
+            // 아군에게 기부 아이템 닿았을 때 오색찬란한 생일 폭죽 효과 (이모지 없음)
+            const colors = ['#ffa502', '#ff4757', '#2ed573', '#1e90ff', '#ff6b81', '#78e08f', '#eccc68', '#a855f7'];
+            const confettiParts = [];
+            for (let i = 0; i < 26; i++) {
+                const angle = R(0, TAU);
+                const speed = R(3.0, 7.5);
+                confettiParts.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - R(1.5, 4.5),
+                    color: colors[RI(0, colors.length)],
+                    size: R(3.5, 8),
+                    rot: R(0, TAU),
+                    rotSpd: R(-0.2, 0.2),
+                    life: R(1.2, 2.0),
+                    maxLife: 2.0
+                });
+            }
+            
+            // 생일 폭죽 파티클
+            this.particles.push({
+                type: 'donation_confetti',
+                x: x,
+                y: y,
+                parts: confettiParts,
+                life: 2.0,
+                maxLife: 2.0
+            });
+            
+            // 아군 머리 위 'DONATION!' 텍스트 (가독성을 위해 아주 진한 검정색으로 변경)
+            this.particles.push({ type: 'low_passive', x: x, y: y - 40, text: 'DONATION!', life: 2.2, maxLife: 2.2, color: '#000000' });
+            this.particles.push({ type: 'low_shield', x: x, y: y, life: 2.2, maxLife: 2.2, color: '#ffea00' });
+            return;
+        } else if (type === 'u2_12_boom') {
+            // 칠판 낙서꾼의 밀집 광역 침묵 폭발 (이모지 완전 제거)
+            this.particles.push({ type: 'low_aoe_ring', x: x, y: y, r: 0, maxR: 90, life: 1.5, maxLife: 1.5, color: '#ff33cc' });
+            
+            const targets = options.targets || [];
+            if (targets.length > 0) {
+                targets.forEach(tIdx => {
+                    const t = this.getCellCenter(tIdx);
+                    if (!t) return;
+                    this.particles.push({ type: 'low_debuff', x: t.x, y: t.y, count: 4, life: 1.5, maxLife: 1.5, color: '#ff33cc' });
+                    this.particles.push({ type: 'low_passive', x: t.x, y: t.y - 45, text: 'SILENCE!', life: 2.2, maxLife: 2.2, color: '#ff33cc' });
+                });
+            } else {
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push({ type: 'low_debuff', x: x + R(-40, 40), y: y + R(-40, 40), count: 2, life: 1.5, maxLife: 1.5, color: '#ff33cc' });
+                }
+                this.particles.push({ type: 'low_passive', x: x, y: y - 45, text: 'SILENCE!', life: 2.2, maxLife: 2.2, color: '#ff33cc' });
+            }
+            return;
+        } else if (type === 'changche_1_hit') {
+            // 창체 1 무장해제/침묵 이펙트
+            const tx = x, ty = y;
+            this.particles.push({ type: 'low_debuff', x: tx, y: ty, count: 6, life: 1.5, maxLife: 1.5, color: '#333333' });
+            this.particles.push({ type: 'aug_mass_silence_noise', life: 0.3, maxLife: 0.3 }); // 찌그러짐
+            return;
+        } else if (type === 'changche_3_buff') {
+            // 창체 3 진로탐색 스탯 증가 이펙트
+            const tx = x, ty = y;
+            this.particles.push({ type: 'low_self_buff', x: tx, y: ty, r: 0, maxR: 35, life: 1.5, maxLife: 1.5, color: '#aaeeff' });
             return;
         }
 

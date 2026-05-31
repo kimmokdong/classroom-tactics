@@ -170,109 +170,30 @@ function estimateCost(deck, type) {
     return spentGold;
 }
 
-function enforceStarConstraints(deck, type) {
-    // 4, 5코는 어떤 레벨 덱에서도 3성 금지
-    deck.forEach(u => {
-        if (u.tier >= 4) u.star = 2;
-    });
-    
-    if (type === '6L') {
-        // 6렙: 2코 우선으로 4개 3성. 3코도 가능하나 4,5코는 절대 불가
-        let allowedCandidates = deck
-            .map((u, idx) => ({ u, idx }))
-            .filter(x => x.u.tier <= 3) // 3코 이하만 3성 가능
-            .sort((a,b) => {
-                if (a.u.tier === 2 && b.u.tier !== 2) return -1;
-                if (a.u.tier !== 2 && b.u.tier === 2) return 1;
-                return a.u.tier - b.u.tier;
-            });
-        // 먼저 전부 2성으로 초기화(3코 이하만)
-        allowedCandidates.forEach(x => deck[x.idx].star = 2);
-        // 상위 4개만 3성
-        for(let i = 0; i < Math.min(4, allowedCandidates.length); i++) {
-            deck[allowedCandidates[i].idx].star = 3;
-        }
-    } else if (type === '7L') {
-        // 7렙: 3코 우선으로 3개 3성. 4,5코는 절대 불가
-        let allowedCandidates = deck
-            .map((u, idx) => ({ u, idx }))
-            .filter(x => x.u.tier <= 3) // 3코 이하만 3성 가능
-            .sort((a,b) => {
-                if (a.u.tier === 3 && b.u.tier !== 3) return -1;
-                if (a.u.tier !== 3 && b.u.tier === 3) return 1;
-                return b.u.tier - a.u.tier;
-            });
-        allowedCandidates.forEach(x => deck[x.idx].star = 2);
-        for(let i = 0; i < Math.min(3, allowedCandidates.length); i++) {
-            deck[allowedCandidates[i].idx].star = 3;
-        }
-    } else {
-        // 8, 9렙은 3코 이하만 3성 가능 (이미 위에서 4,5코 2성 처리됨)
-        deck.forEach(u => { if (u.tier <= 3) u.star = 2; });
-    }
-}
-
 function assignItems(deck, type) {
-    enforceStarConstraints(deck, type);
-    
+    // Determine Tank vs DPS based on stats
     let units = deck.map((u, i) => {
-        let isTank = Array.isArray(u.role) && u.role.includes('tank');
-        let isDealer = Array.isArray(u.role) && u.role.includes('dealer');
-        let isSupport = Array.isArray(u.role) && u.role.includes('support');
-        
-        // AD 판별: 포지션에 '물리'나 '공격력'이 있으면 AD, 아니면 기본 스탯 의존
-        let isAD = false;
-        if (u.position && (u.position.includes('물리') || u.position.includes('공격력'))) {
-            isAD = true;
-        } else if (u.stats.ad > 60 && (!u.position || u.position === '')) {
-            isAD = true;
-        }
-
-        // 점수: 3성이면 +50, 코스트(티어)로 기본 가중치
+        let isTank = (u.stats.armor + u.stats.mr > 70) || (u.stats.hp >= 600 && u.stats.range === 1);
+        let isAD = u.stats.ad > u.stats.ap;
         let score = u.star * 10 + u.tier;
-        if (u.star === 3) score += 50;
-        return { idx: i, u, score, isTank, isDealer, isSupport, isAD };
+        if (type === '7L' && u.star === 3) score += 100; // force 3-stars to get items
+        return { idx: i, u, score, isTank, isAD };
     });
     
-    // 점수(성급/코스트) 순으로 내림차순 정렬
     units.sort((a,b) => b.score - a.score);
     
+    // Pick 1 tank, 1 main DPS, 1 sub DPS
     let tanks = units.filter(x => x.isTank);
+    let dps = units.filter(x => !x.isTank);
     
-    // 탱커 역할을 가진 유닛이 한 명도 없다면, 임시 탱커 강제 지정 (5단계 우선순위)
-    if (tanks.length === 0) {
-        let byPriority = [...units].sort((a, b) => {
-            if (a.u.stats.range !== b.u.stats.range) return a.u.stats.range - b.u.stats.range;
-            if (a.u.star !== b.u.star) return b.u.star - a.u.star;
-            if (a.u.tier !== b.u.tier) return b.u.tier - a.u.tier;
-            if (a.u.stats.hp !== b.u.stats.hp) return b.u.stats.hp - a.u.stats.hp;
-            return (b.u.stats.armor + b.u.stats.mr) - (a.u.stats.armor + a.u.stats.mr);
-        });
-        tanks = [byPriority[0]];
-    }
+    let mainTank = tanks[0] || units[0];
+    let mainDps = dps[0] || units[1];
+    let subDps = dps[1] || units[2] || tanks[1];
     
-    let mainTank = tanks[0];
-    
-    // 메인 탱커를 제외한 나머지 풀에서 딜러/서포터 추출
-    let nonTanks = units.filter(x => x !== mainTank);
-    
-    // 메인 딜러 선정: 찐 딜러 > 서포터 > 아무나
-    let dealers = nonTanks.filter(x => x.isDealer);
-    let mainDps = dealers[0];
-    if (!mainDps) {
-        let supports = nonTanks.filter(x => x.isSupport);
-        mainDps = supports[0] || nonTanks[0] || units[1];
-    }
-    
-    // 서브 에이스: 메인탱과 메인딜 제외하고 가장 점수 높은 유닛
-    let remaining = units.filter(x => x !== mainTank && x !== mainDps);
-    let subDps = remaining[0];
-    
-    // 아이템 부여 (기존 템 초기화 후 재할당)
-    deck.forEach(u => u.items = []);
-    if (mainTank) deck[mainTank.idx].items = [...TANK_ITEMS];
-    if (mainDps) deck[mainDps.idx].items = mainDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
-    if (subDps && subDps !== mainTank && subDps !== mainDps) deck[subDps.idx].items = subDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
+    deck.forEach(u => u.items = []); // clear
+    deck[mainTank.idx].items = [...TANK_ITEMS];
+    deck[mainDps.idx].items = mainDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
+    deck[subDps.idx].items = subDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
 }
 
 function fight(deckA, deckB) {
@@ -510,6 +431,7 @@ async function runGA(type) {
     return uniqueDecks;
 }
 
+async 
 function runGAForType(type, popSize, generations) {
     let population = [];
     for(let i=0; i<popSize; i++) {
@@ -590,33 +512,10 @@ function runGAForType(type, popSize, generations) {
     }
     population.sort((a,b) => b.wins - a.wins);
     
-    // deduplicate by signature
-    let uniqueDecks = [];
-    let seenSigs = new Set();
-    
-    for (let p of population) {
-        let sig = getDeckSignature(p.deck);
-        if (!seenSigs.has(sig)) {
-            seenSigs.add(sig);
-            p.wins = 0;
-            p.matches = 0;
-            uniqueDecks.push(p);
-        }
-        if (uniqueDecks.length >= 10) break;
-    }
-    
-    if (uniqueDecks.length < 10) {
-        for (let p of population) {
-            if (!uniqueDecks.includes(p)) {
-                p.wins = 0;
-                p.matches = 0;
-                uniqueDecks.push(p);
-            }
-            if (uniqueDecks.length >= 10) break;
-        }
-    }
-    
-    return uniqueDecks;
+    // reset stats
+    let top10 = population.slice(0, 10);
+    top10.forEach(p => { p.wins = 0; p.matches = 0; });
+    return top10;
 }
 
 function getUnitByName(name, star=2) {
@@ -697,7 +596,7 @@ function main() {
         
         const unitDesc = (u) => u ? `${u.name}(${u.tier}코, ${u.star}성)` : '-';
         let typeStr = r.type;
-        if ([custom1, custom2, custom3, custom4, custom5].includes(r)) {
+        if (i >= 40 && [custom1, custom2, custom3, custom4, custom5].includes(r)) {
             typeStr = `**${r.type}(유저)**`;
         }
         rankSection += `| **${i+1}위** | ${typeStr} | **${dname}** | ${winrate}% | ${unitDesc(tanks[0])} | ${unitDesc(dpss[0])} | ${unitDesc(dpss[1])} |\n`;
@@ -1060,7 +959,4 @@ function main() {
     console.log(`Simulation complete! Report saved to ${targetFile}.`);
     console.log(report.substring(0, 1500) + "\n... (생략)");
 }
-
-
-main();
 

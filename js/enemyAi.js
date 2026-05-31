@@ -14,12 +14,17 @@ const SHOP_PROBABILITIES = {
 };
 
 function getEnemyLevel(world, round) {
-    if (world === 1) return round <= 3 ? 3 : 4;
-    if (world === 2) return round <= 3 ? 5 : 6;
-    if (world === 3) return 7;
-    if (world === 4) return 8;
-    if (world === 5) return 9;
-    return 10;
+    const totalRounds = (world - 1) * 5 + round;
+    if (totalRounds <= 1) return 1;  // 1-1
+    if (totalRounds <= 2) return 2;  // 1-2
+    if (totalRounds <= 4) return 3;  // 1-3, 1-4 (2라운드)
+    if (totalRounds <= 6) return 4;  // 1-5, 2-1 (2라운드)
+    if (totalRounds <= 10) return 5; // 2-2, 2-3, 2-4, 2-5 (4라운드)
+    if (totalRounds <= 13) return 6; // 3-1, 3-2, 3-3 (3라운드)
+    if (totalRounds <= 17) return 7; // 3-4, 3-5, 4-1, 4-2 (4라운드)
+    if (totalRounds <= 21) return 8; // 4-3, 4-4, 4-5, 5-1 (4라운드)
+    if (totalRounds <= 25) return 9; // 5-2, 5-3, 5-4, 5-5 (4라운드)
+    return 10; // 6-1 이후 (기존보다 10레벨 도달 2라운드 지연)
 }
 
 function generateShop(level) {
@@ -52,18 +57,18 @@ function createUnit(template, star) {
     if (star >= 2) {
         u.stats.hp = Math.round(u.stats.hp * 1.8);
         u.stats.ad = Math.round(u.stats.ad * 1.5);
-        u.stats.ap = Math.round(u.stats.ap * 1.5);
+        // AP는 진화 시 오르지 않음 (유저와 동일)
     }
     if (star === 3) {
         u.stats.hp = Math.round(u.stats.hp * 1.8);
         u.stats.ad = Math.round(u.stats.ad * 1.5);
-        u.stats.ap = Math.round(u.stats.ap * 1.5);
+        // AP는 진화 시 오르지 않음 (유저와 동일)
 
-        // [신규 기획] 적 AI도 1~3코스트 3성 패시브 적용 (동일 밸런스)
+        // [신규 기획] 적 AI도 1~3코스트 3성 패시브 적용 (유저와 100% 동일한 밸런스)
         if (u.tier <= 3) {
-            u.stats.armor += Math.round(50 - (u.tier * 10));
-            u.stats.mr += Math.round(50 - (u.tier * 10));
-            u.stats.hp += Math.round(500 - (u.tier * 100));
+            u.stats.armor += Math.round(25 - (u.tier * 5));
+            u.stats.mr += Math.round(25 - (u.tier * 5));
+            u.stats.hp += Math.round(250 - (u.tier * 50));
         }
     }
     u.stats.maxHp = u.stats.hp;
@@ -74,8 +79,8 @@ export function generateEnemyBoard(world, round) {
     const totalRounds = (world - 1) * 5 + round;
     const enemyLevel = getEnemyLevel(world, round);
 
-    // 예산: 1-1은 13G, 7-1은 343G 정도로 기하급수적 성장
-    let budget = 10 + (totalRounds * 3) + Math.floor(totalRounds * totalRounds * 0.25);
+    // 예산: 7-1 라운드에 정확히 300G에 도달하도록 부드러운 이차함수 성장
+    let budget = Math.round(5 + (totalRounds * 2) + (Math.pow(totalRounds, 2) * 0.2424));
 
     let purchasedPool = [];
     let safeGuard = 0;

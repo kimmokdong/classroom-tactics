@@ -1,8 +1,9 @@
 import { SkillEngine } from './battle/SkillEngine.js';
 export class BattleEngine {
-    constructor(playerBoard, enemyBoard, playerAugments = []) {
+    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50) {
         this.board = Array(48).fill(null);
         this.playerAugments = playerAugments;
+        this.playerGold = playerGold;
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
@@ -67,6 +68,9 @@ export class BattleEngine {
         this.ccDurationMult = 1.0;     // 연장전 시 0.34 (-66%)
         this.skillEngine = new SkillEngine();
         this.canvases = []; // 미술 장판 (색채의 캔버스) 관리
+        // [창체 2시너지] 심폐소생술 부활 횟수
+        this.playerCprCharges = 0;
+        this.enemyCprCharges = 0;
     }
 
     getDist(i1, i2) {
@@ -80,26 +84,111 @@ export class BattleEngine {
     run() {
         let activeUnits = this.board.filter(u => u !== null);
 
+        const countUniqueTrait = (trait) => {
+            const units = activeUnits.filter(u => u.team === 'player' && (u.subject === trait || (Array.isArray(u.subject) ? u.subject.includes(trait) : false) || u.club === trait || (Array.isArray(u.club) ? u.club.includes(trait) : false)));
+            return new Set(units.map(u => u.name)).size;
+        };
+
+        this.hasP12 = this.playerAugments.includes('p12') && countUniqueTrait('보건부') >= 6;
+        this.hasP13 = this.playerAugments.includes('p13') && countUniqueTrait('방송부') >= 7;
+        this.hasP14 = this.playerAugments.includes('p14') && countUniqueTrait('육상부') >= 6;
+        this.hasP15 = this.playerAugments.includes('p15') && countUniqueTrait('도덕') >= 6;
+        this.hasP21 = this.playerAugments.includes('p21') && countUniqueTrait('선도부') >= 6;
+        this.hasP22 = this.playerAugments.includes('p22') && countUniqueTrait('급식부') >= 7;
+        this.hasP23 = this.playerAugments.includes('p23') && countUniqueTrait('장난꾸러기') >= 6;
+
         this.tick = -20;
-        // [p13] 긴급 속보 (방송부 7 시너지) - 전투 시작 직후 아이템(서풍, 침묵장막) 효과보다 먼저 적용 및 로그 기록
-        if (this.playerAugments.includes('p13')) {
-            const broadcastUnits = activeUnits.filter(u => u.team === 'player' && (u.subject === '방송부' || u.club === '방송부'));
-            const uniqueBroadcast = new Set(broadcastUnits.map(u => u.name)).size;
-            if (uniqueBroadcast >= 7) {
-                const enemies = activeUnits.filter(u => u.team === 'enemy');
-                enemies.forEach(e => {
-                    this.addBuff(e, 'stun', null, 0, 50); // 50틱 스턴으로 침묵/이동불가 구현
+        
+        // [p13] 방송부 7 긴급 속보: 적 기절 3.5초(35틱), 무한 사거리(+99), 공속 30% 증가
+        if (this.hasP13) {
+            const broadcastUnits = activeUnits.filter(u => u.team === 'player' && (u.subject === '방송부' || (Array.isArray(u.club) ? u.club.includes('방송부') : u.club === '방송부')));
+            const enemies = activeUnits.filter(u => u.team === 'enemy');
+            enemies.forEach(e => {
+                this.addBuff(e, 'stun', null, 0, 35);
+            });
+            broadcastUnits.forEach(u => {
+                this.addBuff(u, 'buff', 'range', 99, 9999);
+                this.addBuff(u, 'buff', 'as', u.stats.as * 0.30, 9999);
+            });
+            this.logs.push({
+                tick: this.tick, type: 'broadcast_silence', fxType: 'aug_mass_silence', targets: enemies.map(e => e.gridIndex)
+            });
+        }
+        
+        // [p14] 육상부 6 빛의 속도: 전투 시작 시 육상부 유닛에게 5중첩 즉시 부여
+        if (this.hasP14) {
+            activeUnits.forEach(u => {
+                if (u.team === 'player' && (u.club === '육상부' || (Array.isArray(u.club) && u.club.includes('육상부')))) {
+                    u.combat.runnerStacks = 5;
+                    u.stats.as *= Math.pow(1 + (u.combat.moveAsBuff||0), 5);
+                    u.combat.armorPen = (u.combat.armorPen || 0) + ((u.combat.movePenBuff||0) * 5);
+                }
+            });
+        }
+        
+        // [p21] 선도부 6 철권 통치: 시작 보호막 80%, 피해 증폭 50%
+        if (this.hasP21) {
+            activeUnits.forEach(u => {
+                if (u.team === 'player' && (u.club === '선도부' || (Array.isArray(u.club) && u.club.includes('선도부')))) {
+                    u.currShield = u.stats.maxHp * 0.8;
+                    u.combat.dmgAmp = 0.50;
+                }
+            });
+        }
+
+        // [창체 시너지] 누적 특별 교육 발동
+        {
+            const changcheCount = new Set(
+                activeUnits.filter(u => u.team === 'player' && (
+                    u.subject === '창체' || (Array.isArray(u.subject) && u.subject.includes('창체'))
+                )).map(u => u.name)
+            ).size;
+
+            // [1시너지] 학교폭력 예방 교육: 적 공격력 상위 2명 4초(40틱) 무장해제+침묵
+            if (changcheCount >= 1) {
+                const top2 = activeUnits
+                    .filter(u => u.team === 'enemy' && u.currHp > 0)
+                    .sort((a, b) => b.stats.ad - a.stats.ad)
+                    .slice(0, 2);
+                top2.forEach(e => {
+                    this.addBuff(e, 'disarm', null, 0, 40);
+                    this.addBuff(e, 'silence', null, 0, 40);
                 });
-                broadcastUnits.forEach(u => {
-                    this.addBuff(u, 'buff', 'range', 1, 9999);
+                if (top2.length > 0) {
+                    this.logs.push({ tick: this.tick, type: 'changche_lv1', targets: top2.map(e => e.gridIndex) });
+                }
+            }
+
+            // [2시너지] 심폐소생술 교육: 아군 최초 2명 사망 면역 부여
+            if (changcheCount >= 2) {
+                this.playerCprCharges = 2;
+            }
+
+            // [3시너지] 맞춤형 진로 교육: 역할군 맞춤 영구 버프 (복합 역할군은 랜덤 1개)
+            if (changcheCount >= 3) {
+                activeUnits.forEach(u => {
+                    if (u.team !== 'player') return;
+                    const roles = Array.isArray(u.role) ? u.role : [u.role];
+                    const picked = roles[Math.floor(Math.random() * roles.length)];
+                    if (picked === 'dealer') {
+                        // 딜러: 공격력 25%, 주문력 25% 증폭
+                        u.stats.ad = Math.round(u.stats.ad * 1.25);
+                        u.stats.ap = Math.round(u.stats.ap * 1.25);
+                    } else if (picked === 'tank') {
+                        // 탱커: 최대 체력 25% 증가, 방어력/마법저항력 +30
+                        const bonus = Math.round((u.stats.maxHp || u.stats.hp) * 0.25);
+                        u.stats.hp = (u.stats.hp || 0) + bonus;
+                        u.stats.maxHp = (u.stats.maxHp || u.stats.hp) + bonus;
+                        u.currHp = (u.currHp || u.stats.hp) + bonus;
+                        u.stats.armor += 30;
+                        u.stats.mr += 30;
+                    } else if (picked === 'support') {
+                        // 서포터: 스킬 마나 소모 15% 감소, 초당 마나 회복 +2
+                        u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * 0.85));
+                        u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + 2;
+                    }
                 });
-                // 가장 먼저 재생되도록 -20틱 시작 시점에 긴급 속보 로그 기록
-                this.logs.push({
-                    tick: this.tick,
-                    type: 'broadcast_silence',
-                    fxType: 'aug_mass_silence',
-                    targets: enemies.map(e => e.gridIndex)
-                });
+                this.logs.push({ tick: this.tick, type: 'changche_lv3' });
             }
         }
 
@@ -132,6 +221,16 @@ export class BattleEngine {
                 });
                 this.logs.push({ tick: this.tick, type: 'sudden_death' });
             }
+
+            // [창체 2시너지] 심폐소생술 지연 회복 처리 (무적 해제 후 회복)
+            activeUnits.forEach(u => {
+                if (u.combat && u.combat.cprHealTick !== undefined && this.tick >= u.combat.cprHealTick) {
+                    u.currHp = Math.min(u.stats.maxHp || u.stats.hp, u.currHp + u.combat.cprHealAmt);
+                    this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: u.combat.cprHealAmt });
+                    delete u.combat.cprHealTick;
+                    delete u.combat.cprHealAmt;
+                }
+            });
 
             // [미술 시너지] 장판 지속시간 감소 및 버프 판정 초기화
             for (let i = this.canvases.length - 1; i >= 0; i--) {
@@ -257,16 +356,15 @@ export class BattleEngine {
                 }
             }
 
-            // 1초마다 (10틱) 마나 재생
+            // 1초마다 (10틱) 마나 재생 및 도덕 6(p15) 지속 회복
             if (this.tick > 0 && this.tick % 10 === 0) {
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
                     let regen = 0;
                     if (u.manaType === '집중') regen += 2;
                     if (u.combat && u.combat.teamManaRegen) regen += u.combat.teamManaRegen;
-                    if (u.combat && u.combat.artManaRegen && u.subject === '음악') regen += u.combat.artManaRegen;
+                    if (u.combat && u.combat.artManaRegen && (Array.isArray(u.subject) ? u.subject.includes('음악') : u.subject === '음악')) regen += u.combat.artManaRegen;
 
-                    // [미술 시너지] 장판 내 아군 마나 회복
                     for (const canvas of this.canvases) {
                         if (canvas.manaRegen > 0 && canvas.team === u.team) {
                             const inRange = this.getDist(canvas.centerIdx, u.gridIndex) <= canvas.radius;
@@ -279,31 +377,58 @@ export class BattleEngine {
                         let gainMana = regen * manaGainMult;
                         u.currMana = Math.max(u.currMana, Math.min(u.stats.maxMana, u.currMana + gainMana));
                     }
+                    
+                    // [p15] 도덕 6 절대 선: 매초 최대 체력의 4% 지속 회복
+                    if (this.hasP15 && u.team === 'player' && (u.subject === '도덕' || (Array.isArray(u.subject) && u.subject.includes('도덕')))) {
+                        const heal = u.stats.maxHp * 0.04;
+                        u.currHp = Math.min(u.stats.maxHp, u.currHp + heal);
+                        this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(heal), currHp: u.currHp, maxHp: u.stats.maxHp });
+                    }
                 });
             }
 
-            // 글로벌 틱 이벤트 (예: 30틱 = 약 3초마다)
-            if (this.tick > 0 && this.tick % 30 === 0) {
+            // 글로벌 틱 이벤트
+            if (this.tick > 0) {
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
-                    if (u.combat.isFirelight) {
+                    
+                    if (this.tick % 30 === 0 && u.combat.isFirelight) {
                         u.currHp = Math.min(u.stats.maxHp, u.currHp + (u.stats.maxHp * u.combat.tickHeal * this.healEfficiency));
                         u.combat.firelightCharge = true;
                     }
                     
-                    // [급식부 시너지] 포만감(Satiety) 틱마다 체력/방마저 증가
-                    if (u.combat.isCafeteria && this.tick % (u.combat.satietyTick || 30) === 0) {
-                        const bonusHp = u.stats.maxHp * u.combat.stackHpPct;
-                        u.stats.maxHp += bonusHp;
-                        u.currHp += bonusHp;
-                        u.stats.armor += u.combat.stackArmorMr;
-                        u.stats.mr += u.combat.stackArmorMr;
+                    // [급식부 시너지 & p22 특급 만찬] 포만감(Satiety) 틱마다 체력/방마저 증가
+                    if (u.combat.isCafeteria) {
+                        const baseSatietyTick = u.combat.satietyTick || 50; // 기본 50틱(5초)
+                        const actualSatietyTick = (this.hasP22 && u.team === 'player') ? 25 : baseSatietyTick; // p22 활성화 시 2.5초
                         
-                        this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(bonusHp), currHp: u.currHp, maxHp: u.stats.maxHp });
-                        u.combat.satietyCount = (u.combat.satietyCount || 0) + 1;
-                        this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'satiety_tick', target: u.gridIndex, count: u.combat.satietyCount });
-                        // 시각적 피드백을 위한 더미 버프 (실제 스탯은 영구 증가됨)
-                        this.addBuff(u, 'buff', 'dummy', 0, 10); 
+                        if (this.tick % actualSatietyTick === 0) {
+                            const bonusHp = u.stats.maxHp * u.combat.stackHpPct;
+                            const bonusArmor = u.combat.stackArmorMr;
+                            
+                            // [p22] 아군 전체에게 공유
+                            if (this.hasP22 && u.team === 'player') {
+                                const allies = activeUnits.filter(a => a.team === 'player' && a.currHp > 0);
+                                allies.forEach(a => {
+                                    a.stats.maxHp += bonusHp;
+                                    a.currHp += bonusHp;
+                                    a.stats.armor += bonusArmor;
+                                    a.stats.mr += bonusArmor;
+                                    this.logs.push({ tick: this.tick, type: 'heal', target: a.gridIndex, amount: Math.round(bonusHp), currHp: a.currHp, maxHp: a.stats.maxHp });
+                                    this.addBuff(a, 'buff', 'dummy', 0, 10);
+                                });
+                            } else {
+                                u.stats.maxHp += bonusHp;
+                                u.currHp += bonusHp;
+                                u.stats.armor += bonusArmor;
+                                u.stats.mr += bonusArmor;
+                                this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(bonusHp), currHp: u.currHp, maxHp: u.stats.maxHp });
+                                this.addBuff(u, 'buff', 'dummy', 0, 10);
+                            }
+                            
+                            u.combat.satietyCount = (u.combat.satietyCount || 0) + 1;
+                            this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'satiety_tick', target: u.gridIndex, count: u.combat.satietyCount });
+                        }
                     }
                 });
             }
@@ -323,10 +448,15 @@ export class BattleEngine {
                 // CC 체크 (기절)
                 const isStunned = unit.buffs.some(b => b.type === 'stun');
                 if (isStunned) return; // 행동 불가
+
+                // CC 체크 (무장해제 - 평타 불가, 스킬은 가능)
+                const isDisarmed = unit.buffs.some(b => b.type === 'disarm');
+                // CC 체크 (침묵 - 스킬 사용 불가, 평타는 가능)
+                const isSilenced = unit.buffs.some(b => b.type === 'silence');
                 
-                // 마나 만충 시 스킬 발동 (마나 봉인 디버프 체크)
+                // 마나 만충 시 스킬 발동 (마나 봉인 디버프 체크 + 침묵 체크)
                 const isManaSealed = unit.buffs.some(b => b.type === 'manaSeal');
-                if (unit.stats.maxMana > 0 && unit.currMana >= unit.stats.maxMana && unit.skill && !isStunned && !isManaSealed) {
+                if (unit.stats.maxMana > 0 && unit.currMana >= unit.stats.maxMana && unit.skill && !isStunned && !isManaSealed && !isSilenced) {
                     this.skillEngine.execute(unit, activeUnits, this);
                     
                     // [미술 시너지] 스킬 사용 시 장판 생성
@@ -343,10 +473,11 @@ export class BattleEngine {
                         this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'art_canvas', target: unit.gridIndex, radius: unit.combat.canvasRadius || 1 });
                     }
                     
-                    // [장난꾸러기 시너지] 스킬 2회 사용 시 장난 발동
+                    // [장난꾸러기 시너지 & p23 대혼돈의 교실] 스킬 사용 시 장난 발동
                     if (unit.combat.prankLevel > 0) {
                         unit.combat.prankCount = (unit.combat.prankCount || 0) + 1;
-                        if (unit.combat.prankCount >= 2) {
+                        const reqCount = (this.hasP23 && unit.team === 'player') ? 1 : 2;
+                        if (unit.combat.prankCount >= reqCount) {
                             unit.combat.prankCount = 0;
                             const prankEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
                             const prankTarget = prankEnemies.length > 0 ? prankEnemies[Math.floor(Math.random() * prankEnemies.length)] : null;
@@ -365,7 +496,8 @@ export class BattleEngine {
                                     const allEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
                                     allEnemies.forEach(e => {
                                         this.addBuff(e, 'stun', null, 0, 25);
-                                        let prankDmg = e.stats.maxHp * 0.20 * (100 / (100 + e.stats.mr));
+                                        const pct = (this.hasP23 && unit.team === 'player') ? 0.36 : 0.20;
+                                        let prankDmg = e.stats.maxHp * pct * (100 / (100 + e.stats.mr));
                                         e.currHp -= prankDmg;
                                         this.logs.push({ tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield });
                                         this.checkHpThresholds(e, activeUnits);
@@ -430,7 +562,7 @@ export class BattleEngine {
                     return;
                 }
 
-                let targetableEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.buffs.some(b=>b.type==='invincible' || b.type==='zephyr'));
+                let targetableEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.buffs.some(b=>b.type==='invincible' || b.type==='zephyr' || b.type==='untargetable'));
                 if (targetableEnemies.length === 0) targetableEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0); // fallback
                 if (targetableEnemies.length === 0) return;
                 
@@ -449,6 +581,8 @@ export class BattleEngine {
                 const dist = this.getDist(unit.gridIndex, target.gridIndex);
                 
                 if (dist <= unit.stats.range) {
+                    // 무장해제 시 평타 불가 (이동은 가능)
+                    if (isDisarmed) return;
                     let dmg = unit.stats.ad;
 
                     
@@ -547,9 +681,9 @@ export class BattleEngine {
                     
                     target.currHp -= (totalDmg + trueDmg);
 
-                    // [p15] 바른 생활의 분노 (평타 피격 시 반사)
-                    if (this.playerAugments.includes('p15') && target.team === 'player' && target.subject === '도덕' && unit.team === 'enemy') {
-                        const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
+                    // [p15] 도덕 6 절대 선 (평타 피격 시 100% 반사)
+                    if (this.hasP15 && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team === 'enemy') {
+                        const reflectDmg = (target.stats.armor + target.stats.mr) * 1.0;
                         let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                         unit.currHp -= actualReflect;
                         this.logs.push({
@@ -580,8 +714,12 @@ export class BattleEngine {
                     target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, target.currMana + targetGainMana));
                     
                     // 흡혈 (과학탐구원 스킬 vampBuff, 아이템 vamp 등 combat.vamp > 0 이면 적용)
-                    if (unit.combat.vamp > 0) {
-                        unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + totalDmg * unit.combat.vamp * this.healEfficiency);
+                    let currentVamp = unit.combat.vamp || 0;
+                    if (this.hasP14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10 && unit.team === 'player') {
+                        currentVamp += 0.30; // [p14] 육상부 6 30% 흡혈
+                    }
+                    if (currentVamp > 0) {
+                        unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + totalDmg * currentVamp * this.healEfficiency);
                     }
                     // vampBuff 타이머 처리
                     if (unit.combat.vampBuffTimer > 0) {
@@ -616,6 +754,36 @@ export class BattleEngine {
                         targetCombat: { ...target.combat }, attackerCombat: { ...unit.combat },
                         fxType: atkFx
                     });
+                    
+                    // [p14] 육상부 6 빛의 속도: 평타 관통
+                    if (this.hasP14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10 && unit.team === 'player') {
+                        const dx = (target.gridIndex % 8) - (unit.gridIndex % 8);
+                        const dy = Math.floor(target.gridIndex / 8) - Math.floor(unit.gridIndex / 8);
+                        const mag = Math.max(Math.abs(dx), Math.abs(dy));
+                        if (mag > 0) {
+                            const dirX = dx / mag; const dirY = dy / mag;
+                            for (let step = 1; step <= 3; step++) {
+                                const nx = Math.round((target.gridIndex % 8) + dirX * step);
+                                const ny = Math.round(Math.floor(target.gridIndex / 8) + dirY * step);
+                                if (nx >= 0 && nx < 8 && ny >= 0 && ny < 6) {
+                                    const nIdx = ny * 8 + nx;
+                                    const e = activeUnits.find(u => u.gridIndex === nIdx && u.team !== unit.team && u.currHp > 0);
+                                    if (e) {
+                                        let pierceDmg = (unit.stats.ad * (isCrit ? unit.combat.critDmg : 1)) * (100 / (100 + (e.stats.armor * (unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1))));
+                                        e.currHp -= pierceDmg;
+                                        this.logs.push({
+                                            tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex,
+                                            dmg: Math.round(pierceDmg), dmgType: 'physical', isCrit: isCrit, fxType: 'projectile',
+                                            currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield
+                                        });
+                                        unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + pierceDmg * 0.30 * this.healEfficiency); // 관통 피해도 흡혈
+                                        this.checkHpThresholds(e, activeUnits);
+                                        if (e.currHp <= 0) this.handleDeath(e, activeUnits);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     
                     if (unit.combat.itemEffects?.gunbladeHeal) {
                         const count = unit.combat.itemEffects.gunbladeHeal;
@@ -763,9 +931,8 @@ export class BattleEngine {
         if (target.currHp <= 0 || target.isDead) return;
         if (!target.buffs) target.buffs = [];
         const ccImmune = target.buffs.some(b => b.type === 'ccImmune');
-        if (ccImmune && (type === 'stun' || type === 'taunt' || type === 'zephyr')) return;
-        // 연장전 CC 지속시간 감소
-        if (this.suddenDeath && (type === 'stun' || type === 'taunt' || type === 'zephyr')) {
+        if (ccImmune && (type === 'stun' || type === 'taunt' || type === 'zephyr' || type === 'disarm' || type === 'silence')) return;
+        if (this.suddenDeath && (type === 'stun' || type === 'taunt' || type === 'zephyr' || type === 'disarm' || type === 'silence')) {
             duration = Math.max(1, Math.round(duration * this.ccDurationMult));
         }
         target.buffs.push({ type, stat, val, duration, sourceIdx });
@@ -852,6 +1019,20 @@ export class BattleEngine {
     handleDeath(target, activeUnits) {
         if (target.currHp > 0 || target.isDead) return;
 
+        // [창체 2시너지] 심폐소생술 교육: 아군 최초 2명 사망 면역 (1HP 생존 + 2초 무적 + 30% 회복)
+        if (target.team === 'player' && this.playerCprCharges > 0) {
+            this.playerCprCharges--;
+            target.currHp = 1;
+            target.isDead = false;
+            // 2초(20틱) 무적 (타겟팅 불가)
+            this.addBuff(target, 'untargetable', null, 0, 20);
+            // 20틱 후 30% 회복을 위해 cprHeal 스케줄링
+            target.combat.cprHealTick = this.tick + 20;
+            target.combat.cprHealAmt = Math.round((target.stats.maxHp || target.stats.hp) * 0.30);
+            this.logs.push({ tick: this.tick, type: 'cpr_revive', target: target.gridIndex, hp: target.currHp });
+            return;
+        }
+
         // 보건부 부활 체크
         const teamReviveCharges = target.team === 'player' ? this.playerReviveCharges : this.enemyReviveCharges;
         if (teamReviveCharges > 0) {
@@ -936,35 +1117,27 @@ export class BattleEngine {
                     });
                 }
             }
+            
+            // [p12] 보건부 6 불로불사: 전체 100% 회복 및 부활자 피해 증폭 100%
+            if (this.hasP12 && target.team === 'player' && target.club === '보건부') {
+                const allAllies = activeUnits.filter(u => u.team === target.team && u.currHp > 0 && !u.isDead);
+                allAllies.forEach(a => {
+                    const healVal = a.stats.maxHp;
+                    a.currHp = Math.min(a.stats.maxHp, a.currHp + healVal);
+                    this.logs.push({
+                        tick: this.tick, type: 'heal', target: a.gridIndex, 
+                        amount: Math.round(healVal), currHp: a.currHp, maxHp: a.stats.maxHp
+                    });
+                });
+                target.combat.dmgAmp = (target.combat.dmgAmp || 0) + 1.0;
+            }
+            
             return;
         }
 
         target.isDead = true;
         this.logs.push({ tick: this.tick, type: 'die', target: target.gridIndex, unitName: target.name, team: target.team });
         
-        // [p14] 바톤 터치 (육상부 사망 시 스탯 상속)
-        if (this.playerAugments.includes('p14') && target.team === 'player' && target.club === '육상부') {
-            const otherRunners = activeUnits.filter(u => u.team === 'player' && u.club === '육상부' && u.currHp > 0 && !u.isDead);
-            if (otherRunners.length > 0) {
-                otherRunners.sort((a,b) => this.getDist(target.gridIndex, a.gridIndex) - this.getDist(target.gridIndex, b.gridIndex));
-                const heir = otherRunners[0];
-                this.addBuff(heir, 'buff', 'ad', target.stats.ad, 99999);
-                this.addBuff(heir, 'buff', 'as', target.stats.as, 99999);
-                heir.currMana = Math.min(heir.stats.maxMana, heir.currMana + target.currMana);
-                
-                // 바톤 터치 VFX 로그 추가
-                this.logs.push({
-                    tick: this.tick,
-                    type: 'spirit_transfer',
-                    fxType: 'aug_spirit_transfer',
-                    source: target.gridIndex,
-                    target: heir.gridIndex
-                });
-                
-                this.logs.push({ tick: this.tick, type: 'mana_update', target: heir.gridIndex, currMana: heir.currMana, maxMana: heir.stats.maxMana });
-            }
-        }
-
         // 즈롯 차원문 (급식실 프리패스권) 강아지 소환
         if (target.combat.itemEffects?.zzrot && !target.isZzrotDog) {
             const count = target.combat.itemEffects.zzrot;
@@ -1047,6 +1220,13 @@ export class BattleEngine {
             }
             if (u.combat.itemEffects.qss) {
                 this.addBuff(u, 'ccImmune', null, 0, 150); 
+            }
+        });
+
+        // [기부천사 패시브 로그] 이미 SynergyManager에서 부여된 아이템 로그 발생
+        activeUnits.forEach(u => {
+            if (u.donationItems && u.donationItems.length > 0) {
+                this.logs.push({ tick: this.tick, type: 'donation_items', target: u.gridIndex, count: u.donationItems.length });
             }
         });
     }
