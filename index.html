@@ -11,12 +11,18 @@
     <div id="app">
         <!-- Top HUD -->
         <header id="game-header">
-            <div class="hud-left" style="display: flex; gap: 10px;">
+            <div class="hud-left" style="display: flex; gap: 10px; align-items: center;">
                 <button id="btn-dictionary" class="stat btn" style="background:#1976d2; border:1px solid #1565c0; cursor:pointer; white-space: nowrap;">📖 유닛 도감</button>
                 <button id="btn-guide" class="stat btn" style="background:#8e44ad; border:1px solid #732d91; cursor:pointer; white-space: nowrap;">📖 교무수첩</button>
                 <a href="sandbox.html" target="_blank" style="text-decoration: none;">
                     <button class="stat btn" style="background:#e67e22; border:1px solid #d35400; cursor:pointer; white-space: nowrap;">🛠️ 샌드박스</button>
                 </a>
+                <select id="select-board-theme" class="stat btn" style="background:#2c3e50; border:1px solid #34495e; color: white; cursor:pointer; font-weight: bold; padding: 5px 12px; border-radius: 12px; font-size: 0.9rem; white-space: nowrap; height: 38px;">
+                    <option value="theme-default">🎨 기본 보드</option>
+                    <option value="theme-chalkboard">🎨 칠판 보드</option>
+                    <option value="theme-wood">🎨 나무 책상</option>
+                    <option value="theme-floor">🎨 교실 마루</option>
+                </select>
             </div>
             <div class="hud-center" style="display: flex; flex-direction: row; align-items: center; gap: 15px;">
                 <div id="battle-timer-container" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 1.1rem; color: #fff; border: 2px solid #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">

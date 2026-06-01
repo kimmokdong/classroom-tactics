@@ -88,6 +88,26 @@ function init() {
     setupBoard();
     populateLists();
 
+    // 배치판 보드 테마 시스템 초기화 및 바인딩
+    const themeSelect = document.getElementById('select-board-theme');
+    if (themeSelect) {
+        const savedTheme = localStorage.getItem('board-theme') || 'theme-default';
+        themeSelect.value = savedTheme;
+        applyBoardTheme(savedTheme);
+        themeSelect.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            applyBoardTheme(theme);
+            localStorage.setItem('board-theme', theme);
+        });
+    }
+
+    function applyBoardTheme(themeName) {
+        const board = document.getElementById('battle-board');
+        if (!board) return;
+        board.classList.remove('theme-default', 'theme-chalkboard', 'theme-wood', 'theme-floor');
+        board.classList.add(themeName);
+    }
+
     document.getElementById('btn-erase').addEventListener('click', () => setTool('eraser', null));
     document.getElementById('btn-reset').addEventListener('click', resetBoard);
     document.getElementById('btn-start').addEventListener('click', startBattle);
@@ -161,11 +181,9 @@ function setupBoard() {
         
         // Visual distinction for player vs enemy territory
         if (i < 24) {
-            cell.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
-            cell.style.border = '1px dashed rgba(231, 76, 60, 0.3)';
+            cell.classList.add('enemy-cell');
         } else {
-            cell.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
-            cell.style.border = '1px dashed rgba(52, 152, 219, 0.3)';
+            cell.classList.add('player-cell');
         }
         
         cell.addEventListener('mousedown', (e) => handleCellClick(i, e));

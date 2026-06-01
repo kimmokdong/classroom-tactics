@@ -107,8 +107,14 @@
     <div id="tooltip" style="display:none; position:absolute; pointer-events:none; background:rgba(253,250,243,0.98); padding:12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); box-shadow:0 10px 25px -5px rgba(0,0,0,0.2); z-index:9999; max-width:260px; font-size: 0.9rem; line-height: 1.4;"></div>
 
     <header id="game-header" style="min-height: 80px; padding: 10px 30px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; background: #34495e; box-sizing: border-box;">
-        <div class="hud-left">
+        <div class="hud-left" style="display: flex; align-items: center; gap: 15px;">
             <span style="font-size: 1.5rem; font-weight: 800; color: #fff;">🛠️ 샌드박스 모드</span>
+            <select id="select-board-theme" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #2c3e50; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; height: 38px;">
+                <option value="theme-default">🎨 기본 보드</option>
+                <option value="theme-chalkboard">🎨 칠판 보드</option>
+                <option value="theme-wood">🎨 나무 책상</option>
+                <option value="theme-floor">🎨 교실 마루</option>
+            </select>
         </div>
         <div class="hud-center" style="display: flex; gap: 10px; align-items: center;">
             <div id="battle-timer-container" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 1.1rem; color: #fff; border: 2px solid #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-right: 15px;">

@@ -136,6 +136,26 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("게임 초기화: isBattlePhase = false");
     window.gameApp = new GameApp();
 
+    // 배치판 보드 테마 시스템 초기화 및 바인딩
+    const themeSelect = document.getElementById('select-board-theme');
+    if (themeSelect) {
+        const savedTheme = localStorage.getItem('board-theme') || 'theme-default';
+        themeSelect.value = savedTheme;
+        applyBoardTheme(savedTheme);
+        themeSelect.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            applyBoardTheme(theme);
+            localStorage.setItem('board-theme', theme);
+        });
+    }
+
+    function applyBoardTheme(themeName) {
+        const board = document.getElementById('battle-board');
+        if (!board) return;
+        board.classList.remove('theme-default', 'theme-chalkboard', 'theme-wood', 'theme-floor');
+        board.classList.add(themeName);
+    }
+
     // DPS Meter UI Events
     const dpsPanel = document.getElementById('dps-panel');
     const dpsContent = document.getElementById('dps-panel-content');
