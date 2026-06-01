@@ -7,6 +7,7 @@ export class GuideRenderer {
     }
 
     init() {
+    const app = this.app;
     // --- Guide Modal Setup ---
     const btnGuide = document.getElementById('btn-guide');
     const guideModal = document.getElementById('guide-modal');
@@ -35,6 +36,11 @@ export class GuideRenderer {
             const targetId = btn.getAttribute('data-tab');
             const targetContent = document.getElementById(targetId);
             if (targetContent) targetContent.style.display = 'block';
+
+            // 아이템 탭 열 때 조합표 렌더링
+            if (targetId === 'tab-items') {
+                renderGuideItemMatrix();
+            }
         };
     });
 
@@ -60,12 +66,14 @@ export class GuideRenderer {
 
     function renderGuideItemMatrix() {
         const matrixContainer = document.getElementById('guide-item-matrix');
-        if (!matrixContainer || matrixContainer.querySelector('table')) return;
+        if (!matrixContainer) return;
+        // 항상 재렌더링 (최신 데이터 반영)
+        matrixContainer.innerHTML = '';
 
         const basicItems = ITEMS.filter(it => it.type === 'base');
         const combinedItems = ITEMS.filter(it => it.type === 'combined');
 
-        const getIcon = (itemId) => this.app ? this.app.getIconForItem(itemId) : '❓';
+        const getIcon = (itemId) => app ? app.getIconForItem(itemId) : '❓';
 
         const table = document.createElement('table');
         table.className = 'item-matrix-table';
@@ -100,17 +108,17 @@ export class GuideRenderer {
             th.innerHTML = getIcon(it.id);
 
             th.onmouseenter = (e) => {
-                const html = `<div style="font-weight:bold; color:#475569; font-size:1rem; margin-bottom:4px;">${getIcon(it.id)} ${it.name} <span style="font-size:0.75rem; color:#666;">${this.app ? this.app.formatItemStats(it.stats) : ''}</span></div><div style="color:#475569;">${it.desc}</div>`;
-                if (this.app) this.app.showCustomTooltip(e, html);
+                const html = `<div style="font-weight:bold; color:#475569; font-size:1rem; margin-bottom:4px;">${getIcon(it.id)} ${it.name} <span style="font-size:0.75rem; color:#666;">${app ? app.formatItemStats(it.stats) : ''}</span></div><div style="color:#475569;">${it.desc}</div>`;
+                if (app) app.showCustomTooltip(e, html);
 
                 const cells = table.querySelectorAll(`td[data-col="${colIndex}"]`);
                 cells.forEach(c => c.style.backgroundColor = 'rgba(0, 0, 0, 0.08)');
             };
             th.onmouseleave = () => {
-                if (this.app) this.app.hideCustomTooltip();
+                if (app) app.hideCustomTooltip();
 
                 const cells = table.querySelectorAll(`td[data-col="${colIndex}"]`);
-                cells.forEach(c => c.style.backgroundColor = 'transparent');
+                cells.forEach(c => c.style.backgroundColor = c.dataset.defaultBg || 'transparent');
             };
 
             trHead.appendChild(th);
@@ -136,17 +144,17 @@ export class GuideRenderer {
             th.innerHTML = getIcon(rowItem.id);
 
             th.onmouseenter = (e) => {
-                const html = `<div style="font-weight:bold; color:#475569; font-size:1rem; margin-bottom:4px;">${getIcon(rowItem.id)} ${rowItem.name} <span style="font-size:0.75rem; color:#666;">${this.app ? this.app.formatItemStats(rowItem.stats) : ''}</span></div><div style="color:#475569;">${rowItem.desc}</div>`;
-                if (this.app) this.app.showCustomTooltip(e, html);
+                const html = `<div style="font-weight:bold; color:#475569; font-size:1rem; margin-bottom:4px;">${getIcon(rowItem.id)} ${rowItem.name} <span style="font-size:0.75rem; color:#666;">${app ? app.formatItemStats(rowItem.stats) : ''}</span></div><div style="color:#475569;">${rowItem.desc}</div>`;
+                if (app) app.showCustomTooltip(e, html);
 
                 const cells = table.querySelectorAll(`td[data-row="${rowIndex}"]`);
                 cells.forEach(c => c.style.backgroundColor = 'rgba(0, 0, 0, 0.08)');
             };
             th.onmouseleave = () => {
-                if (this.app) this.app.hideCustomTooltip();
+                if (app) app.hideCustomTooltip();
 
                 const cells = table.querySelectorAll(`td[data-row="${rowIndex}"]`);
-                cells.forEach(c => c.style.backgroundColor = 'transparent');
+                cells.forEach(c => c.style.backgroundColor = c.dataset.defaultBg || 'transparent');
             };
 
             tr.appendChild(th);
@@ -189,8 +197,8 @@ export class GuideRenderer {
                         td.style.zIndex = '10';
                         td.style.position = 'relative';
 
-                        const html = `<div style="font-weight:bold; color:#d97706; font-size:1rem; margin-bottom:4px;">${getIcon(comboItem.id)} ${comboItem.name} <span style="font-size:0.75rem; color:#666;">${this.app ? this.app.formatItemStats(comboItem.stats) : ''}</span></div><div style="color:#475569;">${comboItem.desc}</div>`;
-                        if (this.app) this.app.showCustomTooltip(e, html);
+                        const html = `<div style="font-weight:bold; color:#d97706; font-size:1rem; margin-bottom:4px;">${getIcon(comboItem.id)} ${comboItem.name} <span style="font-size:0.75rem; color:#666;">${app ? app.formatItemStats(comboItem.stats) : ''}</span></div><div style="color:#475569;">${comboItem.desc}</div>`;
+                        if (app) app.showCustomTooltip(e, html);
                     };
                     td.onmouseleave = () => {
                         const rowHeader = table.querySelector(`th[data-header-row="${rowIndex}"]`);
@@ -205,7 +213,7 @@ export class GuideRenderer {
 
                         td.style.transform = 'scale(1)';
                         td.style.zIndex = '1';
-                        if (this.app) this.app.hideCustomTooltip();
+                        if (app) app.hideCustomTooltip();
                     };
                 } else {
                     td.innerHTML = '';

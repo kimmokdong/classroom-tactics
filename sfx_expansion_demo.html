@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏫 교실 택틱스 - 프리미엄 오디오 확장 데모</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(22, 28, 45, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-primary: #3b82f6; /* Blue */
+            --accent-success: #10b981; /* Green */
+            --accent-warning: #f59e0b; /* Gold */
+            --accent-danger: #ef4444;  /* Red */
+            --accent-purple: #8b5cf6;  /* Purple */
+            --font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 800px;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* 메인 대시보드 */
+        .dashboard {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .panel-full {
+            grid-column: 1 / -1;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .panel-title span.icon {
+            font-size: 1.5rem;
+        }
+
+        /* 그리드 형태의 버튼 배치 */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        button.sfx-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.sfx-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        button.sfx-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        button.sfx-btn:hover::before {
+            opacity: 1;
+        }
+
+        button.sfx-btn:active {
+            transform: translateY(0);
+        }
+
+        button.sfx-btn .title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        button.sfx-btn .desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        button.sfx-btn .tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            align-self: flex-start;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        /* 시너지 특화 컬러 태그 */
+        .tag-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .tag-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .tag-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .tag-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+
+        /* BGM 제어판 */
+        .bgm-control {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bgm-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .bgm-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bgm-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .bgm-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .bgm-play-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .bgm-play-btn:hover {
+            transform: scale(1.08);
+            background: #2563eb;
+        }
+
+        .bgm-play-btn.playing {
+            background: var(--accent-success);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* 볼륨 & 슬라이더 컨트롤 */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .slider-bar {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .slider-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .slider-bar::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* 안내 문구 */
+        .info-bar {
+            grid-column: 1 / -1;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 0.88rem;
+            color: #60a5fa;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-bar span.icon {
+            font-size: 1.4rem;
+        }
+
+        /* 심장 박동 특수 제어기 */
+        .heartbeat-box {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(239, 68, 68, 0.03);
+            border: 1px solid rgba(239, 68, 68, 0.08);
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .heart-btn {
+            background: var(--accent-danger);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        .heart-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🏫 Classroom Tactics Premium Audio Extension</h1>
+        <p>현승쌤을 위해 특별히 마련한 교실 택틱스 2단계 오디오 리디자인 대시보드입니다. MP3 파일 없이 순수 실시간 브라우저 주파수 연산으로 고품격 사운드를 감상해 보세요.</p>
+    </header>
+
+    <div class="dashboard">
+
+        <!-- 안내 바 -->
+        <div class="info-bar">
+            <span class="icon">💡</span>
+            <div>
+                <strong>브라우저 오디오 보안 정책 준수:</strong> 아래 버튼들을 누르면 즉시 <code>AudioContext</code>가 안전하게 활성화됩니다. 볼륨 슬라이더나 BGM 버튼을 활용해 오케스트레이션 믹싱을 직접 체험해 보세요.
+            </div>
+        </div>
+
+        <!-- BGM 관리자 패널 -->
+        <div class="panel panel-full">
+            <div class="panel-title">
+                <span class="icon">🎵</span>
+                <h2>1. 단계별 배경음악 (BGM) 실시간 합성기</h2>
+            </div>
+            <div class="bgm-control">
+                <!-- BGM Row 1 -->
+                <div class="bgm-row">
+                    <div class="bgm-info">
+                        <div class="bgm-title">School Prep BGM (준비 단계)</div>
+                        <div class="bgm-desc">C Major의 경쾌한 8비트 아르페지오 루프. 평화로운 등굣길 및 상점 쇼핑 연출.</div>
+                    </div>
+                    <button class="bgm-play-btn" id="btn-bgm-prep">▶</button>
+                </div>
+                <!-- BGM Row 2 -->
+                <div class="bgm-row">
+                    <div class="bgm-info">
+                        <div class="bgm-title">Classroom Clash BGM (전투 단계)</div>
+                        <div class="bgm-desc">A Minor의 묵직한 베이스 라인 리프와 하이파스 사이렌 펄스가 얽히는 빠르고 긴박한 전투음.</div>
+                    </div>
+                    <button class="bgm-play-btn" id="btn-bgm-battle">▶</button>
+                </div>
+            </div>
+            
+            <!-- BGM 볼륨 조절 -->
+            <div class="slider-group" style="margin-top: 20px;">
+                <div class="slider-header">
+                    <span>배경음악 볼륨 (BGM Volume)</span>
+                    <span id="label-bgm-vol">50%</span>
+                </div>
+                <input type="range" class="slider-bar" id="slider-bgm-vol" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <!-- 시너지 특화 사운드 패널 -->
+        <div class="panel">
+            <div class="panel-title">
+                <span class="icon">⚡</span>
+                <h2>2. 시너지 단계별 특화 사운드</h2>
+            </div>
+            <div class="btn-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <button class="sfx-btn" onclick="playSFX('synergy_levelup')">
+                    <span class="tag tag-warning">Chime</span>
+                    <span class="title">시너지 레벨 업 챠링~</span>
+                    <span class="desc">초고속 C Major 5도 도약 아르페지오로 구간 상승 피드백</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('synergy_prefect_short')">
+                    <span class="tag tag-danger">선도부</span>
+                    <span class="title">선도부 규율 호루라기 (짧게)</span>
+                    <span class="desc">준비단계 강화 시 울리는 찰나의 호각 사운드</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('synergy_pe')">
+                    <span class="tag tag-green">체육부</span>
+                    <span class="title">체육부 농구화 마찰음</span>
+                    <span class="desc">노이즈 밴드패스 필터 스윕으로 코트 바닥을 슥 마찰하는 소리</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('synergy_art')">
+                    <span class="tag tag-purple">미술부</span>
+                    <span class="title">미술부 아날로그 붓 터치</span>
+                    <span class="desc">부드러운 엔벨로프의 감쇠 노이즈로 캔버스를 슥 쓸어내리는 소리</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('health_defib')">
+                    <span class="tag tag-green">보건부</span>
+                    <span class="title">보건부 제세동기 부활 (❤️)</span>
+                    <span class="desc">고음 충전음 + 삑삑 충전 신호 + 묵직한 제세동 타격 쿵! 부활음</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('broadcast_howling')">
+                    <span class="tag tag-danger">방송부</span>
+                    <span class="title">방송부 마이크 하울링 (🎤)</span>
+                    <span class="desc">날카로운 마이크 소음 하울링 스위시 + 뉴스 개시 시그널 3화음</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('cafeteria_plate')">
+                    <span class="tag tag-warning">급식부</span>
+                    <span class="title">급식부 식판 달그락 (🍱)</span>
+                    <span class="desc">금속 식판과 숟가락이 고속으로 다다닥- 부딪히는 맑은 금속 찰나음</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 경제 및 라운드 전환 사운드 패널 -->
+        <div class="panel">
+            <div class="panel-title">
+                <span class="icon">🛎️</span>
+                <h2>3. 스테이지 흐름 및 정산 사운드</h2>
+            </div>
+            <div class="btn-grid">
+                <button class="sfx-btn" onclick="playSFX('school_bell')">
+                    <span class="tag tag-blue">Stage</span>
+                    <span class="title">학교 시작 종 (🛎️)</span>
+                    <span class="desc">금속성 배음 진동의 아날로그 종소리. 수업/라운드 전환 연출.</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('coin_shower')">
+                    <span class="tag tag-warning">Gold</span>
+                    <span class="title">정산 코인 샤워 (💰)</span>
+                    <span class="desc">짤랑이는 고음 주파수들을 미세 무작위 간격으로 연속 폭발시켜 동전 정산 표현.</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('augment_popup')">
+                    <span class="tag tag-purple">Augment</span>
+                    <span class="title">생기부(증강체) 포탈 개방</span>
+                    <span class="desc">지수 하강 베이스 + 지수 상승 벨소리로 신비로운 게이트 개방 표현.</span>
+                </button>
+                <button class="sfx-btn" onclick="playSFX('augment_reroll')">
+                    <span class="tag tag-purple">Reroll</span>
+                    <span class="title">생기부 카드 리롤</span>
+                    <span class="desc">상점보다 무겁고 셔플감이 살아있는 두터운 카드 회전음.</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sudden Death (연장전) 패널 -->
+        <div class="panel panel-full" style="background: rgba(239, 68, 68, 0.05);">
+            <div class="panel-title" style="color: var(--accent-danger);">
+                <span class="icon">⏳</span>
+                <h2>4. 연장전 (Sudden Death) 전용 오케스트레이션</h2>
+            </div>
+            <div class="heartbeat-box">
+                <div class="bgm-row" style="background: rgba(0,0,0,0.2);">
+                    <div class="bgm-info">
+                        <div class="bgm-title">Sudden Death Heartbeat (심장 박동)</div>
+                        <div class="bgm-desc">55Hz(A1) 극저역 삼각파의 더블 비트 쿵-쿵 소리. 연장전의 긴장감 극대화.</div>
+                    </div>
+                    <button class="bgm-play-btn heart-btn" id="btn-heartbeat">▶</button>
+                </div>
+
+                <!-- 심장박동 속도 조절 -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>심장박동 템포 (BPM)</span>
+                        <span id="label-heart-bpm">80 BPM</span>
+                    </div>
+                    <input type="range" class="slider-bar" id="slider-heart-bpm" min="60" max="180" value="80" style="background: rgba(239, 68, 68, 0.2);">
+                </div>
+
+                <!-- 연장전 돌입 사이렌 경보 -->
+                <div class="bgm-row" style="background: rgba(0,0,0,0.2); margin-top: 10px;">
+                    <div class="bgm-info">
+                        <div class="bgm-title">Sudden Death Siren (긴급 경보음)</div>
+                        <div class="bgm-desc">400Hz와 800Hz 대역을 LFO로 쓸어내리는 공포스러운 학교 사이렌 소리.</div>
+                    </div>
+                    <button class="bgm-play-btn heart-btn" id="btn-siren">▶</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Web Audio API 초기화 및 마스터 볼륨
+        let audioCtx;
+        let masterBgmVolume = 0.5;
+
+        // BGM 재생 상태
+        let currentBgmType = null; // 'prep', 'battle', null
+        let bgmInterval = null;
+        let bgmTick = 0;
+        
+        // 연장전 심장 박동 재생 상태
+        let isHeartbeatPlaying = false;
+        let heartbeatTimeout = null;
+        let heartBpm = 80;
+
+        // 사이렌 재생 상태
+        let isSirenPlaying = false;
+        let sirenOsc1 = null;
+        let sirenOsc2 = null;
+        let sirenLFO = null;
+        let sirenGain = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 공통 주파수 발진기
+        function createOscillator(type, freq, time, duration, vol = 0.1) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, time);
+            
+            gainNode.gain.setValueAtTime(vol, time);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(time);
+            osc.stop(time + duration);
+            return osc;
+        }
+
+        // 공통 노이즈 발생기
+        function createNoise(time, duration, vol = 0.2, filterFreq = 1000) {
+            initAudio();
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(filterFreq, time);
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(vol, time);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            noise.start(time);
+            return noise;
+        }
+
+        // SFX 재생 로직
+        function playSFX(type) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            // 데모 페이지 호환성을 위해 synergy_health 등을 적절한 타입으로 포워딩
+            if (type === 'synergy_health') type = 'health_defib';
+            if (type === 'synergy_broadcast') type = 'broadcast_howling';
+            if (type === 'synergy_cafeteria') type = 'cafeteria_plate';
+
+            switch(type) {
+                case 'synergy_levelup': {
+                    // C Major 5도 도약 아르페지오 (0.0s ~ 0.5s)
+                    const notes = [659.25, 783.99, 1046.50, 1318.51, 1567.98]; // E5, G5, C6, E6, G6
+                    notes.forEach((freq, idx) => {
+                        const delay = idx * 0.06;
+                        createOscillator('sine', freq, now + delay, 0.4, 0.05);
+                        // 옥타브 에코 잔향
+                        createOscillator('sine', freq * 0.5, now + delay + 0.15, 0.25, 0.015);
+                    });
+                    break;
+                }
+
+                case 'synergy_prefect': {
+                    // 선도부 규율 호루라기 소리 (긴 소리, 전투 시작 시)
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const whistleGain = audioCtx.createGain();
+                    
+                    osc1.type = 'sine';
+                    osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(2200, now);
+                    osc2.frequency.setValueAtTime(2225, now); // 25Hz 비트 떨림 유발
+                    
+                    createNoise(now, 0.6, 0.03, 3500);
+
+                    whistleGain.gain.setValueAtTime(0, now);
+                    whistleGain.gain.linearRampToValueAtTime(0.1, now + 0.05); // Attack
+                    whistleGain.gain.setValueAtTime(0.1, now + 0.45);
+                    whistleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6); // Release
+
+                    osc1.connect(whistleGain);
+                    osc2.connect(whistleGain);
+                    whistleGain.connect(audioCtx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.6);
+                    osc2.stop(now + 0.6);
+                    break;
+                }
+
+                case 'synergy_prefect_short': {
+                    // 선도부 강화 시 짧게 울림
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const whistleGain = audioCtx.createGain();
+                    
+                    osc1.type = 'sine';
+                    osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(2200, now);
+                    osc2.frequency.setValueAtTime(2225, now);
+                    
+                    createNoise(now, 0.25, 0.03, 3500);
+
+                    whistleGain.gain.setValueAtTime(0, now);
+                    whistleGain.gain.linearRampToValueAtTime(0.1, now + 0.03); // 짧은 Attack
+                    whistleGain.gain.setValueAtTime(0.1, now + 0.15);
+                    whistleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25); // 짧은 Release
+
+                    osc1.connect(whistleGain);
+                    osc2.connect(whistleGain);
+                    whistleGain.connect(audioCtx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.25);
+                    osc2.stop(now + 0.25);
+                    break;
+                }
+
+                case 'synergy_pe': {
+                    // 체육부(육상부) 돌진 농구화 마찰음 (슥-)
+                    const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.2, audioCtx.sampleRate);
+                    const noiseData = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < noiseBuffer.length; i++) {
+                        noiseData[i] = Math.random() * 2 - 1;
+                    }
+                    const noiseSource = audioCtx.createBufferSource();
+                    noiseSource.buffer = noiseBuffer;
+
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(2800, now);
+                    filter.frequency.exponentialRampToValueAtTime(1200, now + 0.18);
+                    filter.Q.setValueAtTime(5.0, now);
+
+                    const gainNode = audioCtx.createGain();
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.18, now + 0.03);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                    noiseSource.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    noiseSource.start(now);
+
+                    const sOsc = audioCtx.createOscillator();
+                    const sGain = audioCtx.createGain();
+                    sOsc.type = 'sine';
+                    sOsc.frequency.setValueAtTime(1400, now);
+                    sOsc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+                    
+                    sGain.gain.setValueAtTime(0.06, now);
+                    sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                    sOsc.connect(sGain);
+                    sGain.connect(audioCtx.destination);
+                    sOsc.start(now);
+                    sOsc.stop(now + 0.15);
+                    break;
+                }
+
+                case 'synergy_art': {
+                    // 미술부 아날로그 붓 터치 (슥- 캔버스 드로잉)
+                    const artBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.35, audioCtx.sampleRate);
+                    const artData = artBuffer.getChannelData(0);
+                    for (let i = 0; i < artBuffer.length; i++) {
+                        artData[i] = Math.random() * 2 - 1;
+                    }
+                    const artSource = audioCtx.createBufferSource();
+                    artSource.buffer = artBuffer;
+
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1800, now);
+                    filter.frequency.linearRampToValueAtTime(900, now + 0.3);
+                    filter.Q.setValueAtTime(1.5, now);
+
+                    const gainNode = audioCtx.createGain();
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.15, now + 0.08);
+                    gainNode.gain.linearRampToValueAtTime(0.06, now + 0.25);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                    artSource.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    artSource.start(now);
+                    break;
+                }
+
+                case 'health_defib': {
+                    // 보건부 제세동기 부활 튜닝
+                    // 1. 고주파 충전음 (0.0s ~ 0.5s)
+                    const fillOsc = audioCtx.createOscillator();
+                    const fillGain = audioCtx.createGain();
+                    fillOsc.type = 'sine';
+                    fillOsc.frequency.setValueAtTime(600, now);
+                    fillOsc.frequency.exponentialRampToValueAtTime(2400, now + 0.5);
+                    
+                    fillGain.gain.setValueAtTime(0.005, now);
+                    fillGain.gain.linearRampToValueAtTime(0.05, now + 0.5);
+                    fillOsc.connect(fillGain);
+                    fillGain.connect(audioCtx.destination);
+                    fillOsc.start(now);
+                    fillOsc.stop(now + 0.5);
+
+                    // 2. 0.5초 방전 타격음 (쿵!)
+                    const hitTime = now + 0.5;
+                    const thumpOsc = audioCtx.createOscillator();
+                    const thumpGain = audioCtx.createGain();
+                    thumpOsc.type = 'triangle';
+                    thumpOsc.frequency.setValueAtTime(120, hitTime);
+                    thumpOsc.frequency.exponentialRampToValueAtTime(30, hitTime + 0.22);
+                    
+                    thumpGain.gain.setValueAtTime(0.55, hitTime);
+                    thumpGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.22);
+                    
+                    thumpOsc.connect(thumpGain);
+                    thumpGain.connect(audioCtx.destination);
+                    thumpOsc.start(hitTime);
+                    thumpOsc.stop(hitTime + 0.22);
+
+                    // 가슴 압박 물리 노이즈
+                    const noise = audioCtx.createBufferSource();
+                    const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.18, audioCtx.sampleRate);
+                    const noiseData = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < noiseBuffer.length; i++) {
+                        noiseData[i] = Math.random() * 2 - 1;
+                    }
+                    noise.buffer = noiseBuffer;
+                    
+                    const noiseFilter = audioCtx.createBiquadFilter();
+                    noiseFilter.type = 'lowpass';
+                    noiseFilter.frequency.setValueAtTime(350, hitTime);
+
+                    const noiseGain = audioCtx.createGain();
+                    noiseGain.gain.setValueAtTime(0.3, hitTime);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.18);
+
+                    noise.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(audioCtx.destination);
+                    noise.start(hitTime);
+
+                    // 3. 0.5초 ~ 1.5초 천상의 Am9 치유음 (440Hz, 523.25Hz, 659.25Hz, 987.77Hz, 1318.51Hz)
+                    const reviveDur = 1.0;
+                    const chord = [440.00, 523.25, 659.25, 987.77, 1318.51];
+                    chord.forEach((freq, idx) => {
+                        const osc1 = audioCtx.createOscillator();
+                        const osc2 = audioCtx.createOscillator();
+                        const gainNode = audioCtx.createGain();
+                        
+                        osc1.type = 'sine';
+                        osc2.type = 'sine';
+                        osc1.frequency.setValueAtTime(freq, hitTime);
+                        osc2.frequency.setValueAtTime(freq + 2.5, hitTime); // 코러스 코팅 디튠
+                        
+                        // 은은하고 떨리는 3.8Hz 비브라토 LFO
+                        const lfo = audioCtx.createOscillator();
+                        const lfoGain = audioCtx.createGain();
+                        lfo.frequency.setValueAtTime(3.8, hitTime);
+                        lfoGain.gain.setValueAtTime(5, hitTime);
+                        
+                        lfo.connect(lfoGain);
+                        lfoGain.connect(osc1.frequency);
+                        lfoGain.connect(osc2.frequency);
+
+                        gainNode.gain.setValueAtTime(0.04, hitTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, hitTime + reviveDur);
+                        
+                        osc1.connect(gainNode);
+                        osc2.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        
+                        lfo.start(hitTime);
+                        osc1.start(hitTime);
+                        osc2.start(hitTime);
+                        
+                        lfo.stop(hitTime + reviveDur);
+                        osc1.stop(hitTime + reviveDur);
+                        osc2.stop(hitTime + reviveDur);
+                    });
+
+                    // 4. 0.5초 ~ 0.9초 하늘 위로 올라가는 은빛 윈드차임 상승 스윕 (9단계)
+                    const chimeCount = 9;
+                    for (let i = 0; i < chimeCount; i++) {
+                        const chimeDelay = i * 0.045;
+                        const chimeFreq = 1200 + (i * 250); // 1200Hz -> 3200Hz 순차 상승
+                        createOscillator('sine', chimeFreq, hitTime + chimeDelay, 0.35, 0.015);
+                    }
+                    break;
+                }
+
+                case 'broadcast_howling': {
+                    // 방송부 마이크 하울링 피드백 (0.0s ~ 0.35s)
+                    const howl1 = audioCtx.createOscillator();
+                    const howl2 = audioCtx.createOscillator();
+                    const howlGain = audioCtx.createGain();
+                    
+                    howl1.type = 'sine';
+                    howl2.type = 'sine';
+                    howl1.frequency.setValueAtTime(2800, now);
+                    howl2.frequency.setValueAtTime(2820, now); // 디튠 
+                    
+                    // 주파수가 요동치게 LFO 추가
+                    const lfo = audioCtx.createOscillator();
+                    const lfoGain = audioCtx.createGain();
+                    lfo.frequency.setValueAtTime(14, now); // 14Hz 떨림
+                    lfoGain.gain.setValueAtTime(25, now);
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(howl1.frequency);
+                    lfoGain.connect(howl2.frequency);
+
+                    howlGain.gain.setValueAtTime(0, now);
+                    howlGain.gain.linearRampToValueAtTime(0.05, now + 0.1);
+                    howlGain.gain.linearRampToValueAtTime(0, now + 0.35);
+                    
+                    howl1.connect(howlGain);
+                    howl2.connect(howlGain);
+                    howlGain.connect(audioCtx.destination);
+                    
+                    lfo.start(now);
+                    howl1.start(now);
+                    howl2.start(now);
+                    lfo.stop(now + 0.35);
+                    howl1.stop(now + 0.35);
+                    howl2.stop(now + 0.35);
+
+                    // 2. 0.2s 시점에 아날로그 뉴스 시그널 (도-솔-도)
+                    const newsStart = now + 0.2;
+                    const newsNotes = [523.25, 783.99, 1046.50]; // C5, G5, C6
+                    newsNotes.forEach((freq, idx) => {
+                        const noteTime = newsStart + idx * 0.12;
+                        const duration = 0.35;
+                        
+                        // 기음 오실레이터
+                        const oscMain = audioCtx.createOscillator();
+                        const oscHarm1 = audioCtx.createOscillator();
+                        const oscHarm2 = audioCtx.createOscillator();
+                        const newsGain = audioCtx.createGain();
+
+                        oscMain.type = 'sine';
+                        oscHarm1.type = 'sine';
+                        oscHarm2.type = 'sine';
+
+                        oscMain.frequency.setValueAtTime(freq, noteTime);
+                        oscHarm1.frequency.setValueAtTime(freq * 1.5, noteTime); // 1.5배 배음
+                        oscHarm2.frequency.setValueAtTime(freq * 2.0, noteTime); // 2.0배 배음
+
+                        newsGain.gain.setValueAtTime(0, noteTime);
+                        newsGain.gain.linearRampToValueAtTime(0.04, noteTime + 0.02);
+                        newsGain.gain.exponentialRampToValueAtTime(0.001, noteTime + duration);
+
+                        oscMain.connect(newsGain);
+                        oscHarm1.connect(newsGain);
+                        oscHarm2.connect(newsGain);
+                        newsGain.connect(audioCtx.destination);
+
+                        oscMain.start(noteTime);
+                        oscHarm1.start(noteTime);
+                        oscHarm2.start(noteTime);
+
+                        oscMain.stop(noteTime + duration);
+                        oscHarm1.stop(noteTime + duration);
+                        oscHarm2.stop(noteTime + duration);
+                    });
+                    break;
+                }
+
+                case 'cafeteria_plate': {
+                    // 급식부 식판 달그락 (금속 마찰음 8회 연속 격발)
+                    const count = 8;
+                    for (let i = 0; i < count; i++) {
+                        const delay = i * 0.035 + Math.random() * 0.02;
+                        const freq = 3400 + Math.random() * 2400; // 3400Hz ~ 5800Hz
+                        const dur = 0.025 + Math.random() * 0.02;
+                        
+                        createOscillator(i % 2 === 0 ? 'triangle' : 'sine', freq, now + delay, dur, 0.04);
+                        
+                        const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.015, audioCtx.sampleRate);
+                        const noiseData = noiseBuffer.getChannelData(0);
+                        for (let n = 0; n < noiseBuffer.length; n++) {
+                            noiseData[n] = Math.random() * 2 - 1;
+                        }
+                        const noiseSource = audioCtx.createBufferSource();
+                        noiseSource.buffer = noiseBuffer;
+
+                        const hpFilter = audioCtx.createBiquadFilter();
+                        hpFilter.type = 'highpass';
+                        hpFilter.frequency.setValueAtTime(6500, now + delay);
+
+                        const noiseGain = audioCtx.createGain();
+                        noiseGain.gain.setValueAtTime(0.03, now + delay);
+                        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.015);
+
+                        noiseSource.connect(hpFilter);
+                        hpFilter.connect(noiseGain);
+                        noiseGain.connect(audioCtx.destination);
+                        noiseSource.start(now + delay);
+                    }
+                    break;
+                }
+
+                case 'school_bell': {
+                    // 아날로그 학교 타종 댕-댕-댕-댕 (도-미-솔-도)
+                    const bellNotes = [523.25, 659.25, 783.99, 1046.50];
+                    bellNotes.forEach((freq, idx) => {
+                        const noteStart = now + idx * 0.55;
+                        const duration = 1.2;
+                        
+                        const oscMain = audioCtx.createOscillator();
+                        const oscHarm1 = audioCtx.createOscillator();
+                        const oscHarm2 = audioCtx.createOscillator();
+                        const bellGain = audioCtx.createGain();
+
+                        oscMain.type = 'sine';
+                        oscHarm1.type = 'sine';
+                        oscHarm2.type = 'sine';
+
+                        oscMain.frequency.setValueAtTime(freq, noteStart);
+                        oscHarm1.frequency.setValueAtTime(freq * 1.5, noteStart);
+                        oscHarm2.frequency.setValueAtTime(freq * 2.0, noteStart);
+
+                        bellGain.gain.setValueAtTime(0, noteStart);
+                        bellGain.gain.linearRampToValueAtTime(0.06, noteStart + 0.04);
+                        bellGain.gain.exponentialRampToValueAtTime(0.001, noteStart + duration);
+
+                        oscMain.connect(bellGain);
+                        oscHarm1.connect(bellGain);
+                        oscHarm2.connect(bellGain);
+                        bellGain.connect(audioCtx.destination);
+
+                        oscMain.start(noteStart);
+                        oscHarm1.start(noteStart);
+                        oscHarm2.start(noteStart);
+
+                        oscMain.stop(noteStart + duration);
+                        oscHarm1.stop(noteStart + duration);
+                        oscHarm2.stop(noteStart + duration);
+                    });
+                    break;
+                }
+
+                case 'coin_shower': {
+                    // 이자 정산 코인 쏟아지는 소리
+                    const coinCount = 10;
+                    for (let i = 0; i < coinCount; i++) {
+                        const coinDelay = i * 0.04 + Math.random() * 0.02;
+                        const coinFreq = 1600 + Math.random() * 1200;
+                        createOscillator('sine', coinFreq, now + coinDelay, 0.15, 0.025);
+                        createOscillator('sine', coinFreq * 1.618, now + coinDelay, 0.06, 0.012);
+                    }
+                    break;
+                }
+
+                case 'augment_popup': {
+                    // 생기부 포탈 개방
+                    const baseOsc = audioCtx.createOscillator();
+                    const baseGain = audioCtx.createGain();
+                    baseOsc.type = 'triangle';
+                    baseOsc.frequency.setValueAtTime(300, now);
+                    baseOsc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+                    baseGain.gain.setValueAtTime(0.35, now);
+                    baseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+                    baseOsc.connect(baseGain);
+                    baseGain.connect(audioCtx.destination);
+                    baseOsc.start(now);
+                    baseOsc.stop(now + 0.65);
+
+                    createOscillator('sine', 1600, now + 0.1, 0.5, 0.05);
+                    createOscillator('sine', 2000, now + 0.18, 0.4, 0.04);
+
+                    const pBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+                    const pData = pBuffer.getChannelData(0);
+                    for (let i = 0; i < pBuffer.length; i++) {
+                        pData[i] = Math.random() * 2 - 1;
+                    }
+                    const pSource = audioCtx.createBufferSource();
+                    pSource.buffer = pBuffer;
+
+                    const pFilter = audioCtx.createBiquadFilter();
+                    pFilter.type = 'lowpass';
+                    pFilter.frequency.setValueAtTime(1500, now);
+                    pFilter.frequency.exponentialRampToValueAtTime(150, now + 0.55);
+
+                    const pGain = audioCtx.createGain();
+                    pGain.gain.setValueAtTime(0, now);
+                    pGain.gain.linearRampToValueAtTime(0.22, now + 0.15);
+                    pGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                    pSource.connect(pFilter);
+                    pFilter.connect(pGain);
+                    pGain.connect(audioCtx.destination);
+                    pSource.start(now);
+                    break;
+                }
+
+                case 'augment_reroll': {
+                    // 생기부 카드 리롤
+                    const tickCount = 4;
+                    for (let i = 0; i < tickCount; i++) {
+                        const tickDelay = i * 0.06;
+                        const freq = 380 - (i * 50);
+                        createOscillator('triangle', freq, now + tickDelay, 0.05, 0.15);
+                        createNoise(now + tickDelay, 0.03, 0.08, 1500);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // ==========================================
+        // 배경음악 (BGM) 합성 제어
+        // ==========================================
+
+        function stopAllBgm() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+            currentBgmType = null;
+            
+            document.getElementById('btn-bgm-prep').innerText = '▶';
+            document.getElementById('btn-bgm-prep').classList.remove('playing');
+            document.getElementById('btn-bgm-battle').innerText = '▶';
+            document.getElementById('btn-bgm-battle').classList.remove('playing');
+        }
+
+        function playBgmSequence(type) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (currentBgmType === type) {
+                stopAllBgm();
+                return;
+            }
+            
+            stopAllBgm();
+            currentBgmType = type;
+            bgmTick = 0;
+
+            const targetBtn = type === 'prep' ? document.getElementById('btn-bgm-prep') : document.getElementById('btn-bgm-battle');
+            targetBtn.innerText = '■';
+            targetBtn.classList.add('playing');
+
+            if (type === 'prep') {
+                const melody = [
+                    523.25, 659.25, 783.99, 1046.50, 783.99, 659.25, 523.25, 659.25,
+                    587.33, 698.46, 880.00, 1174.66, 880.00, 698.46, 587.33, 698.46
+                ];
+                
+                bgmInterval = setInterval(() => {
+                    const now = audioCtx.currentTime;
+                    const freq = melody[bgmTick % melody.length];
+                    
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    
+                    gain.gain.setValueAtTime(masterBgmVolume * 0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                    
+                    if (bgmTick % 4 === 0) {
+                        const baseFreq = bgmTick % 8 === 0 ? 130.81 : 146.83;
+                        const bOsc = audioCtx.createOscillator();
+                        const bGain = audioCtx.createGain();
+                        bOsc.type = 'triangle';
+                        bOsc.frequency.setValueAtTime(baseFreq, now);
+                        bGain.gain.setValueAtTime(masterBgmVolume * 0.14, now);
+                        bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        bOsc.connect(bGain);
+                        bGain.connect(audioCtx.destination);
+                        bOsc.start(now);
+                        bOsc.stop(now + 0.3);
+                    }
+                    
+                    bgmTick++;
+                }, 140);
+
+            } else if (type === 'battle') {
+                const bassPattern = [
+                    110.00, 110.00, 130.81, 146.83, 110.00, 110.00, 146.83, 164.81,
+                    98.00, 98.00, 130.81, 110.00, 98.00, 98.00, 110.00, 123.47
+                ];
+
+                bgmInterval = setInterval(() => {
+                    const now = audioCtx.currentTime;
+                    
+                    const baseFreq = bassPattern[bgmTick % bassPattern.length];
+                    const bOsc = audioCtx.createOscillator();
+                    const bFilter = audioCtx.createBiquadFilter();
+                    const bGain = audioCtx.createGain();
+                    
+                    bOsc.type = 'sawtooth';
+                    bOsc.frequency.setValueAtTime(baseFreq, now);
+                    
+                    bFilter.type = 'lowpass';
+                    bFilter.frequency.setValueAtTime(320, now);
+                    
+                    bGain.gain.setValueAtTime(masterBgmVolume * 0.16, now);
+                    bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    
+                    bOsc.connect(bFilter);
+                    bFilter.connect(bGain);
+                    bGain.connect(audioCtx.destination);
+                    
+                    bOsc.start(now);
+                    bOsc.stop(now + 0.15);
+
+                    if (bgmTick % 2 === 0) {
+                        const hGain = audioCtx.createGain();
+                        const hFilter = audioCtx.createBiquadFilter();
+                        hFilter.type = 'highpass';
+                        hFilter.frequency.setValueAtTime(6000, now);
+                        
+                        hGain.gain.setValueAtTime(masterBgmVolume * 0.02, now);
+                        hGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                        
+                        const hNoise = audioCtx.createBufferSource();
+                        const bufferSize = audioCtx.sampleRate * 0.04;
+                        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                        const data = buffer.getChannelData(0);
+                        for(let i=0; i<bufferSize; i++) data[i] = Math.random()*2 - 1;
+                        hNoise.buffer = buffer;
+                        
+                        hNoise.connect(hFilter);
+                        hFilter.connect(hGain);
+                        hGain.connect(audioCtx.destination);
+                        hNoise.start(now);
+                    }
+                    
+                    if (bgmTick % 8 === 4) {
+                        const soundFreq = bgmTick % 16 === 12 ? 880.00 : 783.99;
+                        const sOsc = audioCtx.createOscillator();
+                        const sGain = audioCtx.createGain();
+                        sOsc.type = 'square';
+                        sOsc.frequency.setValueAtTime(soundFreq, now);
+                        
+                        sGain.gain.setValueAtTime(masterBgmVolume * 0.02, now);
+                        sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                        
+                        sOsc.connect(sGain);
+                        sGain.connect(audioCtx.destination);
+                        sOsc.start(now);
+                        sOsc.stop(now + 0.22);
+                    }
+
+                    bgmTick++;
+                }, 115);
+            }
+        }
+
+        // ==========================================
+        // Sudden Death (연장전) 심장 박동 & 사이렌
+        // ==========================================
+
+        function playHeartbeatLoop() {
+            if (!isHeartbeatPlaying) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            
+            const playBeat = (time, volMult = 1.0) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(55, time);
+                osc.frequency.exponentialRampToValueAtTime(10, time + 0.15);
+
+                gain.gain.setValueAtTime(0.6 * volMult, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.16);
+            };
+
+            playBeat(now, 1.0);
+            playBeat(now + 0.14, 0.7);
+
+            const intervalMs = (60 / heartBpm) * 1000;
+            heartbeatTimeout = setTimeout(playHeartbeatLoop, intervalMs);
+        }
+
+        function toggleHeartbeat() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            isHeartbeatPlaying = !isHeartbeatPlaying;
+            const btn = document.getElementById('btn-heartbeat');
+
+            if (isHeartbeatPlaying) {
+                btn.innerText = '■';
+                btn.classList.add('playing');
+                playHeartbeatLoop();
+            } else {
+                btn.innerText = '▶';
+                btn.classList.remove('playing');
+                if (heartbeatTimeout) {
+                    clearTimeout(heartbeatTimeout);
+                    heartbeatTimeout = null;
+                }
+            }
+        }
+
+        function toggleSiren() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            isSirenPlaying = !isSirenPlaying;
+            const btn = document.getElementById('btn-siren');
+
+            if (isSirenPlaying) {
+                btn.innerText = '■';
+                btn.classList.add('playing');
+                const now = audioCtx.currentTime;
+
+                sirenOsc1 = audioCtx.createOscillator();
+                sirenOsc2 = audioCtx.createOscillator();
+                sirenLFO = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                sirenGain = audioCtx.createGain();
+
+                sirenOsc1.type = 'sawtooth';
+                sirenOsc2.type = 'sawtooth';
+                sirenLFO.type = 'sine';
+
+                sirenOsc1.frequency.setValueAtTime(450, now);
+                sirenOsc2.frequency.setValueAtTime(454, now);
+
+                sirenLFO.frequency.setValueAtTime(1.2, now);
+                lfoGain.gain.setValueAtTime(150, now);
+
+                sirenLFO.connect(lfoGain);
+                lfoGain.connect(sirenOsc1.frequency);
+                lfoGain.connect(sirenOsc2.frequency);
+
+                sirenGain.gain.setValueAtTime(0, now);
+                sirenGain.gain.linearRampToValueAtTime(0.05, now + 0.3);
+
+                sirenOsc1.connect(sirenGain);
+                sirenOsc2.connect(sirenGain);
+                sirenGain.connect(audioCtx.destination);
+
+                sirenLFO.start(now);
+                sirenOsc1.start(now);
+                sirenOsc2.start(now);
+            } else {
+                btn.innerText = '▶';
+                btn.classList.remove('playing');
+                
+                const now = audioCtx.currentTime;
+                if (sirenGain) {
+                    sirenGain.gain.cancelScheduledValues(now);
+                    sirenGain.gain.setValueAtTime(sirenGain.gain.value, now);
+                    sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                }
+                
+                setTimeout(() => {
+                    if (sirenOsc1) { sirenOsc1.stop(); sirenOsc1 = null; }
+                    if (sirenOsc2) { sirenOsc2.stop(); sirenOsc2 = null; }
+                    if (sirenLFO) { sirenLFO.stop(); sirenLFO = null; }
+                    sirenGain = null;
+                }, 350);
+            }
+        }
+
+        // ==========================================
+        // 이벤트 바인딩
+        // ==========================================
+
+        document.getElementById('btn-bgm-prep').addEventListener('click', () => playBgmSequence('prep'));
+        document.getElementById('btn-bgm-battle').addEventListener('click', () => playBgmSequence('battle'));
+        document.getElementById('btn-heartbeat').addEventListener('click', () => toggleHeartbeat());
+        document.getElementById('btn-siren').addEventListener('click', () => toggleSiren());
+
+        document.getElementById('slider-bgm-vol').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('label-bgm-vol').innerText = val + '%';
+            masterBgmVolume = val / 100;
+        });
+
+        document.getElementById('slider-heart-bpm').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('label-heart-bpm').innerText = val + ' BPM';
+            heartBpm = parseInt(val);
+        });
+
+        window.addEventListener('blur', () => {
+            stopAllBgm();
+            if (isHeartbeatPlaying) toggleHeartbeat();
+            if (isSirenPlaying) toggleSiren();
+        });
+    </script>
+</body>
+</html>

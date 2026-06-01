@@ -265,6 +265,7 @@ export class ItemManager {
             if (combo) {
                 this.app.state.inventory[targetIdx] = combo.id;
                 this.app.state.inventory[sourceIdx] = null;
+                this.app.soundManager.playSFX('item_combine');
                 console.log(`아이템 조합 성공: ${combo.name}`);
                 this.renderInventory();
                 return;
@@ -300,6 +301,7 @@ export class ItemManager {
                         ];
                     }
                     this.app.state.inventory[itemIdx] = null;
+                    this.app.soundManager.playSFX('item_combine');
                     console.log(`유닛 내부 아이템 조합 성공: ${combo.name}`);
                     this.renderInventory();
                     this.app.renderUnits();
@@ -331,6 +333,7 @@ export class ItemManager {
         this.renderInventory();
         this.app.renderUnits();
         this.app.calculateSynergy();
+        this.app.soundManager.playSFX('item_equip');
 
         const activeDiv = document.querySelector(`.unit-character[data-index="${unit.gridIndex !== undefined ? unit.gridIndex : this.app.state.bench.indexOf(unit)}"][data-type="${unit.gridIndex !== undefined ? 'board' : 'bench'}"]`);
         if (document.getElementById('unit-details').innerHTML.includes(unit.name)) {

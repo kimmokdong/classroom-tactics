@@ -1,21 +1,21 @@
-export const EXP_TABLE = { 1: 2, 2: 2, 3: 6, 4: 10, 5: 20, 6: 30, 7: 50, 8: 68, 9: 68 };
+export const EXP_TABLE = { 1: 2, 2: 2, 3: 6, 4: 10, 5: 20, 6: 34, 7: 50, 8: 68, 9: 68 };
 
 export const SYNERGIES = {
   subjects: {
     '국어': { name: '국어', desc: '[아군 전체] 주문력 버프', levels: { 2: { teamAp: 30, selfAp: 42, desc: '아군 전체 주문력 +30 (국어 유닛은 추가 +42)' }, 4: { teamAp: 80, selfAp: 144, desc: '아군 전체 주문력 +80 (국어 유닛은 추가 +144)' } } },
     '수학': { name: '수학', desc: '치명타 및 방어력 관통', levels: { 2: { critChance: 0.12, critDmg: 0.18, armorPen: 0.12, desc: '치명타 확률 +12%, 치명타 피해 +18%, 방어력 관통 +12%' }, 4: { critChance: 0.43, critDmg: 0.86, armorPen: 0.72, desc: '치명타 확률 +43%, 치명타 피해 +86%, 방어력 관통 +72%' } } },
-    '사회': { name: '사회', desc: '고립(1) 또는 완전체(4) 시 발동', exactMatch: true, levels: { 1: { shield: 60, desc: '주변에 아군이 없는 고립 상태로 배치 시 보호막 60 획득' }, 4: { allStats: 0.36, desc: '사회 유닛 4명 배치 시 모든 스탯 +36% 증가' } } },
+    '사회': { name: '사회', desc: '단일(1) 또는 완전체(4) 시 발동', exactMatch: true, levels: { 1: { executionPct: 0.20, desc: '체력이 20% 이하인 적을 즉시 처형 (강제 집행)' }, 4: { executionPct: 0.20, whistleHpPct: 0.60, whistleInvincibility: 10, whistleAsBuff: 0.15, allStatsBuff: 0.20, desc: '모든 사회 유닛이 20% 처형 획득 및 올스탯 20% 증가. 추가로 체력이 60% 이하가 되면 1초간 무적 및 남은 전투 동안 공속 15% 증가' } } },
     '과학': { name: '과학', desc: '피해 증폭 및 스킬 치명타', levels: { 2: { dmgAmp: 0.20, skillCrit: true, critChance: 0.10, desc: '스킬 치명타 가능, 치명타 확률 +10%, 가하는 피해량 +20% 증폭' }, 4: { dmgAmp: 0.60, skillCrit: true, critChance: 0.36, desc: '스킬 치명타 가능, 치명타 확률 +36%, 가하는 피해량 +60% 증폭' } } },
     '영어': { name: '영어', desc: '마나통 감소 및 마나 스틸', levels: { 2: { manaReduc: 0.20, manaBurnFlat: 5, burnToMana: true, desc: '적 전체 최대 마나 -20%. 스킬 사용 시 타겟(가장 가까운 적) 반경 1칸 내 모든 적의 마나를 각각 5씩 강탈하여 아군 전체에게 균등 분배' }, 4: { manaReduc: 0.50, manaBurnFlat: 15, burnToMana: true, bonusMagicDmg: 0.20, desc: '적 전체 최대 마나 -50%. 스킬 사용 시 타겟 반경 1칸 내 모든 적의 마나를 각각 15씩 강탈하여 분배. 기본공격 및 스킬 적중 시 (주문력 20%+공속비례) 추가 마법 피해' } } },
-    '체육': { name: '체육', desc: '[아군 전체] 최대 체력 버프', levels: { 2: { teamHp: 100, selfHpMult: 2.0, desc: '아군 전체 최대 체력 +100 (체육 유닛은 기본 체력의 2배 적용)' }, 4: { teamHp: 300, selfHpMult: 2.0, desc: '아군 전체 최대 체력 +300 (체육 유닛은 기본 체력의 2배 적용)' } } },
+    '체육': { name: '체육', desc: '[아군 전체] 최대 체력 버프', levels: { 2: { teamHp: 200, selfHpMult: 2.5, desc: '아군 전체 최대 체력 +200 (체육 유닛은 기본 체력의 2.5배 적용)' }, 4: { teamHp: 500, selfHpMult: 2.5, desc: '아군 전체 최대 체력 +500 (체육 유닛은 기본 체력의 2.5배 적용)' } } },
     '음악': { name: '음악', desc: '초당 마나 재생', levels: { 2: { teamManaRegen: 1, artManaRegen: 2, desc: '아군 전체 초당 마나 재생 +1 (음악 유닛은 추가 +2)' }, 4: { teamManaRegen: 4, artManaRegen: 7, desc: '아군 전체 초당 마나 재생 +4 (음악 유닛은 추가 +7)' } } },
     '미술': { name: '미술', desc: '색채의 캔버스 (장판 효과)', levels: { 2: { canvasDuration: 50, canvasRadius: 1, allyDmgReduc: 0.20, enemyDmgAmp: 0.20, canvasManaRegen: 3, desc: '스킬 사용 시 반경 1칸 미술 장판 5초 생성 (장판 내 아군 피해 20% 감소, 적 피해 20% 증폭, 초당 마나 +3)' }, 4: { canvasDuration: 50, canvasRadius: 2, allyDmgReduc: 0.50, enemyDmgAmp: 0.50, canvasManaRegen: 5, desc: '스킬 사용 시 반경 2칸 미술 장판 5초 생성 (장판 내 아군 피해 50% 감소, 적 피해 50% 증폭, 초당 마나 +5)' } } },
-    '도덕': { name: '도덕', desc: '[아군 전체] 방어/마저 버프', levels: { 2: { teamDef: 5, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +5 (도덕 유닛은 기본 방/마저 2배 적용)' }, 4: { teamDef: 10, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +10 (도덕 유닛은 기본 방/마저 2배 적용)' }, 6: { teamDef: 32, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +32 (도덕 유닛은 기본 방/마저 2배 적용)' } } },
+    '도덕': { name: '도덕', desc: '[아군 전체] 방어/마저 버프', levels: { 2: { teamDef: 10, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +10 (도덕 유닛은 기본 방/마저 2배 적용)' }, 4: { teamDef: 20, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +20 (도덕 유닛은 기본 방/마저 2배 적용)' }, 6: { teamDef: 40, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +40 (도덕 유닛은 기본 방/마저 2배 적용)' } } },
     '창체': { name: '창체', desc: '다양한 특별 교육 누적', levels: { 1: { desc: '[학교폭력 예방] 전투 시작 시 가장 공격력이 높은 적 2명 4초간 무장해제 및 침묵' }, 2: { desc: '[심폐소생술 교육] (1) 효과 + 전투 중 아군 최초 2명 사망 면역(1 HP) 및 2초 무적, 30% 회복' }, 3: { desc: '[맞춤형 진로 교육] (1,2) 효과 + 전투 시작 시 아군 전원 역할군 맞춤 영구 버프 부여 (딜러: 공/주문 25% 증폭, 탱커: 체력 25% 및 방마저 30 증가, 서포터: 스킬 마나 15% 감소 및 초당 마나 2 회복)' } } }
   },
   clubs: {
-    '선도부': { name: '선도부', desc: '시작 보호막 및 피해 증폭', levels: { 2: { startShieldPct: 0.10, dmgAmp: 0.05, desc: '전투 시작 시 최대 체력의 10% 보호막 획득, 가하는 피해량 5% 증폭' }, 4: { startShieldPct: 0.25, dmgAmp: 0.15, desc: '전투 시작 시 최대 체력의 25% 보호막 획득, 가하는 피해량 15% 증폭' }, 6: { startShieldPct: 0.20, dmgAmp: 0.20, desc: '전투 시작 시 최대 체력의 20% 보호막 획득, 가하는 피해량 20% 증폭' } } },
-    '방송부': { name: '방송부', desc: '시작 마나 부여, 사거리 증가 및 피해 증폭', levels: { 3: { startMana: 20, distAmp: 0.10, rangeBuff: 1, desc: '시작 마나 +20, 사거리 +1칸, 대상과의 거리에 비례하여 피해량 최대 10% 증폭' }, 5: { startMana: 40, distAmp: 0.30, rangeBuff: 2, desc: '시작 마나 +40, 사거리 +2칸, 대상과의 거리에 비례하여 피해량 최대 30% 증폭' }, 7: { startMana: 70, distAmp: 0.60, rangeBuff: 3, desc: '시작 마나 +70, 사거리 +3칸, 대상과의 거리에 비례하여 피해량 최대 60% 증폭' } } },
+    '선도부': { name: '선도부', desc: '시작 보호막 및 피해 증폭', levels: { 2: { startShieldPct: 0.05, dmgAmp: 0.03, desc: '전투 시작 시 최대 체력의 5% 보호막 획득, 가하는 피해량 3% 증폭' }, 4: { startShieldPct: 0.15, dmgAmp: 0.10, desc: '전투 시작 시 최대 체력의 15% 보호막 획득, 가하는 피해량 10% 증폭' }, 6: { startShieldPct: 0.20, dmgAmp: 0.15, desc: '전투 시작 시 최대 체력의 20% 보호막 획득, 가하는 피해량 15% 증폭' } } },
+    '방송부': { name: '방송부', desc: '시작 마나 부여, 사거리 증가 및 피해 증폭', levels: { 3: { startMana: 10, distAmp: 0.10, rangeBuff: 1, desc: '시작 마나 +10, 사거리 +1칸, 대상과의 거리에 비례하여 피해량 최대 10% 증폭' }, 5: { startMana: 30, distAmp: 0.30, rangeBuff: 2, desc: '시작 마나 +30, 사거리 +2칸, 대상과의 거리에 비례하여 피해량 최대 30% 증폭' }, 7: { startMana: 70, distAmp: 0.60, rangeBuff: 3, desc: '시작 마나 +70, 사거리 +3칸, 대상과의 거리에 비례하여 피해량 최대 60% 증폭' } } },
     '육상부': { name: '육상부', desc: '이동 시 중첩 획득 및 적에게 질주', levels: { 2: { dash: true, moveAsBuff: 0.10, movePenBuff: 0.05, maxStacks: 10, desc: '시작 시 가장 가까운 적에게 질주. 매 칸을 이동할 때마다 공속 +10%, 방어력 관통 +5% 획득 (최대 10회 중첩)' }, 4: { dash: true, moveAsBuff: 0.36, movePenBuff: 0.18, maxStacks: 10, desc: '시작 시 질주. 매 칸을 이동할 때마다 공속 +36%, 방관 +18% 획득 (최대 10회 중첩)' }, 6: { dash: true, moveAsBuff: 0.72, movePenBuff: 0.42, maxStacks: 10, keepStacks: true, desc: '시작 시 질주. 매 칸을 이동할 때마다 공속 +72%, 방관 +42% 획득 (최대 10회 중첩). 획득한 스택 영구 유지' } } },
     '보건부': { name: '보건부', desc: '처음 사망하는 아군 부활', levels: { 2: { reviveCount: 1, reviveHpPct: 0.50, shieldPct: 0.10, desc: '처음 사망하는 아군 1명이 최대 체력의 50%로 부활. 부활 시 2초간 디버프 면역 및 주변 아군 10% 보호막 부여' }, 4: { reviveCount: 2, reviveHpPct: 0.50, shieldPct: 0.10, stun: true, selfDefBuff: 1.0, desc: '처음 사망하는 아군 2명이 50%로 부활. 부활 시 2초간 디버프 면역, 주변 아군 10% 보호막, 반경 1칸 적 1.5초 기절 및 본인 방/마저 100% 증가' }, 6: { reviveCount: 3, reviveHpPct: 0.84, shieldPct: 0.15, stun: true, selfDefBuff: 1.0, burstDmg: 0.36, teamHeal: 0.36, desc: '처음 사망하는 아군 3명이 84%로 부활. 4시너지 효과(기절, 보호막 등)에 더해 부활 시 반경 1칸 적에게 최대 체력 36% 폭발 피해 및 아군 전체 36% 회복' } } },
     '급식부': { name: '급식부', desc: '포만감 중첩 (시간 비례 강화)', levels: { 3: { startShield: 100, satietyTick: 50, stackHpPct: 0.05, stackArmorMr: 5, desc: '전투 시작 시 100의 보호막 획득. 매 5초마다 최대 체력 5%, 방/마저 5씩 증가' }, 5: { startShield: 300, satietyTick: 50, stackHpPct: 0.15, stackArmorMr: 15, desc: '전투 시작 시 300의 보호막 획득. 매 5초마다 최대 체력 15%, 방/마저 15씩 증가' }, 7: { startShield: 600, satietyTick: 50, stackHpPct: 0.30, stackArmorMr: 30, desc: '전투 시작 시 600의 보호막 획득. 매 5초마다 최대 체력 30%, 방/마저 30씩 증가' } } },
@@ -227,7 +227,7 @@ export const UNIT_POOL = [
   // 4-Cost (7 units)
   {
     id: 'u4_1', name: '전교 체육부장', position: '공격형 탱커', role: ['tank', 'dealer'], subject: '체육', club: '선도부', tier: 4, icon: '🦍', manaType: '근성', stats: { hp: 1350, mana: 0, maxMana: 100, ad: 90, ap: 100, armor: 50, mr: 50, as: 0.7, range: 1 },
-    skill: { name: '전력 태클', desc: '주변(3x3 반경 1칸) 적에게 피해 + 기절 + 본인에게 보호막 부여', type: 'aoe_damage_cc_shield', vfx: 'slam_yellow', aoeRange: 1, hpRatioDmg: [0.20, 0.35, 0.60], stunDuration: [20, 30, 40], hpRatioShield: [0.20, 0.30, 0.60] }
+    skill: { name: '전력 태클', desc: '주변(3x3 반경 1칸) 적에게 피해 + 기절 + 본인에게 보호막 부여', type: 'aoe_damage_cc_shield', vfx: 'slam_yellow', aoeRange: 1, hpRatioDmg: [0.20, 0.35, 0.60], stunDuration: [20, 30, 40], hpRatioShield: [0.15, 0.25, 0.50] }
   },
   {
     id: 'u4_2', name: '수능 만점자', position: '물리 원딜', role: ['dealer'], subject: '수학', club: '방송부', tier: 4, icon: '💯', manaType: '전투', stats: { hp: 1200, mana: 50, maxMana: 90, ad: 100, ap: 100, armor: 40, mr: 40, as: 0.9, range: 3 },
@@ -250,8 +250,8 @@ export const UNIT_POOL = [
     skill: { name: '천사의 손길', desc: '아군 전체 회복 + 가장 많이 다친 아군 추가 회복', type: 'team_heal_plus', vfx: 'heal_white', defMrRatio: [2.5, 3.5, 6.0], extraHealPct: [0.25, 0.4, 0.6] }
   },
   {
-    id: 'u4_7', name: '천재 피아니스트', position: '주문력 인챈터', role: ['support','dealer'], subject: '음악', club: ['방송부', '급식부'], tier: 4, icon: '🎹', manaType: '집중', stats: { hp: 1000, mana: 40, maxMana: 100, ad: 95, ap: 100, armor: 35, mr: 40, as: 0.85, range: 3 },
-    skill: { name: '즉흥 연주', desc: '적 전체 마법 피해 + 아군 전체 마나 회복', type: 'global_magic_mana', vfx: 'magic_purple', apRatio: [2.5, 4.0, 6.5], teamMana: [20, 30, 80] }
+    id: 'u4_7', name: '천재 피아니스트', position: '주문력 인챈터', role: ['support','dealer'], subject: '음악', club: ['방송부', '급식부'], tier: 4, icon: '🎹', manaType: '집중', stats: { hp: 1000, mana: 0, maxMana: 100, ad: 95, ap: 100, armor: 35, mr: 40, as: 0.85, range: 3 },
+    skill: { name: '즉흥 연주', desc: '적 전체 마법 피해 + 아군 전체 마나 회복', type: 'global_magic_mana', vfx: 'magic_purple', apRatio: [2.0, 3.0, 5.0], teamMana: [20, 30, 80] }
   },
   {
     id: 'u4_8', name: '천재 퀀트', position: '공격력 마법사', role: ['dealer'], subject: ['수학', '과학'], club: '경제부', tier: 4, icon: '💹', manaType: '전투', stats: { hp: 1050, mana: 0, maxMana: 60, ad: 80, ap: 100, armor: 30, mr: 30, as: 0.75, range: 3 },

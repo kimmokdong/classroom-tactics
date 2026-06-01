@@ -467,18 +467,18 @@ export class FxRenderer {
         } else if (p.type === 'holy_heal') {
             ctx.translate(p.x, p.y);
             ctx.strokeStyle = 'rgba(46, 204, 113, 0.7)';
-            ctx.lineWidth = 40;
+            ctx.lineWidth = 10;
             ctx.beginPath();
-            ctx.moveTo(0, -150); ctx.lineTo(0, 150);
-            ctx.moveTo(-150, 0); ctx.lineTo(150, 0);
+            ctx.moveTo(0, -18); ctx.lineTo(0, 18);
+            ctx.moveTo(-18, 0); ctx.lineTo(18, 0);
             ctx.stroke();
         } else if (p.type === 'heal_sparkle') {
             ctx.translate(p.x, p.y - (1 - p.life / p.maxLife) * 30);
             ctx.strokeStyle = `rgba(46, 204, 113, ${Math.max(0, p.life / p.maxLife)})`;
-            ctx.lineWidth = 8;
+            ctx.lineWidth = 6;
             ctx.beginPath();
-            ctx.moveTo(0, -20); ctx.lineTo(0, 20);
-            ctx.moveTo(-20, 0); ctx.lineTo(20, 0);
+            ctx.moveTo(0, -10); ctx.lineTo(0, 10);
+            ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
             ctx.stroke();
         } else if (p.type === 'piano_wave') {
             const radius = 300 * (1 - p.life / p.maxLife);

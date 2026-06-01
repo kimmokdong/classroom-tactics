@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Tactics - SFX Demo</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; text-align: center; }
+        h1 { color: #f0c040; margin-bottom: 30px; }
+        .category { background: #2a2a2a; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .category h2 { color: #88ccff; border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px; }
+        button { 
+            background: #444; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; 
+            font-size: 14px; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:hover { background: #666; transform: translateY(-2px); }
+        button:active { background: #f0c040; color: #000; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 교실 전략 자체 사운드(Web Audio) 데모</h1>
+    <p>이어폰이나 스피커를 켜시고 아래 버튼들을 눌러 직접 소리를 확인해 보세요!<br>(※ 브라우저 정책상 아무 버튼이나 한 번 누른 이후부터 소리가 재생됩니다)</p>
+
+    <div class="category">
+        <h2>🖥️ 1. UI 및 시스템 피드백</h2>
+        <div class="btn-grid">
+            <button onclick="playSFX('ui_click')">UI 버튼 클릭</button>
+            <button onclick="playSFX('shop_reroll')">상점 리롤</button>
+            <button onclick="playSFX('shop_buy')">기물 구매 (짤랑)</button>
+            <button onclick="playSFX('shop_sell')">기물 판매</button>
+            <button onclick="playSFX('buy_exp')">경험치 구매</button>
+            <button onclick="playSFX('item_equip')">아이템 장착 (스윽)</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <h2>♟️ 2. 기물 조작 및 상태</h2>
+        <div class="btn-grid">
+            <button onclick="playSFX('unit_grab')">기물 집기 (탁)</button>
+            <button onclick="playSFX('unit_drop')">기물 내려놓기 (쿵)</button>
+            <button onclick="playSFX('low_hp')">체력 경고 (삐-삐)</button>
+            <button onclick="playSFX('mana_full')">마나 풀 충전 (띠링~)</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <h2>⚔️ 3. 가벼운 전투 효과음</h2>
+        <div class="btn-grid">
+            <button onclick="playSFX('attack_melee')">근접 평타 (슈욱)</button>
+            <button onclick="playSFX('attack_ranged')">원거리 평타 (뿅)</button>
+            <button onclick="playSFX('unit_damage')">가벼운 피격음 (틱)</button>
+            <button onclick="playSFX('shield')">보호막 생성 (징~)</button>
+        </div>
+    </div>
+
+    <div class="category" style="background: #3a2a2a;">
+        <h2 style="color: #ffaa88;">🔥 4. 복합 합성 사운드 (별도 음원 권장)</h2>
+        <p style="font-size: 13px; color: #ccc; margin-top: -5px; margin-bottom: 10px;">이 항목들은 원래 mp3/wav 파일이 권장되지만, 코드를 쥐어짜내서 최대한 비슷하게 합성한 데모입니다.</p>
+        <div class="btn-grid">
+            <button onclick="playSFX('attack_crit')" style="background: #aa3333;">치명타 💥</button>
+            <button onclick="playSFX('skill_impact')" style="background: #aa3333;">스킬 폭발 💣</button>
+            <button onclick="playSFX('unit_death')" style="background: #555;">기물 사망 ☠️</button>
+            <button onclick="playSFX('upgrade_3star')" style="background: #aa8822;">3성 진화 🌟</button>
+            <button onclick="playSFX('battle_win')" style="background: #2277aa;">전투 승리 🏆</button>
+            <button onclick="playSFX('society_exe')" style="background: #aa2255;">사회 처형 🪓</button>
+            <button onclick="playSFX('health_revive')" style="background: #22aa55;">보건부 부활 👼</button>
+            <button onclick="playSFX('item_combine')" style="background: #9933cc;">아이템 조합 🔧</button>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API 초기화 (최초 사용자 인터랙션 시 생성)
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 공통 오실레이터 생성 함수
+        function createOscillator(type, freq, time, duration, vol = 0.1) {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, time);
+            
+            // 페이드 아웃 효과 (팝핑 노이즈 방지)
+            gainNode.gain.setValueAtTime(vol, time);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(time);
+            osc.stop(time + duration);
+            return osc;
+        }
+
+        // 노이즈(백색소음) 생성 함수 - 타격감, 마찰음 등에 사용
+        function createNoise(time, duration, vol = 0.2, filterFreq = 1000) {
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            // 필터를 적용하여 소리 톤 조절
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = filterFreq;
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(vol, time);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            noise.start(time);
+            return noise;
+        }
+
+        function playSFX(type) {
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'ui_click':
+                    // 짧고 경쾌한 띡!
+                    createOscillator('sine', 800, now, 0.05, 0.1);
+                    break;
+
+                case 'shop_reroll':
+                    // 후루루룩 넘어가는 소리 (주파수 빠르게 변화)
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                    break;
+
+                case 'shop_buy':
+                    // 코인 짤랑이는 소리 (높은 주파수 화음)
+                    createOscillator('sine', 1200, now, 0.1, 0.05);
+                    createOscillator('sine', 1600, now + 0.05, 0.3, 0.05);
+                    break;
+
+                case 'shop_sell':
+                    // 코인 짤랑이는 소리 약간 낮게
+                    createOscillator('sine', 1000, now, 0.1, 0.05);
+                    createOscillator('sine', 1400, now + 0.05, 0.2, 0.05);
+                    break;
+
+                case 'buy_exp':
+                    // 띠-리-링 올라가는 소리
+                    createOscillator('square', 400, now, 0.1, 0.05);
+                    createOscillator('square', 500, now + 0.1, 0.1, 0.05);
+                    createOscillator('square', 600, now + 0.2, 0.3, 0.05);
+                    break;
+
+                case 'item_equip':
+                    // 스윽! 장착 노이즈
+                    createNoise(now, 0.15, 0.3, 3000);
+                    break;
+
+                case 'unit_grab':
+                    // 나무토막 줍는 소리 (낮고 짧음)
+                    createOscillator('triangle', 150, now, 0.05, 0.3);
+                    break;
+
+                case 'unit_drop':
+                    // 보드에 내려놓는 묵직한 쿵 소리 (킥 드럼 스타일)
+                    const dropOsc = audioCtx.createOscillator();
+                    const dropGain = audioCtx.createGain();
+                    dropOsc.type = 'sine';
+                    dropOsc.frequency.setValueAtTime(150, now);
+                    dropOsc.frequency.exponentialRampToValueAtTime(30, now + 0.15); // 피치가 급격히 떨어지며 묵직한 타격감 생성
+                    dropGain.gain.setValueAtTime(0.8, now);
+                    dropGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    dropOsc.connect(dropGain);
+                    dropGain.connect(audioCtx.destination);
+                    dropOsc.start(now);
+                    dropOsc.stop(now + 0.2);
+                    
+                    createNoise(now, 0.08, 0.3, 300); // 둔탁한 바닥 마찰 노이즈
+                    break;
+
+                case 'low_hp':
+                    // 경고음 삐-삐
+                    createOscillator('sawtooth', 600, now, 0.2, 0.1);
+                    createOscillator('sawtooth', 600, now + 0.3, 0.2, 0.1);
+                    break;
+
+                case 'mana_full':
+                    // 영롱한 띠링~ 사인파
+                    createOscillator('sine', 880, now, 0.4, 0.1); // A5
+                    createOscillator('sine', 1318.51, now + 0.1, 0.6, 0.1); // E6
+                    break;
+
+                case 'attack_melee':
+                    // 칼 휘두르는 바람 소리 슈욱-
+                    createNoise(now, 0.15, 0.2, 2000);
+                    break;
+
+                case 'attack_ranged':
+                    // 레이저 뿅! 슝!
+                    const rOsc = audioCtx.createOscillator();
+                    const rGain = audioCtx.createGain();
+                    rOsc.type = 'square';
+                    rOsc.frequency.setValueAtTime(1000, now);
+                    rOsc.frequency.exponentialRampToValueAtTime(100, now + 0.15); // 급격히 낮아짐
+                    rGain.gain.setValueAtTime(0.1, now);
+                    rGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    rOsc.connect(rGain);
+                    rGain.connect(audioCtx.destination);
+                    rOsc.start(now);
+                    rOsc.stop(now + 0.15)                // --- 복합 합성 사운드 (Web Audio API 고도화 설계) ---
+                case 'attack_crit': {
+                    // 치명타 (묵직한 파괴력 + 날카로운 유리/금속 파쇄음의 하이브리드 타격)
+                    // 1. 묵직한 베이스 펀치 (피치 벤딩 킥)
+                    const kickOsc = audioCtx.createOscillator();
+                    const kickGain = audioCtx.createGain();
+                    kickOsc.type = 'triangle';
+                    kickOsc.frequency.setValueAtTime(450, now);
+                    kickOsc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+                    kickGain.gain.setValueAtTime(0.7, now);
+                    kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    kickOsc.connect(kickGain);
+                    kickGain.connect(audioCtx.destination);
+                    kickOsc.start(now);
+                    kickOsc.stop(now + 0.15);
+
+                    // 2. 강렬하고 바삭한 노이즈 크랙 (밴드패스 필터 통과한 파편 질감)
+                    const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.25, audioCtx.sampleRate);
+                    const noiseData = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < noiseBuffer.length; i++) {
+                        noiseData[i] = Math.random() * 2 - 1;
+                    }
+                    const noiseSource = audioCtx.createBufferSource();
+                    noiseSource.buffer = noiseBuffer;
+                    
+                    const noiseFilter = audioCtx.createBiquadFilter();
+                    noiseFilter.type = 'bandpass';
+                    noiseFilter.frequency.setValueAtTime(4000, now);
+                    noiseFilter.frequency.exponentialRampToValueAtTime(1500, now + 0.2);
+                    noiseFilter.Q.setValueAtTime(3, now);
+
+                    const noiseGain = audioCtx.createGain();
+                    noiseGain.gain.setValueAtTime(0.6, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                    noiseSource.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(audioCtx.destination);
+                    noiseSource.start(now);
+
+                    // 3. 날카로운 쨍그랑 메탈릭 하이 피치 (유리 파쇄 배음)
+                    const metal1 = audioCtx.createOscillator();
+                    const metal2 = audioCtx.createOscillator();
+                    const metalGain = audioCtx.createGain();
+                    
+                    metal1.type = 'sine';
+                    metal2.type = 'triangle';
+                    metal1.frequency.setValueAtTime(3200, now);
+                    metal2.frequency.setValueAtTime(3900, now);
+                    
+                    metalGain.gain.setValueAtTime(0.25, now);
+                    metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    
+                    metal1.connect(metalGain);
+                    metal2.connect(metalGain);
+                    metalGain.connect(audioCtx.destination);
+                    
+                    metal1.start(now);
+                    metal2.start(now);
+                    metal1.stop(now + 0.18);
+                    metal2.stop(now + 0.18);
+                    break;
+                }
+
+                case 'skill_impact': {
+                    // 스킬 폭발 (공간을 흔드는 거대한 저음 폭발 + 화염 필터 스윕 노이즈)
+                    // 1. 울트라 서브 베이스 (시동 쿵!)
+                    const subOsc = audioCtx.createOscillator();
+                    const subGain = audioCtx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.setValueAtTime(300, now);
+                    subOsc.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+                    subGain.gain.setValueAtTime(0.85, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    subOsc.connect(subGain);
+                    subGain.connect(audioCtx.destination);
+                    subOsc.start(now);
+                    subOsc.stop(now + 0.5);
+
+                    // 2. 왜곡된 중저음 타격 (디스토션 질감용 사각파)
+                    const midOsc = audioCtx.createOscillator();
+                    const midGain = audioCtx.createGain();
+                    midOsc.type = 'square';
+                    midOsc.frequency.setValueAtTime(120, now);
+                    midOsc.frequency.linearRampToValueAtTime(30, now + 0.18);
+                    midGain.gain.setValueAtTime(0.35, now);
+                    midGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    midOsc.connect(midGain);
+                    midGain.connect(audioCtx.destination);
+                    midOsc.start(now);
+                    midOsc.stop(now + 0.2);
+
+                    // 3. 로우패스 필터 스윕 노이즈 (슈우우우- 퍼지는 화염 질감)
+                    const fireBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+                    const fireData = fireBuffer.getChannelData(0);
+                    for (let i = 0; i < fireBuffer.length; i++) {
+                        fireData[i] = Math.random() * 2 - 1;
+                    }
+                    const fireSource = audioCtx.createBufferSource();
+                    fireSource.buffer = fireBuffer;
+
+                    const fireFilter = audioCtx.createBiquadFilter();
+                    fireFilter.type = 'lowpass';
+                    fireFilter.frequency.setValueAtTime(2800, now);
+                    fireFilter.frequency.exponentialRampToValueAtTime(90, now + 0.5);
+                    fireFilter.Q.setValueAtTime(2, now);
+
+                    const fireGain = audioCtx.createGain();
+                    fireGain.gain.setValueAtTime(0.55, now);
+                    fireGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                    fireSource.connect(fireFilter);
+                    fireFilter.connect(fireGain);
+                    fireGain.connect(audioCtx.destination);
+                    fireSource.start(now);
+                    break;
+                }
+
+                case 'unit_death': {
+                    // 기물 사망 (맥없이 픽 쓰러지며 소멸하는 스산한 비브라토 피치 다운 + 영혼 승천)
+                    // 1. 디튠된 톱니파 + 비브라토 (불안정한 맥놀이 하강)
+                    const dOsc1 = audioCtx.createOscillator();
+                    const dOsc2 = audioCtx.createOscillator();
+                    const dGain = audioCtx.createGain();
+                    
+                    dOsc1.type = 'sawtooth';
+                    dOsc2.type = 'sawtooth';
+                    
+                    // 미세 디튠 적용 (두 주파수를 살짝 벌려 공간 질감과 불안정성 극대화)
+                    dOsc1.frequency.setValueAtTime(140, now);
+                    dOsc1.frequency.linearRampToValueAtTime(25, now + 0.5);
+                    
+                    dOsc2.frequency.setValueAtTime(143.5, now);
+                    dOsc2.frequency.linearRampToValueAtTime(26.5, now + 0.5);
+
+                    // LFO를 이용한 우는 듯한 비브라토(6Hz 주파수 미세 변조)
+                    const lfo = audioCtx.createOscillator();
+                    const lfoGain = audioCtx.createGain();
+                    lfo.frequency.setValueAtTime(6.5, now); // 초당 6.5회 떨림
+                    lfoGain.gain.setValueAtTime(9, now); // 주파수 떨림 변조 폭
+                    
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(dOsc1.frequency);
+                    lfoGain.connect(dOsc2.frequency);
+
+                    dGain.gain.setValueAtTime(0.35, now);
+                    dGain.gain.linearRampToValueAtTime(0, now + 0.5);
+
+                    dOsc1.connect(dGain);
+                    dOsc2.connect(dGain);
+                    dGain.connect(audioCtx.destination);
+
+                    lfo.start(now);
+                    dOsc1.start(now);
+                    dOsc2.start(now);
+                    
+                    lfo.stop(now + 0.5);
+                    dOsc1.stop(now + 0.5);
+                    dOsc2.stop(now + 0.5);
+
+                    // 2. 영혼 승천 스윕 (스산한 하이패스 필터 상승 노이즈)
+                    const ghostBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
+                    const ghostData = ghostBuffer.getChannelData(0);
+                    for (let i = 0; i < ghostBuffer.length; i++) {
+                        ghostData[i] = Math.random() * 2 - 1;
+                    }
+                    const ghostSource = audioCtx.createBufferSource();
+                    ghostSource.buffer = ghostBuffer;
+
+                    const ghostFilter = audioCtx.createBiquadFilter();
+                    ghostFilter.type = 'highpass';
+                    ghostFilter.frequency.setValueAtTime(800, now);
+                    ghostFilter.frequency.exponentialRampToValueAtTime(6000, now + 0.45);
+
+                    const ghostGain = audioCtx.createGain();
+                    ghostGain.gain.setValueAtTime(0, now);
+                    ghostGain.gain.linearRampToValueAtTime(0.18, now + 0.15); // 자연스러운 어택
+                    ghostGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                    ghostSource.connect(ghostFilter);
+                    ghostFilter.connect(ghostGain);
+                    ghostGain.connect(audioCtx.destination);
+                    ghostSource.start(now);
+                    break;
+                }
+
+                case 'upgrade_3star': {
+                    // 3성 진화 (영롱한 골드빛 크리스탈 벨 + 수학적 에코 딜레이 아르페지오 팡파레)
+                    // C 메이저 9 화음 계열 아르페지오 주파수
+                    const scale = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51]; // C4, E4, G4, C5, E5, G5, C6, E6
+                    
+                    scale.forEach((freq, index) => {
+                        const noteDelay = index * 0.052; // 고속 16분음표 아르페지오 오프셋
+                        const noteDuration = 0.5;
+
+                        // 1. 영롱한 삼각파 본음
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + noteDelay);
+                        
+                        gain.gain.setValueAtTime(0, now + noteDelay);
+                        gain.gain.linearRampToValueAtTime(0.12, now + noteDelay + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + noteDelay + noteDuration);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + noteDelay);
+                        osc.stop(now + noteDelay + noteDuration);
+
+                        // 2. 맑게 빛나는 2배수 사인파 벨 하모닉스
+                        const harmonic = audioCtx.createOscillator();
+                        const harmonicGain = audioCtx.createGain();
+                        harmonic.type = 'sine';
+                        harmonic.frequency.setValueAtTime(freq * 2, now + noteDelay);
+                        
+                        harmonicGain.gain.setValueAtTime(0, now + noteDelay);
+                        harmonicGain.gain.linearRampToValueAtTime(0.05, now + noteDelay + 0.005);
+                        harmonicGain.gain.exponentialRampToValueAtTime(0.001, now + noteDelay + 0.25);
+                        
+                        harmonic.connect(harmonicGain);
+                        harmonicGain.connect(audioCtx.destination);
+                        harmonic.start(now + noteDelay);
+                        harmonic.stop(now + noteDelay + 0.25);
+
+                        // 3. 입체적인 에코 딜레이음 시뮬레이션
+                        const echoOsc = audioCtx.createOscillator();
+                        const echoGain = audioCtx.createGain();
+                        echoOsc.type = 'sine';
+                        echoOsc.frequency.setValueAtTime(freq, now + noteDelay + 0.16); // 160ms 딜레이
+                        
+                        echoGain.gain.setValueAtTime(0, now + noteDelay + 0.16);
+                        echoGain.gain.linearRampToValueAtTime(0.04, now + noteDelay + 0.17); // 30% 수준의 감쇠된 에코
+                        echoGain.gain.exponentialRampToValueAtTime(0.001, now + noteDelay + 0.16 + 0.3);
+                        
+                        echoOsc.connect(echoGain);
+                        echoGain.connect(audioCtx.destination);
+                        echoOsc.start(now + noteDelay + 0.16);
+                        echoOsc.stop(now + noteDelay + 0.16 + 0.3);
+                    });
+
+                    // 4. 진화의 화려한 마무리 폭발 노이즈 스위시
+                    const swishBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.8, audioCtx.sampleRate);
+                    const swishData = swishBuffer.getChannelData(0);
+                    for (let i = 0; i < swishBuffer.length; i++) {
+                        swishData[i] = Math.random() * 2 - 1;
+                    }
+                    const swishSource = audioCtx.createBufferSource();
+                    swishSource.buffer = swishBuffer;
+
+                    const swishFilter = audioCtx.createBiquadFilter();
+                    swishFilter.type = 'bandpass';
+                    swishFilter.frequency.setValueAtTime(1000, now);
+                    swishFilter.frequency.exponentialRampToValueAtTime(4500, now + 0.4);
+                    swishFilter.Q.setValueAtTime(2.5, now);
+
+                    const swishGain = audioCtx.createGain();
+                    swishGain.gain.setValueAtTime(0, now);
+                    swishGain.gain.linearRampToValueAtTime(0.18, now + 0.2);
+                    swishGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+                    swishSource.connect(swishFilter);
+                    swishFilter.connect(swishGain);
+                    swishGain.connect(audioCtx.destination);
+                    swishSource.start(now);
+                    break;
+                }
+
+                case 'battle_win': {
+                    // 전투 승리 징글 (두툼한 레트로 신스 브라스 필터 엔벨로프 + 풍부한 화음 팡파레)
+                    // 신스 브라스 단음 재생 헬퍼 함수
+                    function playBrass(freq, start, duration, vol = 0.14) {
+                        const osc1 = audioCtx.createOscillator();
+                        const osc2 = audioCtx.createOscillator();
+                        const gainNode = audioCtx.createGain();
+                        const filter = audioCtx.createBiquadFilter();
+                        
+                        osc1.type = 'sawtooth';
+                        osc2.type = 'sawtooth';
+                        
+                        osc1.frequency.setValueAtTime(freq, start);
+                        osc2.frequency.setValueAtTime(freq + 3.5, start); // 미세 디튠으로 브라스 질감 부여
+                        
+                        filter.type = 'lowpass';
+                        // 필터 컷오프 주파수 엔벨로프 (바아암- 하는 신스 필터 모듈레이션 효과)
+                        filter.frequency.setValueAtTime(350, start);
+                        filter.frequency.exponentialRampToValueAtTime(2400, start + 0.04); // 밝게 열렸다가
+                        filter.frequency.exponentialRampToValueAtTime(650, start + duration); // 다시 서서히 닫힘
+                        filter.Q.setValueAtTime(1.5, start);
+
+                        gainNode.gain.setValueAtTime(0, start);
+                        gainNode.gain.linearRampToValueAtTime(vol, start + 0.02); // 부드러운 어택
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
+                        
+                        osc1.connect(filter);
+                        osc2.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        
+                        osc1.start(start);
+                        osc2.start(start);
+                        osc1.stop(start + duration);
+                        osc2.stop(start + duration);
+                    }
+
+                    // 빰-빠-바-밤-빰-빰! 멜로디 연주
+                    playBrass(392.00, now, 0.15); // G4
+                    playBrass(523.25, now + 0.15, 0.15); // C5
+                    playBrass(659.25, now + 0.30, 0.12); // E5
+                    playBrass(783.99, now + 0.42, 0.20); // G5
+                    playBrass(659.25, now + 0.62, 0.15); // E5
+                    
+                    // 마지막 피날레 웅장한 다성 C 메이저 화음 (C5 + E5 + G5 + C6) 동시 강타!
+                    const finaleStart = now + 0.77;
+                    const finaleDuration = 0.7;
+                    playBrass(523.25, finaleStart, finaleDuration, 0.12); // C5
+                    playBrass(659.25, finaleStart, finaleDuration, 0.12); // E5
+                    playBrass(783.99, finaleStart, finaleDuration, 0.12); // G5
+                    playBrass(1046.50, finaleStart, finaleDuration, 0.10); // C6
+                    
+                    // 축하 벨 스파클링 소리 레이어링 (하늘에 흩뿌려지는 별가루 느낌)
+                    const bellNotes = [1046.50, 1318.51, 1567.98, 2093.00];
+                    bellNotes.forEach((freq, idx) => {
+                        createOscillator('sine', freq, finaleStart + 0.1 + (idx * 0.06), 0.3, 0.04);
+                    });
+                    break;
+                }
+
+                case 'society_exe': {
+                    // 사회 처형 (서늘한 칼날의 고속 낙하 + 뼈를 파괴하는 타격 질감 + 웅장한 베이스의 임팩트)
+                    // 1. 단두대 칼날 초고속 하강 스윕 (날카로운 메탈 슬라이드)
+                    const slideOsc = audioCtx.createOscillator();
+                    const slideGain = audioCtx.createGain();
+                    const slideFilter = audioCtx.createBiquadFilter();
+                    
+                    slideOsc.type = 'sawtooth';
+                    slideOsc.frequency.setValueAtTime(5000, now);
+                    slideOsc.frequency.exponentialRampToValueAtTime(300, now + 0.14);
+                    
+                    slideFilter.type = 'highpass';
+                    slideFilter.frequency.setValueAtTime(2000, now);
+                    slideFilter.frequency.linearRampToValueAtTime(700, now + 0.14);
+
+                    slideGain.gain.setValueAtTime(0.35, now);
+                    slideGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                    slideOsc.connect(slideFilter);
+                    slideFilter.connect(slideGain);
+                    slideGain.connect(audioCtx.destination);
+                    slideOsc.start(now);
+                    slideOsc.stop(now + 0.15);
+
+                    // 2. 잔혹한 파괴 타격음 (어택 지점: 140ms 뒤 단두대 강타!)
+                    const hitTime = now + 0.11;
+                    
+                    // 2.1 찌그러지고 파쇄된 디스토션 노이즈 버스트
+                    const smashBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.22, audioCtx.sampleRate);
+                    const smashData = smashBuffer.getChannelData(0);
+                    for (let i = 0; i < smashBuffer.length; i++) {
+                        smashData[i] = Math.random() * 2 - 1;
+                    }
+                    const smashSource = audioCtx.createBufferSource();
+                    smashSource.buffer = smashBuffer;
+
+                    const smashFilter = audioCtx.createBiquadFilter();
+                    smashFilter.type = 'bandpass';
+                    smashFilter.frequency.setValueAtTime(1400, hitTime);
+                    smashFilter.Q.setValueAtTime(4, hitTime);
+
+                    const smashGain = audioCtx.createGain();
+                    smashGain.gain.setValueAtTime(0, hitTime);
+                    smashGain.gain.linearRampToValueAtTime(0.9, hitTime + 0.005); // 즉각적인 충격
+                    smashGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.2);
+
+                    smashSource.connect(smashFilter);
+                    smashFilter.connect(smashGain);
+                    smashGain.connect(audioCtx.destination);
+                    smashSource.start(hitTime);
+
+                    // 2.2 뼈를 때리는 둔탁한 삼각파 중저음
+                    const boneOsc = audioCtx.createOscillator();
+                    const boneGain = audioCtx.createGain();
+                    boneOsc.type = 'triangle';
+                    boneOsc.frequency.setValueAtTime(150, hitTime);
+                    boneOsc.frequency.exponentialRampToValueAtTime(20, hitTime + 0.25);
+                    
+                    boneGain.gain.setValueAtTime(0.9, hitTime);
+                    boneGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.25);
+                    
+                    boneOsc.connect(boneGain);
+                    boneGain.connect(audioCtx.destination);
+                    boneOsc.start(hitTime);
+                    boneOsc.stop(hitTime + 0.25);
+
+                    // 2.3 처형 완료의 차가운 금속 고음 벨소리
+                    const bellOsc = audioCtx.createOscillator();
+                    const bellGain = audioCtx.createGain();
+                    bellOsc.type = 'sine';
+                    bellOsc.frequency.setValueAtTime(2600, hitTime);
+                    bellGain.gain.setValueAtTime(0.3, hitTime);
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.35);
+                    bellOsc.connect(bellGain);
+                    bellGain.connect(audioCtx.destination);
+                    bellOsc.start(hitTime);
+                    bellOsc.stop(hitTime + 0.35);
+                    break;
+                }
+
+                case 'health_revive': {
+                    // 보건부 부활 (성스러운 코러스 화음의 천상적인 페이드인 + 영롱한 윈드차임 승천)
+                    const reviveDur = 1.3;
+                    
+                    // Am9 성스러운 화음 구성 (A4, C5, E5, B5, E6)
+                    const chord = [440.00, 523.25, 659.25, 987.77, 1318.51];
+                    
+                    chord.forEach((freq, idx) => {
+                        const osc1 = audioCtx.createOscillator();
+                        const osc2 = audioCtx.createOscillator(); // 코러스 효과를 위한 디튠 레이어
+                        const gainNode = audioCtx.createGain();
+                        
+                        osc1.type = 'sine';
+                        osc2.type = 'sine';
+                        
+                        osc1.frequency.setValueAtTime(freq, now);
+                        osc2.frequency.setValueAtTime(freq + 2.5, now); // 디튠 레이어
+
+                        // 은은하고 깊은 비브라토 걸기 (LFO)
+                        const lfo = audioCtx.createOscillator();
+                        const lfoGain = audioCtx.createGain();
+                        lfo.frequency.setValueAtTime(3.8, now); // 느리고 풍성한 3.8Hz 비브라토
+                        lfoGain.gain.setValueAtTime(5, now);
+                        
+                        lfo.connect(lfoGain);
+                        lfoGain.connect(osc1.frequency);
+                        lfoGain.connect(osc2.frequency);
+
+                        // 천상의 오라 느낌을 위한 긴 어택의 볼륨 엔벨로프 (ADSR)
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(0.12, now + 0.45); // 450ms에 걸쳐 페이드인
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + reviveDur);
+                        
+                        osc1.connect(gainNode);
+                        osc2.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        
+                        lfo.start(now);
+                        osc1.start(now);
+                        osc2.start(now);
+                        
+                        lfo.stop(now + reviveDur);
+                        osc1.stop(now + reviveDur);
+                        osc2.stop(now + reviveDur);
+                    });
+
+                    // 영롱한 하늘빛 윈드차임 상승 스윕 (빛무리 효과)
+                    const chimeCount = 10;
+                    for (let i = 0; i < chimeCount; i++) {
+                        const chimeDelay = i * 0.07;
+                        const chimeFreq = 1600 + (i * 240); // 1600Hz에서 4000Hz까지 순차적 상승
+                        
+                        const chimeOsc = audioCtx.createOscillator();
+                        const chimeGain = audioCtx.createGain();
+                        chimeOsc.type = 'sine';
+                        chimeOsc.frequency.setValueAtTime(chimeFreq, now + chimeDelay);
+                        
+                        chimeGain.gain.setValueAtTime(0, now + chimeDelay);
+                        chimeGain.gain.linearRampToValueAtTime(0.035, now + chimeDelay + 0.01);
+                        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + chimeDelay + 0.35);
+                        
+                        chimeOsc.connect(chimeGain);
+                        chimeGain.connect(audioCtx.destination);
+                        chimeOsc.start(now + chimeDelay);
+                        chimeOsc.stop(now + chimeDelay + 0.35);
+                    }
+                    break;
+                }
+                    
+                case 'item_combine': {
+                    // 아이템 조합 (연금술 마법 에너지가 강하게 수축/회전하며 철컥 결속되는 완성형 효과음)
+                    // 1. 강철 망치 대장간 타격음 (쇠가 쨍- 부딪히는 불규칙 배음 배합)
+                    const anvilFrequencies = [600, 1050, 1750, 2400];
+                    anvilFrequencies.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        
+                        osc.type = (idx === 0) ? 'triangle' : 'sine';
+                        osc.frequency.setValueAtTime(freq, now);
+                        
+                        gain.gain.setValueAtTime(0.18, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.18);
+                    });
+
+                    // 2. 융합 에너지 회전 수축 스윕 (LFO 고속 변조로 웅웅웅- 상승 에너지감 시뮬레이션)
+                    const fusionOsc = audioCtx.createOscillator();
+                    const fusionGain = audioCtx.createGain();
+                    
+                    fusionOsc.type = 'sine';
+                    fusionOsc.frequency.setValueAtTime(200, now);
+                    fusionOsc.frequency.linearRampToValueAtTime(1000, now + 0.28); // 주파수 수축 상승
+
+                    // 고속 진동 모듈레이터 (LFO 28Hz) - Tremolo/Ring-Modulation 유사 효과
+                    const vibratoLFO = audioCtx.createOscillator();
+                    const vibratoLFOGain = audioCtx.createGain();
+                    vibratoLFO.frequency.setValueAtTime(28, now); // 고속 28Hz 떨림
+                    vibratoLFOGain.gain.setValueAtTime(20, now); // 피치 떨림 진폭
+
+                    vibratoLFO.connect(vibratoLFOGain);
+                    vibratoLFOGain.connect(fusionOsc.frequency);
+
+                    fusionGain.gain.setValueAtTime(0, now);
+                    fusionGain.gain.linearRampToValueAtTime(0.24, now + 0.08); // 에너지 고조
+                    fusionGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                    fusionOsc.connect(fusionGain);
+                    fusionGain.connect(audioCtx.destination);
+                    
+                    vibratoLFO.start(now);
+                    fusionOsc.start(now);
+                    
+                    vibratoLFO.stop(now + 0.3);
+                    fusionOsc.stop(now + 0.3);
+
+                    // 3. 마지막 철컥! 기계 결속 노이즈 스냅 (합쳐지는 타이밍: 260ms 뒤)
+                    const snapTime = now + 0.25;
+                    
+                    const snapBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+                    const snapData = snapBuffer.getChannelData(0);
+                    for (let i = 0; i < snapBuffer.length; i++) {
+                        snapData[i] = Math.random() * 2 - 1;
+                    }
+                    const snapSource = audioCtx.createBufferSource();
+                    snapSource.buffer = snapBuffer;
+
+                    const snapFilter = audioCtx.createBiquadFilter();
+                    snapFilter.type = 'bandpass';
+                    snapFilter.frequency.setValueAtTime(1800, snapTime);
+                    snapFilter.Q.setValueAtTime(5, snapTime);
+
+                    const snapGain = audioCtx.createGain();
+                    snapGain.gain.setValueAtTime(0, snapTime);
+                    snapGain.gain.linearRampToValueAtTime(0.45, snapTime + 0.005);
+                    snapGain.gain.exponentialRampToValueAtTime(0.001, snapTime + 0.08);
+
+                    snapSource.connect(snapFilter);
+                    snapFilter.connect(snapGain);
+                    snapGain.connect(audioCtx.destination);
+                    snapSource.start(snapTime);
+                    break;
+                }�을 위해 사인파 화음 페이드인)
+                    function createChorus(freq, delay) {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.15, now + 0.3);
+                        gain.gain.linearRampToValueAtTime(0, now + 1.0);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + delay);
+                        osc.stop(now + 1.0);
+                    }
+                    createChorus(523.25, 0); // C5
+                    createChorus(659.25, 0.1); // E5
+                    createChorus(783.99, 0.2); // G5
+                    createChorus(1046.50, 0.3); // C6
+                    break;
+                    
+                case 'item_combine':
+                    // 아이템 조합 (두 강철이 맞부딪히며 빛나는 마법 소리)
+                    createOscillator('sine', 1500, now, 0.3, 0.1);
+                    createOscillator('square', 2000, now + 0.1, 0.4, 0.1);
+                    createOscillator('triangle', 800, now, 0.2, 0.2);
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>

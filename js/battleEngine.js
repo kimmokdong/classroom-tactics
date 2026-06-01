@@ -84,8 +84,8 @@ export class BattleEngine {
     run() {
         let activeUnits = this.board.filter(u => u !== null);
 
-        const countUniqueTrait = (trait) => {
-            const units = activeUnits.filter(u => u.team === 'player' && (u.subject === trait || (Array.isArray(u.subject) ? u.subject.includes(trait) : false) || u.club === trait || (Array.isArray(u.club) ? u.club.includes(trait) : false)));
+        const countUniqueTrait = (trait, team = 'player') => {
+            const units = activeUnits.filter(u => u.team === team && (u.subject === trait || (Array.isArray(u.subject) ? u.subject.includes(trait) : false) || u.club === trait || (Array.isArray(u.club) ? u.club.includes(trait) : false)));
             return new Set(units.map(u => u.name)).size;
         };
 
@@ -98,6 +98,13 @@ export class BattleEngine {
         this.hasP23 = this.playerAugments.includes('p23') && countUniqueTrait('장난꾸러기') >= 6;
 
         this.tick = -20;
+
+        // 선도부 시너지 활성화 시 전투 개시 호루라기 로그 격발
+        const playerPrefectCount = countUniqueTrait('선도부', 'player');
+        const enemyPrefectCount = countUniqueTrait('선도부', 'enemy');
+        if (playerPrefectCount >= 2 || enemyPrefectCount >= 2) {
+            this.logs.push({ tick: this.tick, type: 'prefect_whistle' });
+        }
         
         // [p13] 방송부 7 긴급 속보: 적 기절 3.5초(35틱), 무한 사거리(+99), 공속 30% 증가
         if (this.hasP13) {
@@ -360,7 +367,7 @@ export class BattleEngine {
                                     u.currMana = Math.max(u.currMana, Math.min(u.stats.maxMana, (u.currMana || 0) + gainMana));
                                 }
                                 
-                                this.checkHpThresholds(u, activeUnits);
+                                this.checkHpThresholds(u, activeUnits, lastSourceIdx !== null ? activeUnits.find(a => a.gridIndex === lastSourceIdx) : null);
                                 if (u.currHp <= 0) this.handleDeath(u, activeUnits);
                             }
                         }
@@ -517,7 +524,7 @@ export class BattleEngine {
                                     let prankDmg = prankTarget.stats.maxHp * 0.10 * (100 / (100 + prankTarget.stats.mr));
                                     prankTarget.currHp -= prankDmg;
                                     this.logs.push({ tick: this.tick, type: 'damage', target: prankTarget.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: prankTarget.currHp, maxHp: prankTarget.stats.maxHp, currShield: prankTarget.currShield });
-                                    this.checkHpThresholds(prankTarget, activeUnits);
+                                    this.checkHpThresholds(prankTarget, activeUnits, unit);
                                     if (prankTarget.currHp <= 0) this.handleDeath(prankTarget, activeUnits);
                                 } else if (unit.combat.prankLevel === 3) {
                                     const allEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
@@ -527,7 +534,7 @@ export class BattleEngine {
                                         let prankDmg = e.stats.maxHp * pct * (100 / (100 + e.stats.mr));
                                         e.currHp -= prankDmg;
                                         this.logs.push({ tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield });
-                                        this.checkHpThresholds(e, activeUnits);
+                                        this.checkHpThresholds(e, activeUnits, unit);
                                         if (e.currHp <= 0) this.handleDeath(e, activeUnits);
                                     });
                                 }
@@ -718,7 +725,7 @@ export class BattleEngine {
                             dmg: Math.round(actualReflect), dmgType: 'magic', isCrit: false, fxType: 'aug_thorn_reflect',
                             currHp: unit.currHp, maxHp: unit.stats.maxHp, currShield: unit.currShield
                         });
-                        this.checkHpThresholds(unit, activeUnits);
+                        this.checkHpThresholds(unit, activeUnits, target);
                         if (unit.currHp <= 0) this.handleDeath(unit, activeUnits);
                     }
                     
@@ -804,7 +811,7 @@ export class BattleEngine {
                                             currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield
                                         });
                                         unit.currHp = Math.min(unit.stats.maxHp, unit.currHp + pierceDmg * 0.30 * this.healEfficiency); // 관통 피해도 흡혈
-                                        this.checkHpThresholds(e, activeUnits);
+                                        this.checkHpThresholds(e, activeUnits, unit);
                                         if (e.currHp <= 0) this.handleDeath(e, activeUnits);
                                     }
                                 }
@@ -839,7 +846,7 @@ export class BattleEngine {
                                 dmg: Math.round(rDmg), dmgType: 'physical', isCrit: false, fxType: 'projectile',
                                 currHp: rTar.currHp, targetMana: rTar.mana, targetStats: { ...rTar.stats }, targetCombat: { ...rTar.combat }
                             });
-                            this.checkHpThresholds(rTar, activeUnits);
+                            this.checkHpThresholds(rTar, activeUnits, unit);
                             if (rTar.currHp <= 0) this.handleDeath(rTar, activeUnits);
                         });
                     }
@@ -858,7 +865,7 @@ export class BattleEngine {
                                     currHp: st.currHp, targetMana: st.mana, targetStats: { ...st.stats }, targetCombat: { ...st.combat }
                                 });
                                 this.addBuff(st, 'mrShred', null, 0.3, 50);
-                                this.checkHpThresholds(st, activeUnits);
+                                this.checkHpThresholds(st, activeUnits, unit);
                                 if (st.currHp <= 0) this.handleDeath(st, activeUnits);
                             });
                         }
@@ -873,7 +880,7 @@ export class BattleEngine {
                             dmg: Math.round(actualBramble), dmgType: 'magic', isCrit: false, fxType: 'bramble',
                             currHp: unit.currHp, targetMana: unit.mana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
                         });
-                        this.checkHpThresholds(unit, activeUnits);
+                        this.checkHpThresholds(unit, activeUnits, target);
                         if (unit.currHp <= 0) this.handleDeath(unit, activeUnits);
                     }
                     if (unit.combat.itemEffects?.shojin) {
@@ -881,7 +888,7 @@ export class BattleEngine {
                         unit.currMana = Math.min(unit.stats.maxMana, unit.currMana + 5 * count);
                     }
 
-                    this.checkHpThresholds(target, activeUnits);
+                    this.checkHpThresholds(target, activeUnits, unit);
                     if (target.currHp <= 0) this.handleDeath(target, activeUnits);
                     
                     unit.cooldown = Math.max(1, Math.round(10 / unit.stats.as)); 
@@ -916,7 +923,7 @@ export class BattleEngine {
                         if (!activeUnits.some(u => u.currHp > 0 && u.gridIndex === n.idx)) {
                             const oldIdx = unit.gridIndex;
                             unit.gridIndex = n.idx;
-                            this.logs.push({ tick: this.tick, type: 'move', unit: oldIdx, to: n.idx });
+                            this.logs.push({ tick: this.tick, type: 'move', unit: oldIdx, to: n.idx, isRunner: !!unit.combat.isRunner });
                             
                             // [육상부 리워크] 이동 시 스택 누적
                             if (unit.combat.isRunner) {
@@ -985,7 +992,7 @@ export class BattleEngine {
             const healed = target.currHp - oldHp;
             if (healed > 0) {
                 this.logs.push({
-                    tick: this.tick, type: 'heal', target: target.gridIndex, 
+                    tick: this.tick, type: 'heal', target: target.gridIndex, source: sourceIdx,
                     amount: Math.round(healed), currHp: target.currHp, maxHp: target.stats.maxHp
                 });
             }
@@ -1019,10 +1026,26 @@ export class BattleEngine {
         this.logs.push({ tick: this.tick, type: 'buff_update', target: target.gridIndex, buffs: target.buffs.map(b=>b.type) });
     }
 
-    checkHpThresholds(target, activeUnits) {
-        if (!target.combat.itemEffects) return;
+    checkHpThresholds(target, activeUnits, attacker = null) {
         const maxHp = target.stats.maxHp;
         const ratio = target.currHp / maxHp;
+
+        if (target.combat.whistleHpPct && ratio <= target.combat.whistleHpPct && !target.combat.whistleTriggered) {
+            target.combat.whistleTriggered = true;
+            this.addBuff(target, 'invincible', null, 0, target.combat.whistleInvincibility || 10);
+            target.stats.as *= (1 + (target.combat.whistleAsBuff || 0.15));
+            this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'buff_green', target: target.gridIndex });
+        }
+        
+        if (attacker && attacker.combat && attacker.combat.executionPct && target.currHp > 0 && target.team !== attacker.team) {
+            if (ratio <= attacker.combat.executionPct) {
+                target.currHp = 0;
+                this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'aug_heal_bomb', target: target.gridIndex });
+                this.logs.push({ tick: this.tick, type: 'damage', target: target.gridIndex, source: attacker.gridIndex, dmg: 9999, dmgType: 'true', isCrit: false, currHp: 0, maxHp: maxHp, currShield: 0 });
+            }
+        }
+
+        if (!target.combat.itemEffects) return;
 
         if (target.combat.itemEffects.edgeOfNight && ratio <= 0.6 && !target.combat.eonTriggered) {
             target.combat.eonTriggered = true;
@@ -1093,7 +1116,9 @@ export class BattleEngine {
                 tick: this.tick,
                 type: 'revive',
                 unitId: target.gridIndex,
-                hp: target.currHp
+                hp: target.currHp,
+                unitName: target.name,
+                team: target.team
             });
 
             // [보건부 리워크] 광포화 삭제 -> 정화 및 응급조치 부여

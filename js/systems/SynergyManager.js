@@ -4,6 +4,7 @@ import { formatStat } from '../core/constants.js';
 export class SynergyManager {
     constructor(gameApp) {
         this.app = gameApp;
+        this.prevActiveLevels = {};
     }
 
     getSynergyData(boardArray) {
@@ -36,6 +37,57 @@ export class SynergyManager {
 
     calculateSynergy() {
         const counts = this.getSynergyData(this.app.state.board);
+        
+        // 이전 레벨 대비 시너지 상승 여부 감지
+        let hasLevelUp = false;
+        let hasPrefectLevelUp = false;
+        const currentActiveLevels = {};
+
+        // 클럽 시너지 검사
+        for (const [club, count] of Object.entries(counts.clubs)) {
+            const synData = SYNERGIES.clubs[club];
+            if (synData) {
+                const levels = Object.keys(synData.levels).map(Number).sort((a, b) => a - b);
+                const activeLvl = this.getActiveSynergyLevel(count, levels, synData.exactMatch);
+                currentActiveLevels[`club_${club}`] = activeLvl;
+                
+                const prevLvl = this.prevActiveLevels[`club_${club}`] || 0;
+                if (activeLvl > prevLvl) {
+                    hasLevelUp = true;
+                    if (club === '선도부') {
+                        hasPrefectLevelUp = true;
+                    }
+                }
+            }
+        }
+
+        // 과목 시너지 검사
+        for (const [subj, count] of Object.entries(counts.subjects)) {
+            const synData = SYNERGIES.subjects[subj];
+            if (synData) {
+                const levels = Object.keys(synData.levels).map(Number).sort((a, b) => a - b);
+                const activeLvl = this.getActiveSynergyLevel(count, levels, synData.exactMatch);
+                currentActiveLevels[`subj_${subj}`] = activeLvl;
+                
+                const prevLvl = this.prevActiveLevels[`subj_${subj}`] || 0;
+                if (activeLvl > prevLvl) {
+                    hasLevelUp = true;
+                }
+            }
+        }
+
+        // 시너지 레벨 상승 시 사운드 격발
+        if (hasLevelUp && this.app.soundManager) {
+            this.app.soundManager.playSFX('synergy_levelup');
+            if (hasPrefectLevelUp) {
+                // 선도부 강화 시 호각 짧은 소리 겹침 재생
+                this.app.soundManager.playSFX('synergy_prefect_short');
+            }
+        }
+
+        // 현재 액티브 레벨 저장
+        this.prevActiveLevels = currentActiveLevels;
+
         this.renderSynergyUI(counts);
     }
 
@@ -185,14 +237,20 @@ export class SynergyManager {
                         if (subjEff.critChance) u.combat.critChance = (u.combat.critChance || 0) + subjEff.critChance;
                     }
                     if (subj === '사회') {
-                        if (subjEff.shield) u.combat.shield += subjEff.shield;
-                        if (subjEff.allStats) {
-                            const mult = 1 + subjEff.allStats;
-                            u.stats.hp *= mult;
-                            u.stats.ad *= mult;
-                            u.stats.ap *= mult;
-                            u.stats.armor *= mult;
-                            u.stats.mr *= mult;
+                        if (subjEff.executionPct) u.combat.executionPct = subjEff.executionPct;
+                        if (subjEff.whistleHpPct) {
+                            u.combat.whistleHpPct = subjEff.whistleHpPct;
+                            u.combat.whistleInvincibility = subjEff.whistleInvincibility;
+                            u.combat.whistleAsBuff = subjEff.whistleAsBuff;
+                        }
+                        if (subjEff.allStatsBuff) {
+                            u.stats.ad *= (1 + subjEff.allStatsBuff);
+                            u.stats.ap *= (1 + subjEff.allStatsBuff);
+                            u.stats.armor *= (1 + subjEff.allStatsBuff);
+                            u.stats.mr *= (1 + subjEff.allStatsBuff);
+                            u.stats.hp = Math.round(u.stats.hp * (1 + subjEff.allStatsBuff));
+                            u.stats.maxHp = Math.round(u.stats.maxHp * (1 + subjEff.allStatsBuff));
+                            u.stats.as *= (1 + subjEff.allStatsBuff);
                         }
                     }
                     if (subj === '영어') {
@@ -360,13 +418,13 @@ export class SynergyManager {
             '수학': 'images/icon_02_math.png',
             '사회': 'images/icon_03_social.png',
             '과학': 'images/icon_04_science.png',
-            '영어': 'images/icon_05_english.png',
+            '영어': 'images/icon_05_eng.png',
             '체육': 'images/icon_06_pe.png',
             '음악': 'images/icon_07_music.png',
             '미술': 'images/icon_08_art.png',
             '도덕': 'images/icon_09_ethics.png',
             '선도부': 'images/icon_10_discipline.png',
-            '방송부': 'images/icon_11_broadcasting.png',
+            '방송부': 'images/icon_11_broad.png',
             '육상부': 'images/icon_12_track.png',
             '보건부': 'images/icon_13_health.png',
             '급식부': 'images/icon_14_cafeteria.png',

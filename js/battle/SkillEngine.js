@@ -12,7 +12,7 @@ export class SkillEngine {
         enemies.sort((a,b) => engine.getDist(unit.gridIndex, a.gridIndex) - engine.getDist(unit.gridIndex, b.gridIndex));
         allies.sort((a,b) => (a.currHp/a.stats.maxHp) - (b.currHp/b.stats.maxHp));
         
-        // 이온 충격기(겨울용 수면양말) 반사 피해
+        // ?�온 충격�?겨울???�면?�말) 반사 ?�해
         const ionicEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && u.combat.itemEffects?.ionic && engine.getDist(unit.gridIndex, u.gridIndex) <= 1);
         ionicEnemies.forEach(e => {
             const ionicDmg = (unit.stats.maxMana || 0) * 2.5; 
@@ -25,11 +25,11 @@ export class SkillEngine {
                     dmg: Math.round(actualDmg), dmgType: 'magic', isCrit: false,
                     currHp: unit.currHp, targetMana: unit.mana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
                 });
-                engine.checkHpThresholds(unit, activeUnits);
+                engine.checkHpThresholds(unit, activeUnits, e);
                 if (unit.currHp <= 0) engine.handleDeath(unit, activeUnits);
             }
         });
-        if (unit.currHp <= 0) return; // 스킬 쓰다 죽으면 중단
+        if (unit.currHp <= 0) return; // ?�킬 ?�다 죽으�?중단
         
         const { ad, ap, armor, mr, maxHp, as } = unit.stats;
         const apMult = ap / 100;
@@ -58,8 +58,8 @@ export class SkillEngine {
             }
             if (currentDmgAmp !== 0 && type !== 'true') finalDmg *= Math.max(0.1, (1 + currentDmgAmp));
             if (unit.combat.itemEffects?.giantSlayer) {
-                finalDmg *= 1.1; // 기본 10% 증가
-                if (target && target.stats.maxHp > 1500) finalDmg *= 1.25; // 1500 초과 시 추가 증폭
+                finalDmg *= 1.1; // 기본 10% 증�?
+                if (target && target.stats.maxHp > 1500) finalDmg *= 1.25; // 1500 초과 ??추�? 증폭
             }
             if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) finalDmg *= 1.25;
             if ((unit.combat.itemEffects?.skillCrit || unit.combat.skillCrit) && type !== 'true') {
@@ -69,7 +69,7 @@ export class SkillEngine {
                 }
             }
 
-            // [미술 시너지] 장판 효과 적용 (스킬)
+            // [미술 ?�너지] ?�판 ?�과 ?�용 (?�킬)
             let dmgAmpFromCanvas = 0;
             let dmgReducFromCanvas = 0;
             for (let canvas of engine.canvases) {
@@ -85,32 +85,32 @@ export class SkillEngine {
             if (dmgAmpFromCanvas > 0) finalDmg *= (1 + dmgAmpFromCanvas);
 
             if (type === 'physical') {
-                // ① 방어력 감쇄 먼저 적용
+                // ??방어??감쇄 먼�? ?�용
                 let armor = target.stats.armor;
                 if (unit.buffs.some(b => b.type === 'precision')) armor = 0;
                 else {
                     let shredBuffs = target.buffs.filter(b => b.type === 'armorShred');
                     let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                    // 공격자의 방관 적용 (armorPen이 있으면 추가 관통)
+                    // 공격?�의 방�? ?�용 (armorPen???�으�?추�? 관??
                     let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
-                    if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 가고일 있으면 방관 면역 (선택 사항, 여기선 일단 생략) - 생략
+                    if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 가고일 ?�으�?방�? 면역 (?�택 ?�항, ?�기???�단 ?�략) - ?�략
                     armor *= (1 - maxShred) * armorPenMult;
                 }
                 finalDmg *= (100 / (100 + armor));
-                // ② dmgReduc 적용 (하드캡 75%)
+                // ??dmgReduc ?�용 (?�드�?75%)
                 let dr = target.combat?.dmgReduc || 0;
                 dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                 dr = Math.min(dr, 0.75);
                 finalDmg *= (1 - dr);
             } else if (type === 'magic') {
-                // ① 마법 저항력 감쇄 먼저 적용
+                // ??마법 ?�??�� 감쇄 먼�? ?�용
                 let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
                 let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
                 let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
                 let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
                 finalDmg *= (100 / (100 + actualMr));
-                // ② dmgReduc 적용 (하드캡 75%) - 마법 피해에도 적용
+                // ??dmgReduc ?�용 (?�드�?75%) - 마법 ?�해?�도 ?�용
                 let dr = target.combat?.dmgReduc || 0;
                 dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
@@ -124,7 +124,7 @@ export class SkillEngine {
                 finalDmg /= (unit.combat.critDmg || 1.5); // negate crit dmg
             }
 
-            // [영어 시너지] 스킬 적중 시 보너스 마법 피해
+            // [?�어 ?�너지] ?�킬 ?�중 ??보너??마법 ?�해
             let engActualDmg = 0;
             if (unit.combat.bonusMagicDmgEng > 0 && type !== 'true') {
                 let engMagicDmg = (unit.stats.ap * unit.combat.bonusMagicDmgEng) + (unit.stats.as * 10);
@@ -149,13 +149,13 @@ export class SkillEngine {
             }
             target.currHp -= finalDmg;
 
-            // 스킬 피해도 근성 마나 획득 적용 (고정 10)
+            // ?�킬 ?�해??근성 마나 ?�득 ?�용 (고정 10)
             let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
             let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
             target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult)));
 
-            // [p15] 바른 생활의 분노 (평타 피격 시 반사)
-            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team === 'enemy' && finalDmg > 0) {
+            // [p15] 바른 ?�활??분노 (?��? ?�격 ??반사)
+            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('?�덕') : target.subject === '?�덕') && unit.team === 'enemy' && finalDmg > 0) {
                 const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
                 let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                 unit.currHp -= actualReflect;
@@ -164,7 +164,7 @@ export class SkillEngine {
                     dmg: Math.round(actualReflect), dmgType: 'magic', isCrit: false, fxType: 'aug_thorn_reflect',
                     currHp: unit.currHp, maxHp: unit.stats.maxHp, currShield: unit.currShield
                 });
-                engine.checkHpThresholds(unit, activeUnits);
+                engine.checkHpThresholds(unit, activeUnits, target);
                 if (unit.currHp <= 0) engine.handleDeath(unit, activeUnits);
             }
 
@@ -195,7 +195,7 @@ export class SkillEngine {
                 }
             }
 
-            engine.checkHpThresholds(target, activeUnits);
+            engine.checkHpThresholds(target, activeUnits, unit);
             if(target.currHp <= 0) engine.handleDeath(target, activeUnits);
         };
 
@@ -203,7 +203,7 @@ export class SkillEngine {
             engine.addBuff(target, type, stat, val, duration, sourceIdx);
         };
 
-        // 스킬 타입별 처리 분기
+        // ?�킬 ?�?�별 처리 분기
         switch(s.type) {
             case 'lowest_hp_magic_gold':
                 if (enemies.length > 0) {
@@ -241,7 +241,7 @@ export class SkillEngine {
                 if (enemies[0]) {
                     targets.push(enemies[0]);
                     let totalDmg = unit.stats.ap * s.apRatio[starIdx];
-                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10틱(1초)당 데미지
+                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10??1�????��?지
                     addBuff(enemies[0], 'dot', null, tickDmg, s.dotDuration[starIdx], unit.gridIndex);
                 }
                 break;
@@ -267,7 +267,7 @@ export class SkillEngine {
                         unit.combat.vamp = (unit.combat.vamp || 0) + s.vampBuff[starIdx];
                         unit.combat.vampBuffTimer = s.buffDuration[starIdx];
                     }
-                    // 스플래시 로직 수정 (hpRatioSplash도 발동 조건에 포함)
+                    // ?�플?�시 로직 ?�정 (hpRatioSplash??발동 조건???�함)
                     if (s.splashAdRatio || s.hpRatioSplash) {
                         let splashDmg = 0;
                         if (s.splashAdRatio) splashDmg += ad * s.splashAdRatio[starIdx];
@@ -332,7 +332,7 @@ export class SkillEngine {
                     targets.push(e);
                     applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
                     if (s.manaReducPct) addBuff(e, 'debuff', 'manaGain', -s.manaReducPct[starIdx], s.debuffDuration[starIdx]);
-                    if (s.name === '색의 마법') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
+                    if (s.name === '?�의 마법') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
                 });
                 break;
 
@@ -398,7 +398,7 @@ export class SkillEngine {
                     if (s.mrRatio) healAmt += mr * s.mrRatio[starIdx];
                     if (healAmt > 0) {
                         healAmt *= (unit.stats.ap / 100);
-                        addBuff(allies[0], 'heal', 'hp', healAmt, 1);
+                        addBuff(allies[0], 'heal', 'hp', healAmt, 1, unit.gridIndex);
                     }
                     
                     let shieldAmt = 0;
@@ -414,7 +414,7 @@ export class SkillEngine {
                     const targetAlly = allies[0];
                     let healAmt = unit.stats.ap * s.apRatio[starIdx] * skillAmpMult;
                     if (healAmt > 0) {
-                        addBuff(targetAlly, 'heal', 'hp', healAmt, 1);
+                        addBuff(targetAlly, 'heal', 'hp', healAmt, 1, unit.gridIndex);
                         if (enemies.length > 0) {
                             const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
                             targets.push(randomEnemy);
@@ -429,7 +429,7 @@ export class SkillEngine {
                     if (engine.getDist(unit.gridIndex, a.gridIndex) <= s.aoeRange) {
                         let shieldAmt = s.shieldFlat[starIdx] * skillAmpMult;
                         addBuff(a, 'shield', 'shield', shieldAmt, 9999);
-                        // 현재 엔진 구조상 보호막 파괴와 디버프 해제를 연동하기 어려우므로, 5초(50틱) 지속으로 구현합니다.
+                        // ?�재 ?�진 구조??보호�??�괴?� ?�버???�제�??�동?�기 ?�려?��?�? 5�?50?? 지?�으�?구현?�니??
                         addBuff(a, 'ccImmune', null, 0, 50);
                     }
                 });
@@ -440,7 +440,7 @@ export class SkillEngine {
                     let shieldAmt = s.shieldFlat[starIdx] * skillAmpMult;
                     let healAmt = s.healFlat[starIdx] * skillAmpMult;
                     if (shieldAmt > 0) addBuff(a, 'shield', 'shield', shieldAmt, 9999);
-                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1);
+                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1, unit.gridIndex);
                 });
                 break;
 
@@ -474,11 +474,11 @@ export class SkillEngine {
                         healAmt += unit.stats.maxHp * s.hpRatio[starIdx];
                     }
                     healAmt *= (unit.stats.ap / 100);
-                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1);
+                    if (healAmt > 0) addBuff(a, 'heal', 'hp', healAmt, 1, unit.gridIndex);
                     if (s.asBuff) addBuff(a, 'buff', 'as', s.asBuff[starIdx] * (unit.stats.ap / 100), s.buffDuration[starIdx]);
                 });
                 if (s.type === 'team_heal_plus' && allies[0] && s.extraHealPct) {
-                    addBuff(allies[0], 'heal', 'hp', allies[0].stats.maxHp * s.extraHealPct[starIdx] * (unit.stats.ap / 100), 1);
+                    addBuff(allies[0], 'heal', 'hp', allies[0].stats.maxHp * s.extraHealPct[starIdx] * (unit.stats.ap / 100), 1, unit.gridIndex);
                 }
                 break;
 
@@ -624,8 +624,8 @@ export class SkillEngine {
                         if (s.teamHealPct) th += a.stats.maxHp * s.teamHealPct[starIdx];
                         if (s.hpRatio) th += maxHp * s.hpRatio[starIdx];
                         if (s.defMrRatio) th += (armor + mr) * s.defMrRatio[starIdx];
-                        addBuff(a, 'heal', 'hp', th, 1);
-                        if (s.extraHealPct) addBuff(a, 'heal', 'hp', a.stats.maxHp * s.extraHealPct[starIdx], 1);
+                        addBuff(a, 'heal', 'hp', th, 1, unit.gridIndex);
+                        if (s.extraHealPct) addBuff(a, 'heal', 'hp', a.stats.maxHp * s.extraHealPct[starIdx], 1, unit.gridIndex);
                     });
                 }
                 break;
@@ -657,7 +657,7 @@ export class SkillEngine {
             }
 
             case 'passive':
-                // 패시브 스킬은 평타 루프에서 처리, 여기서는 아무 동작 없음
+                // ?�시�??�킬?� ?��? 루프?�서 처리, ?�기?�는 ?�무 ?�작 ?�음
                 break;
         }
 

@@ -134,14 +134,23 @@ body {
 /* Right Info Panel */
 #info-panel {
   width: 330px;
-  padding: 20px;
+  padding: 14px 16px;
   background: linear-gradient(to left, rgba(255,255,255,0.5), transparent);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
   z-index: 5;
-  overflow-y: auto;
+  overflow: hidden;
 }
+
+/* 탭 콘텐츠 공통 스크롤 */
+#tab-content-unit,
+#tab-content-dps {
+  flex: 1;
+  overflow-y: auto;
+  gap: 16px;
+}
+
 .panel-section {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
@@ -482,7 +491,21 @@ body {
   z-index: 5;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
-.is-enemy { border-color: #ff5252 !important; background: #fff0f0; }
+.is-enemy { 
+  background: #fff0f0; 
+  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.4), inset 0 0 10px rgba(255, 82, 82, 0.2); 
+}
+.is-enemy::after {
+  content: '😈';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 
 .unit-icon { font-size: 1.8rem; margin-bottom: 0px; }
 .unit-name { font-size: 0.65rem; font-weight: bold; text-align: center; line-height: 1; color: #333; white-space: nowrap; letter-spacing: -0.5px; }
@@ -492,6 +515,8 @@ body {
   top: -6px; left: -6px;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  max-width: 60px;
   gap: 2px;
   z-index: 10;
 }
@@ -505,8 +530,8 @@ body {
 }
 
 /* Stars */
-.star-2 { border-color: #9e9e9e !important; box-shadow: 0 0 15px rgba(158,158,158,0.8); }
-.star-3 { border-color: #fbc02d !important; box-shadow: 0 0 20px rgba(251,192,45,0.9); }
+.star-2 { box-shadow: 0 0 15px rgba(158,158,158,0.8); }
+.star-3 { box-shadow: 0 0 20px rgba(251,192,45,0.9); }
 
 /* Tooltip */
 .glass-tooltip {
@@ -887,7 +912,14 @@ body {
 .guide-unit-example.show-debuff [data-target="debuff"],
 .guide-unit-example.show-buff [data-target="buff"],
 .guide-unit-example.show-heal [data-target="heal"],
-.guide-unit-example.show-shield [data-target="shield-icon"] {
+.guide-unit-example.show-shield [data-target="shield-icon"],
+.guide-unit-example.show-ccImmune [data-target="ccImmune"],
+.guide-unit-example.show-zephyr [data-target="zephyr"],
+.guide-unit-example.show-antiHeal [data-target="antiHeal"],
+.guide-unit-example.show-morello [data-target="morello"],
+.guide-unit-example.show-invincible [data-target="invincible"],
+.guide-unit-example.show-armorShred [data-target="armorShred"],
+.guide-unit-example.show-mrShred [data-target="mrShred"] {
     opacity: 1 !important;
     transform: scale(1) !important;
 }

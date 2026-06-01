@@ -37,6 +37,7 @@ export class ShopManager {
         if (this.app.state.gold >= 4 && this.app.state.level < 10) {
             this.app.state.gold -= 4;
             this.addExp(4);
+            this.app.soundManager.playSFX('buy_exp');
         } else if (this.app.state.level >= 10) {
             alert("최대 레벨입니다.");
         } else {
@@ -56,12 +57,13 @@ export class ShopManager {
                 alert("골드가 부족합니다.");
                 return;
             }
+            this.app.soundManager.playSFX('shop_reroll');
         }
 
         // Return unsold units to the shared pool
         if (this.app.state.shop) {
             for (let u of this.app.state.shop) {
-                if (u !== null) {
+                if (u !== null && u.id) {
                     this.app.state.sharedPool[u.id] = (this.app.state.sharedPool[u.id] || 0) + 1;
                 }
             }
@@ -116,7 +118,7 @@ export class ShopManager {
         const shopEl = document.getElementById('shop-slots');
         shopEl.innerHTML = '';
 
-        if (!this.app.state.shop || this.app.state.shop.length === 0 || this.app.state.shop[0] === null) {
+        if (!this.app.state.shop || this.app.state.shop.length === 0) {
             this.refreshShop(true);
             return;
         }
@@ -200,6 +202,7 @@ export class ShopManager {
                     this.app.renderUnits();
                     console.log(`${randomUnit.name} 구매함 (대기석 ${emptyIdx}번)`);
 
+                    this.app.soundManager.playSFX('shop_buy');
                     this.app.checkForUpgrade(newUnit.id);
                 } else {
                     console.log("골드가 부족합니다.");

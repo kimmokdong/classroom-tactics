@@ -62,6 +62,10 @@ export class BattleRenderer {
             onEnd('player');
             return;
         }
+
+        if (window.gameApp && window.gameApp.soundManager) {
+            window.gameApp.soundManager.playSFX('school_bell');
+        }
         
         // Initialize DPS Stats
         this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
@@ -125,7 +129,30 @@ export class BattleRenderer {
                 }
                 if (timerContainer) timerContainer.style.display = 'none';
                 const lastLog = this.logs[this.logs.length - 1];
-                setTimeout(() => onEnd(lastLog.winner, lastLog), 1500);
+                
+                // --- 승패 효과음 및 체력 경고음 연동 ---
+                if (window.gameApp && window.gameApp.soundManager) {
+                    if (lastLog.winner === 'player') {
+                        window.gameApp.soundManager.playSFX('battle_win');
+                    } else if (lastLog.winner === 'enemy') {
+                        window.gameApp.soundManager.playSFX('battle_lose');
+                    }
+                    
+                    // 전투 종료 시 플레이어 체력 경고 (체력 25 이하)
+                    if (window.gameApp.state && window.gameApp.state.hp <= 25) {
+                        setTimeout(() => {
+                            window.gameApp.soundManager.playSFX('low_hp');
+                        }, 2200);
+                    }
+                }
+
+                setTimeout(() => {
+                    if (window.gameApp && window.gameApp.soundManager) {
+                        window.gameApp.soundManager.stopHeartbeat();
+                        window.gameApp.soundManager.stopSiren();
+                    }
+                    onEnd(lastLog.winner, lastLog);
+                }, 1500);
             }
             
             this.currentTick++;
@@ -272,6 +299,10 @@ export class BattleRenderer {
             
             const center = this.getCellCenter(action.target);
             this.spawnFx('aoe_ripple', center.x, center.y, {life: 0.6, color: '#9b59b6', size: 60});
+        } else if (action.type === 'prefect_whistle') {
+            if (window.gameApp && window.gameApp.soundManager) {
+                window.gameApp.soundManager.playSFX('synergy_prefect');
+            }
         } else if (action.type === 'move') {
             const oldCell = this.cells[action.unit];
             const newCell = this.cells[action.to];
@@ -286,9 +317,14 @@ export class BattleRenderer {
                 this.dpsStats[action.to] = this.dpsStats[action.unit];
                 delete this.dpsStats[action.unit];
             }
+            
+            // 체육부(육상부) 이동 농구화 마찰음 재생
+            if (action.isRunner && window.gameApp && window.gameApp.soundManager) {
+                window.gameApp.soundManager.playSFX('synergy_pe');
+            }
         } else if (action.type === 'attack' || action.type === 'damage') {
-            const sourceIdx = action.source !== undefined ? action.source : action.from;
-            const targetIdx = action.target !== undefined ? action.target : action.to;
+            const sourceIdx = (action.source !== undefined && action.source !== null) ? action.source : action.from;
+            const targetIdx = (action.target !== undefined && action.target !== null) ? action.target : action.to;
             const fromCell = sourceIdx !== undefined ? this.cells[sourceIdx] : null;
             const toCell = this.cells[targetIdx];
             
@@ -317,6 +353,27 @@ export class BattleRenderer {
             }
             
             if (!toCell) return;
+
+            // --- 전투 효과음 재생 ---
+            if (window.gameApp && window.gameApp.soundManager) {
+                if (action.type === 'damage') {
+                    if (action.dmg >= 9999) {
+                        window.gameApp.soundManager.playSFX('society_exe');
+                    } else if (action.dmgType === 'magic' || action.dmgType === 'true') {
+                        window.gameApp.soundManager.playSFX('skill_impact');
+                    } else {
+                        window.gameApp.soundManager.playSFX('unit_damage');
+                    }
+                } else if (action.type === 'attack') {
+                    if (action.isCrit) {
+                        window.gameApp.soundManager.playSFX('attack_crit');
+                    } else if (action.fxType === 'projectile' || action.fxType === 'banana' || action.fxType === 'fire_red' || action.fxType === 'lightning') {
+                        window.gameApp.soundManager.playSFX('attack_ranged');
+                    } else {
+                        window.gameApp.soundManager.playSFX('attack_melee');
+                    }
+                }
+            }
             
             const dmgText = document.createElement('div');
             let classes = ['dmg-text', action.dmgType || 'physical'];
@@ -484,6 +541,10 @@ export class BattleRenderer {
                 this.unitTransforms[action.target].buffs = [];
             }
             
+            if (window.gameApp && window.gameApp.soundManager) {
+                window.gameApp.soundManager.playSFX('unit_death');
+            }
+            
             const logEl = document.getElementById('battle-log');
             if (logEl && action.unitName) {
                 const nameColor = action.team === 'enemy' ? '#e74c3c' : '#2980b9'; // 빨간색(적) 파란색(아군)
@@ -569,13 +630,14 @@ export class BattleRenderer {
             
             // Update heal DPS Stats
             if (!this.dpsStats) this.dpsTracker.reset(); this.dpsStats = this.dpsTracker.stats;
-            if (this.dpsStats[action.target]) {
-                this.dpsStats[action.target].heal += action.amount || 0;
+            const healSourceIdx = (action.source !== undefined && action.source !== null) ? action.source : action.target;
+            if (this.dpsStats[healSourceIdx]) {
+                this.dpsStats[healSourceIdx].heal += action.amount || 0;
             } else {
                 const uDiv = toCell.querySelector('.unit-character');
                 if (uDiv) {
-                    this.dpsStats[action.target] = {
-                        name: uDiv.querySelector('.unit-name')?.innerText || `Unit_${action.target}`,
+                    this.dpsStats[healSourceIdx] = {
+                        name: uDiv.querySelector('.unit-name')?.innerText || `Unit_${healSourceIdx}`,
                         team: uDiv.classList.contains('is-enemy') ? 'enemy' : 'player',
                         damage: 0, tank: 0, heal: action.amount || 0
                     };
@@ -596,6 +658,10 @@ export class BattleRenderer {
             healText.style.marginLeft = `${scatterX}px`;
             healText.style.marginTop = `${scatterY}px`;
             toCell.appendChild(healText);
+
+            setTimeout(() => {
+                if (healText.parentNode) healText.parentNode.removeChild(healText);
+            }, 600);
             
             const hpFill = toCell.querySelector('.hp-fill');
             if(hpFill) {
@@ -784,6 +850,9 @@ export class BattleRenderer {
                 this.hitStopUntil = performance.now() + action.castTime;
             } else if (action.type === 'broadcast_silence' && this.fxCanvas) {
                 this.hitStopUntil = performance.now() + 1500;
+                if (window.gameApp && window.gameApp.soundManager) {
+                    window.gameApp.soundManager.playSFX('broadcast_howling');
+                }
             } else if (action.type === 'spirit_transfer' && this.fxCanvas) {
                 this.hitStopUntil = performance.now() + 800;
             } else if (action.hitStop && this.fxCanvas) {
@@ -861,6 +930,9 @@ export class BattleRenderer {
                     radius: 0,
                     maxRadius: radius * measuredCellSize * 1.6
                 });
+                if (window.gameApp && window.gameApp.soundManager) {
+                    window.gameApp.soundManager.playSFX('synergy_art');
+                }
             } else if (action.fxType === 'satiety_tick') {
                 const count = action.count || 1;
                 for (let i=0; i<3 + count; i++) {
@@ -868,6 +940,9 @@ export class BattleRenderer {
                     this.spawnFx('heal_sparkle', center.x + (Math.random()*r-r/2), center.y + (Math.random()*r-r/2), { life: 0.8 + count*0.1, color: '#f39c12' });
                 }
                 this.spawnFx('satiety_aura', center.x, center.y, { life: 0.8, count: count });
+                if (window.gameApp && window.gameApp.soundManager) {
+                    window.gameApp.soundManager.playSFX('cafeteria_plate');
+                }
             } else if (action.fxType === 'mana_burn_fx') {
                 this.spawnFx('mana_burn_fx', center.x, center.y, { life: 0.8 });
             } else if (action.fxType === 'mana_steal_proj') {
@@ -901,6 +976,10 @@ export class BattleRenderer {
                 life: 1.5
             });
         } else if (action.type === 'sudden_death') {
+            if (window.gameApp && window.gameApp.soundManager) {
+                window.gameApp.soundManager.playHeartbeatLoop();
+                window.gameApp.soundManager.playSiren();
+            }
             // 연장전 발동 배너 표시
             const logEl = document.getElementById('battle-log');
             if (logEl) {
@@ -968,14 +1047,31 @@ export class BattleRenderer {
                 });
                 this.spawnFx('donation_items_buff', center.x, center.y, { allyPositions: allyPositions });
             }
-        } else if (action.type === 'cpr_revive' && this.fxCanvas) {
-            const center = this.getCellCenter(action.target);
+        } else if ((action.type === 'cpr_revive' || action.type === 'revive') && this.fxCanvas) {
+            const targetIdx = action.target !== undefined ? action.target : action.unitId;
+            const center = this.getCellCenter(targetIdx);
             if (center) {
                 this.spawnFx('holy_heal', center.x, center.y, { life: 1.5 });
                 this.spawnFx('heal_sparkle', center.x, center.y, { life: 1.5 });
             }
             
-            const cell = this.cells[action.target];
+            const logEl = document.getElementById('battle-log');
+            if (logEl) {
+                const li = document.createElement('li');
+                li.style.color = '#2ecc71';
+                li.style.fontSize = '0.85rem';
+                li.style.borderBottom = '1px dashed #eee';
+                li.style.paddingBottom = '3px';
+                const unitName = this.cells[targetIdx]?.querySelector('.unit-name')?.innerText || '유닛';
+                li.innerHTML = `💚 <strong>${unitName}</strong>(이)가 <strong>보건부 효과</strong>로 부활했습니다!`;
+                logEl.appendChild(li);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            if (window.gameApp && window.gameApp.soundManager) {
+                window.gameApp.soundManager.playSFX('health_defib');
+            }
+            
+            const cell = this.cells[targetIdx];
             if (cell) {
                 const uDiv = cell.querySelector('.unit-character');
                 if (uDiv) {
@@ -984,6 +1080,17 @@ export class BattleRenderer {
                     uDiv.dataset.currHp = action.hp;
                     const hpFill = cell.querySelector('.hp-fill');
                     if (hpFill) hpFill.style.width = '30%'; // CPR heal % (approx)
+                }
+            }
+
+            if (action.type === 'revive' && action.unitName) {
+                const logEl = document.getElementById('battle-log');
+                if (logEl) {
+                    const li = document.createElement('li');
+                    const nameColor = action.team === 'enemy' ? '#e74c3c' : '#2980b9';
+                    li.innerHTML = `<span style="color:${nameColor}; font-weight:bold;">${action.unitName}</span>이(가) 보건부 효과로 부활했습니다!`;
+                    logEl.appendChild(li);
+                    logEl.scrollTop = logEl.scrollHeight;
                 }
             }
         }

@@ -19,6 +19,7 @@ import { SynergyManager } from './systems/SynergyManager.js';
 import { ItemManager } from './systems/ItemManager.js';
 import { AugmentManager } from './systems/AugmentManager.js';
 import { UnitManager } from './systems/UnitManager.js';
+import SoundManager from './systems/SoundManager.js';
 
 class GameApp {
     constructor() {
@@ -34,6 +35,7 @@ class GameApp {
             this.state.sharedPool[u.id] = POOL_SIZES[u.tier] || 10;
         }
         
+        this.soundManager = new SoundManager(this);
         this.shopManager = new ShopManager(this);
         this.synergyManager = new SynergyManager(this);
         this.itemManager = new ItemManager(this);
@@ -57,10 +59,16 @@ class GameApp {
         this.spawnEnemyBoard();
         this.renderBoard();
         this.renderUnits();
+        this.refreshShop(true);
         this.renderShop();
         this.renderInventory();
         this.updateHeader();
         this.bindEvents();
+        
+        if (this.soundManager) {
+            this.soundManager.playBgmSequence('prep');
+        }
+        
         console.log("게임 초기화 완료. 준비상태 돌입.");
     }
 
@@ -94,6 +102,52 @@ class GameApp {
                 this.hideCustomTooltip();
             }
         });
+
+        // 사운드 토글 버튼 바인딩
+        const soundBtn = document.getElementById('btn-toggle-sound');
+        if (soundBtn) {
+            // 초기 버튼 모양 설정
+            this.updateSoundButtonUI(soundBtn);
+            
+            soundBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 전역 클릭음 중복 방지
+                const enabled = this.soundManager.toggleSound();
+                this.updateSoundButtonUI(soundBtn);
+                
+                // 소리를 켰다면 가벼운 확인음 재생
+                if (enabled) {
+                    this.soundManager.playSFX('ui_click');
+                }
+            });
+        }
+
+        // 전역 클릭 시 일반 UI 클릭음 재생
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            // 버튼이나 클릭 가능한 탭/카드/아이콘 등에 대해 클릭음 재생
+            if (target.tagName === 'BUTTON' || target.closest('button') || 
+                target.tagName === 'SELECT' || target.classList.contains('guide-tab-btn') || 
+                target.closest('.dict-cost-btn') || target.closest('.augment-card') || 
+                target.closest('.shop-slot') ||
+                target.closest('.guide-hover-trigger')) {
+                
+                if (target.id !== 'btn-toggle-sound' && !target.closest('#btn-toggle-sound')) {
+                    this.soundManager.playSFX('ui_click');
+                }
+            }
+        });
+    }
+
+    updateSoundButtonUI(btn) {
+        if (this.soundManager.isEnabled) {
+            btn.innerHTML = '🔊';
+            btn.style.background = '#2ecc71';
+            btn.style.borderColor = '#27ae60';
+        } else {
+            btn.innerHTML = '🔇';
+            btn.style.background = '#95a5a6';
+            btn.style.borderColor = '#7f8c8d';
+        }
     }
 
     renderUnits() { return this.unitManager.renderUnits(); }
@@ -156,31 +210,37 @@ window.addEventListener('DOMContentLoaded', () => {
         board.classList.add(themeName);
     }
 
-    // DPS Meter UI Events
-    const dpsPanel = document.getElementById('dps-panel');
-    const dpsContent = document.getElementById('dps-panel-content');
-    const dpsToggleBtn = document.getElementById('btn-toggle-dps');
+    // Info Panel 탭 전환 (유닛 정보 ↔ 전투 통계)
+    const tabBtnUnit = document.getElementById('tab-btn-unit');
+    const tabBtnDps = document.getElementById('tab-btn-dps');
+    const tabContentUnit = document.getElementById('tab-content-unit');
+    const tabContentDps = document.getElementById('tab-content-dps');
     const dpsTypeSelect = document.getElementById('dps-type-select');
 
-    if (dpsToggleBtn && dpsPanel) {
-        // Init state
-        let isDpsOpen = false;
-        
-        dpsToggleBtn.addEventListener('click', () => {
-            isDpsOpen = !isDpsOpen;
-            if (isDpsOpen) {
-                dpsPanel.style.transform = 'translateX(0)';
-                dpsPanel.style.visibility = 'visible';
-                dpsToggleBtn.style.transform = 'translateX(-330px)';
-                dpsToggleBtn.style.background = '#2563eb'; // darker blue when active
-            } else {
-                dpsPanel.style.transform = 'translateX(100%)';
-                dpsPanel.style.visibility = 'hidden';
-                dpsToggleBtn.style.transform = 'translateX(0)';
-                dpsToggleBtn.style.background = '#3b82f6';
-            }
-        });
+    function setActiveInfoTab(tab) {
+        if (tab === 'dps') {
+            tabContentUnit.style.display = 'none';
+            tabContentDps.style.display = 'flex';
+            tabBtnDps.style.background = 'white';
+            tabBtnDps.style.color = '#1e293b';
+            tabBtnDps.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+            tabBtnUnit.style.background = 'transparent';
+            tabBtnUnit.style.color = '#64748b';
+            tabBtnUnit.style.boxShadow = 'none';
+        } else {
+            tabContentUnit.style.display = 'flex';
+            tabContentDps.style.display = 'none';
+            tabBtnUnit.style.background = 'white';
+            tabBtnUnit.style.color = '#1e293b';
+            tabBtnUnit.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+            tabBtnDps.style.background = 'transparent';
+            tabBtnDps.style.color = '#64748b';
+            tabBtnDps.style.boxShadow = 'none';
+        }
     }
+
+    if (tabBtnUnit) tabBtnUnit.addEventListener('click', () => setActiveInfoTab('unit'));
+    if (tabBtnDps) tabBtnDps.addEventListener('click', () => setActiveInfoTab('dps'));
 
     if (dpsTypeSelect) {
         dpsTypeSelect.addEventListener('change', () => {

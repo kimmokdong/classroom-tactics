@@ -17,7 +17,7 @@ export class UnitManager {
                 if (unit) {
                     const uDiv = this.createUnitElement(unit, 'board', idx);
                     uDiv.draggable = false;
-                    uDiv.style.border = '3px solid #ff5252';
+                    uDiv.classList.add('is-enemy'); // 적팀 구분용 클래스 추가
                     cell.appendChild(uDiv);
                 }
             });
@@ -97,9 +97,10 @@ export class UnitManager {
 
         uDiv.ondragstart = (e) => {
             console.log("유닛 드래그 시작!", type, idx, "isBattlePhase:", window.isBattlePhase);
-            if (window.isBattlePhase) { e.preventDefault(); return; }
+            if (window.isBattlePhase && type === 'board') { e.preventDefault(); return; }
             e.dataTransfer.setData('sourceType', type);
             e.dataTransfer.setData('sourceIdx', idx);
+            this.app.soundManager.playSFX('unit_grab');
         };
 
         uDiv.onclick = (e) => {
@@ -127,6 +128,7 @@ export class UnitManager {
                 this.app.state.board[sourceIdx] = null;
                 this.renderUnits();
                 this.app.calculateSynergy();
+                this.app.soundManager.playSFX('unit_drop');
             } else {
                 alert("대기석이 가득 찼습니다! (먼저 대기석 유닛을 판매하세요)");
             }
@@ -135,12 +137,13 @@ export class UnitManager {
 
         // 대기석 유닛만 판매
         this.app.state.bench[sourceIdx] = null;
+        this.app.soundManager.playSFX('shop_sell');
 
         // 환불 로직: 유닛 티어만큼 골드 환불 + 장착 아이템 모두 반환
         // [패치] 2성/3성 판매 시 합체 가격에서 1골드 페널티
         let copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
         let refundGold = unit.tier * copies;
-        if (unit.star >= 2) {
+        if (unit.star >= 2 && unit.tier > 1) {
             refundGold -= 1;
         }
         this.app.state.gold += refundGold; 
@@ -190,7 +193,8 @@ export class UnitManager {
 
         this.renderUnits();
         this.app.calculateSynergy();
-        this.app.updateHeader(); // 배치수 UI 업데이트
+        this.app.updateHeader();
+        this.app.soundManager.playSFX('unit_drop'); // 배치수 UI 업데이트
 
         // 이동 시 혹시 모를 진화(대기석과 보드 분리 상태에서의 스왑 등) 체크
         if (sourceArr[sourceIdx]) this.checkForUpgrade(sourceArr[sourceIdx].id);
@@ -243,6 +247,13 @@ export class UnitManager {
                 const targetSlot = toMerge[2];
                 if (targetSlot.type === 'board') this.app.state.board[targetSlot.index] = newUnit;
                 else this.app.state.bench[targetSlot.index] = newUnit;
+
+                // 진화 효과음 재생
+                if (newUnit.star === 3) {
+                    this.app.soundManager.playSFX('upgrade_3star');
+                } else {
+                    this.app.soundManager.playSFX('upgrade_2star');
+                }
 
                 console.log(`🌟 [진화] ${newUnit.name}이(가) ${newUnit.star}성으로 진화했습니다!`);
 

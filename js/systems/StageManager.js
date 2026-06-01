@@ -57,9 +57,13 @@ export class StageManager {
         this.app.state.dpsStats = {}; // 다음 전투를 위해 리셋
 
         this.app.isBattlePhase = true; // 전투 상태 플래그 활성화
-        window.isBattlePhase = true; // 글로벌 플래그 동기화 (렌더러 혼선 방지)
+        window.isBattlePhase = true; // 글로벌 상태 플래그 동기화(렌더러에서 우선 방어)
+        
+        if (this.app.soundManager) {
+            this.app.soundManager.playBgmSequence('battle');
+        }
 
-        // 보드의 유닛들은 드래그만 불가능하게 하고 클릭(정보 보기)은 가능하게 유지
+        // 보드의 유닛들을 드래그만 불가능하게 하고 클릭(정보 보기)은 가능하게 함유지
         document.querySelectorAll('.board-cell .unit-character').forEach(u => u.draggable = false);
 
         // 적은 init() 및 다음 라운드에서 이미 state.enemyBoard에 스폰되어 있음
@@ -489,6 +493,11 @@ export class StageManager {
             // UI/보드 복구
             this.app.isBattlePhase = false; // 전투 상태 플래그 해제
             window.isBattlePhase = false; // 글로벌 플래그 동기화
+            
+            if (this.app.soundManager) {
+                this.app.soundManager.playBgmSequence('prep');
+                this.app.soundManager.playSFX('coin_shower');
+            }
             
             this.app.spawnEnemyBoard(); // 다음 라운드 적 사전 배치
             this.app.updateHeader();
