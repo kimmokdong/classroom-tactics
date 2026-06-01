@@ -950,7 +950,7 @@ export class FxRenderer {
             const r = p.r + (p.maxR - p.r) * pct;
             
             ctx.save();
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - pct) * 0.75})`;
+            ctx.strokeStyle = `rgba(255, 140, 0, ${(1 - pct) * 0.8})`; // 주황색 음파 링
             ctx.lineWidth = (1 - pct) * 3 + 1;
             
             // 점선 링 (바깥)
@@ -963,15 +963,15 @@ export class FxRenderer {
             ctx.setLineDash([]);
             ctx.beginPath();
             ctx.arc(p.x, p.y, r * 0.88, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - pct) * 0.4})`;
+            ctx.strokeStyle = `rgba(230, 81, 0, ${(1 - pct) * 0.55})`; // 진한 주황 안쪽 선
             ctx.lineWidth = 1;
             ctx.stroke();
             
             // 내부 은은한 방사형 그라데이션
             const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
-            g.addColorStop(0, `rgba(255, 255, 255, ${0.12 * (1 - pct)})`);
-            g.addColorStop(0.5, `rgba(255, 255, 255, ${0.04 * (1 - pct)})`);
-            g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            g.addColorStop(0, `rgba(255, 152, 0, ${0.15 * (1 - pct)})`); // 금빛/주황빛 방사
+            g.addColorStop(0.5, `rgba(255, 200, 0, ${0.05 * (1 - pct)})`);
+            g.addColorStop(1, 'rgba(255, 152, 0, 0)');
             ctx.fillStyle = g;
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
@@ -1057,8 +1057,8 @@ export class FxRenderer {
             ctx.rotate(p.rot);
             
             const alpha = Math.min(1.0, p.life * 1.8);
-            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.strokeStyle = `rgba(180, 180, 180, ${alpha * 0.4})`;
+            ctx.fillStyle = `rgba(254, 240, 138, ${alpha})`; // 따뜻한 연노란색 종이 (미색/상아색 삐라 느낌)
+            ctx.strokeStyle = `rgba(202, 138, 4, ${alpha * 0.5})`; // 진한 갈색/황토 테두리선
             ctx.lineWidth = 1;
             
             // 종이 사각형 (가로세로 비율 약 1.4)
@@ -1066,7 +1066,7 @@ export class FxRenderer {
             ctx.strokeRect(-p.size / 2, -p.size * 0.7, p.size, p.size * 1.4);
             
             // 종이 안의 얇은 줄글 (호소문 글씨) 표현
-            ctx.strokeStyle = `rgba(120, 120, 120, ${alpha * 0.5})`;
+            ctx.strokeStyle = `rgba(113, 63, 18, ${alpha * 0.65})`; // 갈색 글씨 줄눈
             ctx.lineWidth = 0.8;
             ctx.beginPath();
             ctx.moveTo(-p.size * 0.3, -p.size * 0.35); ctx.lineTo(p.size * 0.3, -p.size * 0.35);
