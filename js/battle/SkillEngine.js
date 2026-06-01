@@ -476,10 +476,11 @@ export class SkillEngine {
                 break;
 
             case 'taunt':
-                if (s.dmgReduc) addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx], s.tauntDuration[starIdx]);
+                if (s.dmgReduc) addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx] * apMult, s.tauntDuration[starIdx]);
                 if (s.selfMrBuff) addBuff(unit, 'buff', 'mr', unit.stats.mr * s.selfMrBuff[starIdx], s.tauntDuration[starIdx]);
                 enemies.forEach(e => {
-                    if (engine.getDist(unit.gridIndex, e.gridIndex) <= 3) addBuff(e, 'taunt', null, 0, s.tauntDuration[starIdx], unit.gridIndex);
+                    let stunVal = s.afterTauntStun ? s.afterTauntStun[starIdx] * apMult : 0;
+                    if (engine.getDist(unit.gridIndex, e.gridIndex) <= 2) addBuff(e, 'taunt', null, stunVal, s.tauntDuration[starIdx], unit.gridIndex);
                 });
                 break;
 
@@ -657,6 +658,7 @@ export class SkillEngine {
         else if (unit.id === 'u4_6') { fxType = 'school_heal'; castTime = 1600; }
         else if (unit.id === 'u4_7') { fxType = 'school_piano'; castTime = 1600; }
         else if (unit.id === 'u4_8') { fxType = 'school_quant'; castTime = 1000; }
+        else if (unit.id === 'u4_9') { fxType = 'school_appeal'; castTime = 1200; }
         else if (unit.id === 'u5_1') { fxType = 'school_foreign'; castTime = 1200; }
         else if (unit.id === 'u5_2') { fxType = 'school_blackhole'; castTime = 2400; screenFlash = true; }
         else if (unit.id === 'u5_3') { fxType = 'school_picasso'; castTime = 2000; }

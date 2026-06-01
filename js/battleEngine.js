@@ -249,6 +249,9 @@ export class BattleEngine {
                     u.buffs[i].duration--;
                     if(u.buffs[i].duration <= 0) {
                         const expired = u.buffs.splice(i, 1)[0];
+                        if (expired.type === 'taunt' && expired.val > 0) {
+                            this.addBuff(u, 'stun', null, 0, expired.val);
+                        }
                         // 스탯 버프 만료 시 원상복구
                         const statKeys = ['ad','ap','as','armor','mr','range','maxHp'];
                         if (expired.stat && statKeys.includes(expired.stat) && u.stats[expired.stat] !== undefined) {

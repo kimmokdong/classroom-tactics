@@ -235,7 +235,7 @@ export const UNIT_POOL = [
   },
   {
     id: 'u4_5', name: '전교 학생회장', position: '주문력 인챈터', role: ['support','tank'], subject: ['사회', '국어'], club: '급식부', tier: 4, icon: '👑', manaType: '근성', stats: { hp: 1200, mana: 0, maxMana: 130, ad: 70, ap: 100, armor: 45, mr: 45, as: 0.65, range: 1 },
-    skill: { name: '전교생 집합', desc: '아군 전체 공격력 및 주문력 증가 + 피해 감소 및 보호막', type: 'team_buff_shield', vfx: 'buff_green', statBuffPct: [0.3, 0.45, 0.6], shieldFlat: [500, 750, 1100], dmgReducPct: [0.15, 0.20, 0.30], buffDuration: [40, 40, 40] }
+    skill: { name: '전교생 집합', desc: '아군 전체 공격력 및 주문력 증가 + 보호막', type: 'team_buff_shield', vfx: 'buff_green', statBuffPct: [0.3, 0.45, 0.6], shieldFlat: [200, 300, 500], buffDuration: [40, 40, 40] }
   },
   {
     id: 'u4_6', name: '나이팅게일', position: '주문력 힐러', role: ['support'], subject: '도덕', club: '보건부', tier: 4, icon: '🕊️', manaType: '집중', stats: { hp: 1300, mana: 40, maxMana: 100, ad: 85, ap: 100, armor: 50, mr: 65, as: 0.7, range: 3 },
@@ -251,7 +251,7 @@ export const UNIT_POOL = [
   },
   {
     id: 'u4_9', name: '공익광고 모델', position: '퓨어 탱커', role: ['tank'], subject: '도덕', club: '방송부', tier: 4, icon: '📢', manaType: '근성', stats: { hp: 1400, mana: 50, maxMana: 120, ad: 60, ap: 100, armor: 70, mr: 70, as: 0.65, range: 1 },
-    skill: { name: '대국민 호소', desc: '주변 3칸 내의 적을 도발하고 5초간 받는 피해량이 대폭 감소합니다.', type: 'taunt', vfx: 'buff_green', tauntDuration: [50, 70, 100], dmgReduc: [0.4, 0.55, 0.8] }
+    skill: { name: '대국민 호소', desc: '주변 2칸 내의 적을 도발하고 5초간 받는 피해가 30% 감소합니다. 도발이 끝난 후 적들을 기절시킵니다.', type: 'taunt', vfx: 'school_appeal', tauntDuration: [50, 70, 100], dmgReduc: [0.3, 0.4, 0.6], afterTauntStun: [15, 20, 30] }
   },
 
   // 5-Cost (4 units)

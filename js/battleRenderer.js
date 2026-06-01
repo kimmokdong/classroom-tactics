@@ -651,7 +651,7 @@ export class BattleRenderer {
                 if (action.vfx && action.vfx.includes('slam')) color = '#ffd700';
 
                 let prevCenter = casterCenter;
-                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole', 'school_donation', 'school_quant'];
+                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole', 'school_donation', 'school_quant', 'school_appeal'];
                 const lowTierIds = [
                     'u1_1','u1_2','u1_3','u1_4','u1_5','u1_6','u1_7','u1_8','u1_9','u1_10',
                     'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10','u2_11','u2_12',

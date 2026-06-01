@@ -31,7 +31,8 @@ export class SkillPreviewer {
             'u5_2': 'school_blackhole',
             'u5_3': 'school_picasso',
             'u5_4': 'school_principal',
-            'u4_8': 'school_quant'
+            'u4_8': 'school_quant',
+            'u4_9': 'school_appeal'
         };
     }
 

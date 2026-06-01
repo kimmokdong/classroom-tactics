@@ -331,6 +331,7 @@ export class UnitManager {
 
         if (skill.stunDuration) details.push(`기절 지속시간: ${formatArr(skill.stunDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.tauntDuration) details.push(`도발 지속시간: ${formatArr(skill.tauntDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
+        if (skill.afterTauntStun) details.push(`도발 종료 후 기절: ${formatArr(skill.afterTauntStun.map(t => (t * 0.1).toFixed(1)), false, '%', COLORS.ap, '🔮')}`);
         if (skill.buffDuration) details.push(`버프 지속시간: ${formatArr(skill.buffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.dotDuration) details.push(`지속시간: ${formatArr(skill.dotDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.debuffDuration) details.push(`디버프 지속: ${formatArr(skill.debuffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
@@ -340,7 +341,8 @@ export class UnitManager {
         if (skill.selfMrBuff) details.push(`마법저항력 증가: ${formatArr(skill.selfMrBuff, true, '', COLORS.mr, '🌀')}`);
         if (skill.permAdBuff) details.push(`영구 공격력 증가: ${formatArr(skill.permAdBuff, true, '', COLORS.ad, '⚔️')}`);
         if (skill.vampBuff) details.push(`피해 흡혈: ${formatArr(skill.vampBuff, true, '', COLORS.def, '')}`);
-        if (skill.dmgReduc || skill.dmgReducPct) details.push(`피해 감소: ${formatArr(skill.dmgReduc || skill.dmgReducPct, true, '', COLORS.def, '')}`);
+        if (skill.dmgReduc) details.push(`피해 감소(🔮비례): ${formatArr(skill.dmgReduc, true, '', COLORS.ap, '🔮')}`);
+        else if (skill.dmgReducPct) details.push(`피해 감소: ${formatArr(skill.dmgReducPct, true, '', COLORS.def, '')}`);
 
         if (skill.asBuff) details.push(`공격 속도 증가(🔮비례): ${formatArr(skill.asBuff, true, '', COLORS.ap, '🔮')}`);
         if (skill.allyApFlat) details.push(`아군 주문력 증가: ${formatArr(skill.allyApFlat, false, '', COLORS.ap, '🔮')}`);
@@ -431,6 +433,10 @@ export class UnitManager {
 
         if (skill.stunDuration) html = html.replace(/기절/, `기절 ${wrap((skill.stunDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
         if (skill.tauntDuration) html = html.replace(/도발/, `도발 ${wrap((skill.tauntDuration[starIdx] * 0.1).toFixed(1) + '초', COLORS.def)}`);
+        if (skill.afterTauntStun) {
+            let stunVal = (skill.afterTauntStun[starIdx] * (currAp / 100) * 0.1).toFixed(1);
+            html = html.replace(/기절시킵니다/, `기절${wrap('(' + stunVal + '초)', COLORS.ap, '🔮')}시킵니다`);
+        }
         if (skill.buffDuration) html = html.replace(/일정 시간/, wrap((skill.buffDuration[starIdx] * 0.1).toFixed(1) + '초간', COLORS.def));
         if (skill.dotDuration) html = html.replace(/일정 시간/, wrap((skill.dotDuration[starIdx] * 0.1).toFixed(1) + '초간', COLORS.def));
 
@@ -477,7 +483,13 @@ export class UnitManager {
 
         if (skill.manaReducPct) html = html.replace(/마나 봉인|마나 획득 감소/, `$& ${wrap(Math.round(skill.manaReducPct[starIdx] * 100) + '%', COLORS.def)} `);
         if (skill.defReducPct || skill.statReducPct) html = html.replace(/스탯 감소|방\/마저 감소|방어력 감소/, `방/마저 ${wrap(Math.round((skill.defReducPct || skill.statReducPct)[starIdx] * 100) + '%', COLORS.def)} 감소`);
-        if (skill.dmgReduc || skill.dmgReducPct) html = html.replace(/피해감소|피해 감소/, `피해 ${wrap(Math.round((skill.dmgReduc || skill.dmgReducPct)[starIdx] * 100) + '%', COLORS.def)} 감소`);
+        if (skill.dmgReduc) {
+            let drVal = Math.round(skill.dmgReduc[starIdx] * (currAp / 100) * 100);
+            html = html.replace(/피해감소|피해 감소|피해가 \d+% 감소/, `피해가 ${wrap(drVal + '%', COLORS.ap, '🔮')} 감소`);
+        } else if (skill.dmgReducPct) {
+            let drVal = Math.round(skill.dmgReducPct[starIdx] * 100);
+            html = html.replace(/피해감소|피해 감소|피해가 \d+% 감소/, `피해가 ${wrap(drVal + '%', COLORS.def)} 감소`);
+        }
 
         if (details.length > 0) {
             html += `<div style="margin-top: 6px; font-size: 0.75rem; color: #444; background: #f1f5f9; padding: 6px; border-radius: 4px; line-height: 1.4;">${details.join('<br>')}</div>`;

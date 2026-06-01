@@ -941,6 +941,140 @@ export class FxRenderer {
                 ctx.fillStyle = ig; ctx.fill();
                 ctx.restore();
             }
+        } else if (p.type === 'school_appeal_wave') {
+            const lifeSpent = p.maxLife - p.life;
+            if (p.delay && lifeSpent < p.delay) return;
+
+            const delayVal = p.delay || 0;
+            const pct = Math.min(1, Math.max(0, (lifeSpent - delayVal) / (p.maxLife - delayVal)));
+            const r = p.r + (p.maxR - p.r) * pct;
+            
+            ctx.save();
+            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - pct) * 0.75})`;
+            ctx.lineWidth = (1 - pct) * 3 + 1;
+            
+            // 점선 링 (바깥)
+            ctx.setLineDash([6, 9]);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 실선 링 (안쪽, 약간 작은 크기)
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * 0.88, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - pct) * 0.4})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 내부 은은한 방사형 그라데이션
+            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+            g.addColorStop(0, `rgba(255, 255, 255, ${0.12 * (1 - pct)})`);
+            g.addColorStop(0.5, `rgba(255, 255, 255, ${0.04 * (1 - pct)})`);
+            g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        } else if (p.type === 'school_appeal_megaphone') {
+            const pct = 1 - p.life / p.maxLife;
+            // 팝 인/아웃 애니메이션 스케일 연산
+            let scale = 0;
+            if (pct < 0.15) {
+                scale = (pct / 0.15) * 1.35; // 빠른 팝업
+            } else if (pct < 0.25) {
+                scale = 1.35 - ((pct - 0.15) / 0.1) * 0.15; // 살짝 튕김 (1.2 수준으로 안정화)
+            } else if (pct < 0.8) {
+                scale = 1.2; // 유지
+            } else {
+                scale = 1.2 * (1 - (pct - 0.8) / 0.2); // 부드러운 소멸
+            }
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            // 소리칠 때 나팔 파르르 떨리는 효과
+            const shake = Math.sin(pct * 70) * 2.5;
+            ctx.translate(shake, -25);
+            ctx.scale(scale, scale);
+            
+            // 1. 나팔 바디 (사다리꼴)
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(-8, -4);
+            ctx.lineTo(12, -11);
+            ctx.lineTo(12, 11);
+            ctx.lineTo(-8, 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 2. 메가폰 뒷부분 캡 (둥근 형태)
+            ctx.beginPath();
+            ctx.arc(-8, 0, 4.5, Math.PI/2, Math.PI*1.5);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 3. 메가폰 손잡이
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(-4, 2);
+            ctx.lineTo(-7, 10);
+            ctx.lineTo(-4, 10);
+            ctx.lineTo(-1, 3);
+            ctx.stroke();
+            
+            // 4. 소리 파편 (오른쪽으로 방사되는 황금빛 충격선)
+            if (pct > 0.1 && pct < 0.8) {
+                ctx.strokeStyle = '#ffeb3b';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(15, -4); ctx.lineTo(24, -9);
+                ctx.moveTo(17, 0); ctx.lineTo(27, 0);
+                ctx.moveTo(15, 4); ctx.lineTo(24, 9);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        } else if (p.type === 'school_appeal_paper') {
+            // 중력 및 바람 연산
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.96; // 공기 저항
+            p.vy += 0.07; // 중력 가속도
+            
+            // 좌우 낙하 흔들림
+            p.x += Math.sin(p.life * 9.5) * 1.3;
+            p.rot += p.rotSpd;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            
+            const alpha = Math.min(1.0, p.life * 1.8);
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.strokeStyle = `rgba(180, 180, 180, ${alpha * 0.4})`;
+            ctx.lineWidth = 1;
+            
+            // 종이 사각형 (가로세로 비율 약 1.4)
+            ctx.fillRect(-p.size / 2, -p.size * 0.7, p.size, p.size * 1.4);
+            ctx.strokeRect(-p.size / 2, -p.size * 0.7, p.size, p.size * 1.4);
+            
+            // 종이 안의 얇은 줄글 (호소문 글씨) 표현
+            ctx.strokeStyle = `rgba(120, 120, 120, ${alpha * 0.5})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(-p.size * 0.3, -p.size * 0.35); ctx.lineTo(p.size * 0.3, -p.size * 0.35);
+            ctx.moveTo(-p.size * 0.3, 0); ctx.lineTo(p.size * 0.3, 0);
+            ctx.moveTo(-p.size * 0.3, p.size * 0.35); ctx.lineTo(p.size * 0.25, p.size * 0.35);
+            ctx.stroke();
+            
+            ctx.restore();
         } else if (p.type === 'school_beaker_proj') {
             ctx.save();
             p.t = Math.min(p.t + 0.02, 1);

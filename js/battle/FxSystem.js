@@ -515,6 +515,76 @@ export class FxSystem {
                 });
             }
             return;
+        } else if (type === 'school_appeal') {
+            const maxRadius = 180;
+            // 1. 음파 확산 링 파티클
+            for (let i = 0; i < 4; i++) {
+                this.particles.push({
+                    type: 'school_appeal_wave',
+                    x: x,
+                    y: y,
+                    r: 0,
+                    maxR: maxRadius,
+                    life: 1.2,
+                    maxLife: 1.2,
+                    delay: i * 0.15,
+                    color: '#ffffff'
+                });
+            }
+            
+            // 2. 확성기(메가폰)
+            this.particles.push({
+                type: 'school_appeal_megaphone',
+                x: x,
+                y: y - 20,
+                life: 1.0,
+                maxLife: 1.0
+            });
+
+            // 3. 흩날리는 호소문 종이 파티클들
+            for (let i = 0; i < 25; i++) {
+                const a = R(0, TAU);
+                const spd = R(1.5, 5.0);
+                this.particles.push({
+                    type: 'school_appeal_paper',
+                    x: x,
+                    y: y - 20,
+                    vx: Math.cos(a) * spd,
+                    vy: Math.sin(a) * spd - R(1, 3), // 약간 위쪽으로 솟구침
+                    rot: R(0, TAU),
+                    rotSpd: R(-0.1, 0.1),
+                    life: R(1.2, 2.0),
+                    maxLife: 2.0,
+                    size: R(4, 9)
+                });
+            }
+
+            // 4. 타겟 적 도발 연출
+            if (options.targets) {
+                options.targets.forEach((tIdx, idx) => {
+                    const t = this.getCellCenter(tIdx);
+                    if (!t) return;
+                    setTimeout(() => {
+                        if (this.particles) {
+                            this.particles.push({
+                                type: 'low_taunt',
+                                x: t.x,
+                                y: t.y,
+                                life: 2.5,
+                                maxLife: 2.5
+                            });
+                            this.particles.push({
+                                type: 'low_hit',
+                                x: t.x,
+                                y: t.y,
+                                life: 0.8,
+                                color: '#ffcc33'
+                            });
+                        }
+                    }, idx * 100 + 300);
+                });
+            }
+            return;
         } else if (type === 'school_piano') {
             const H = this.fxCanvas.height || 600;
             for (let i = 0; i < 5; i++) {
