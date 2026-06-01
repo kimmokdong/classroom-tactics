@@ -950,8 +950,8 @@ export class FxRenderer {
             const r = p.r + (p.maxR - p.r) * pct;
             
             ctx.save();
-            ctx.strokeStyle = `rgba(255, 140, 0, ${(1 - pct) * 0.8})`; // 주황색 음파 링
-            ctx.lineWidth = (1 - pct) * 3 + 1;
+            ctx.strokeStyle = `rgba(255, 120, 0, ${(1 - pct) * 0.9})`; // 더 선명한 주황색 음파 링 (가독성 상향)
+            ctx.lineWidth = (1 - pct) * 11 + 4.5; // 굵기 대폭 상향 (잘 보이게 대폭 강화)
             
             // 점선 링 (바깥)
             ctx.setLineDash([6, 9]);
@@ -963,14 +963,14 @@ export class FxRenderer {
             ctx.setLineDash([]);
             ctx.beginPath();
             ctx.arc(p.x, p.y, r * 0.88, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(230, 81, 0, ${(1 - pct) * 0.55})`; // 진한 주황 안쪽 선
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = `rgba(230, 70, 0, ${(1 - pct) * 0.7})`; // 진한 주황 안쪽 선 (알파 및 선명도 보강)
+            ctx.lineWidth = (1 - pct) * 5 + 2.5; // 굵기 상향
             ctx.stroke();
             
             // 내부 은은한 방사형 그라데이션
             const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
-            g.addColorStop(0, `rgba(255, 152, 0, ${0.15 * (1 - pct)})`); // 금빛/주황빛 방사
-            g.addColorStop(0.5, `rgba(255, 200, 0, ${0.05 * (1 - pct)})`);
+            g.addColorStop(0, `rgba(255, 152, 0, ${0.2 * (1 - pct)})`); // 금빛/주황빛 방사 불투명도 약간 상향
+            g.addColorStop(0.5, `rgba(255, 200, 0, ${0.08 * (1 - pct)})`);
             g.addColorStop(1, 'rgba(255, 152, 0, 0)');
             ctx.fillStyle = g;
             ctx.beginPath();

@@ -39,7 +39,7 @@ const LEVEL_UP_COST = { 6: 30, 7: 50, 8: 68 };
 const BASE_LEVEL_COST = { '6L': 38, '7L': 68, '8L': 118, '9L': 186 };
 
 // 1인용 솔로플레이 환경에 맞게 기물 풀 대폭 축소 (기물 독점 난이도 증가)
-const TIER_COPIES = { 1: 22, 2: 18, 3: 17, 4: 8, 5: 7 };
+const TIER_COPIES = { 1: 22, 2: 18, 3: 18, 4: 8, 5: 7 };
 const SHOP_ODDS = {
     6: [35, 35, 25, 5, 0],
     7: [19, 25, 40, 15, 1],
@@ -169,9 +169,21 @@ class AgentBot {
                     upgraded.star = star + 1;
                     
                     // Apply stat scaling based on star level (from 1-star base)
+                    // Tier based scaling multipliers for perfect balance
+                    const hpMultipliers = { 1: 1.5, 2: 1.6, 3: 1.7, 4: 1.8, 5: 1.8 };
+                    const adApMultipliers = { 1: 1.3, 2: 1.4, 3: 1.45, 4: 1.5, 5: 1.5 };
+                    let hpMult = hpMultipliers[upgraded.tier] || 1.8;
+                    let dmgMult = adApMultipliers[upgraded.tier] || 1.5;
+
                     for (let s = 2; s <= upgraded.star; s++) {
-                        upgraded.stats.hp = Math.round(upgraded.stats.hp * 1.8);
-                        upgraded.stats.ad = Math.round(upgraded.stats.ad * 1.5);
+                        upgraded.stats.hp = Math.round(upgraded.stats.hp * hpMult);
+                        upgraded.stats.ad = Math.round(upgraded.stats.ad * dmgMult);
+                        if(upgraded.stats.ap) {
+                            upgraded.stats.ap = Math.round(upgraded.stats.ap * dmgMult);
+                        } else {
+                            // If base AP was undefined or 0, initialize it to 100 first, then scale
+                            upgraded.stats.ap = Math.round(100 * Math.pow(dmgMult, s - 1));
+                        }
                     }
                     
                     if (removedFromDeck > 0) {
@@ -430,35 +442,46 @@ function assignItems(deck, type) {
         if (u.position && (u.position.includes('물리') || u.position.includes('공격력'))) isAD = true;
         else if (u.stats.ad > 60 && (!u.position || u.position === '')) isAD = true;
 
-        let score = u.star * 10 + u.tier;
-        if (u.star === 3) score += 50;
-        return { idx: i, u, score, isTank, isDealer, isSupport, isAD };
+        let baseScore = u.star * 1000 + u.tier * 100;
+        let tankScore = baseScore + u.stats.hp + (u.stats.armor * 10) + (u.stats.mr * 10);
+        let dealerScore = baseScore + (u.stats.ad * 2) + (u.stats.ap * 2);
+
+        return { idx: i, u, tankScore, dealerScore, isTank, isDealer, isSupport, isAD };
     });
     
-    units.sort((a,b) => b.score - a.score);
-    let tanks = units.filter(x => x.isTank);
+    let tanks = units.filter(x => x.isTank).sort((a, b) => b.tankScore - a.tankScore);
     if (tanks.length === 0) {
         let byPriority = [...units].sort((a, b) => {
             if (a.u.stats.range !== b.u.stats.range) return a.u.stats.range - b.u.stats.range;
-            if (a.u.star !== b.u.star) return b.u.star - a.u.star;
-            if (a.u.tier !== b.u.tier) return b.u.tier - a.u.tier;
-            return b.u.stats.hp - a.u.stats.hp;
+            return b.tankScore - a.tankScore;
         });
         if(byPriority.length > 0) tanks = [byPriority[0]];
     }
     
     let mainTank = tanks[0];
     let nonTanks = units.filter(x => x !== mainTank);
-    let dealers = nonTanks.filter(x => x.isDealer);
-    let mainDps = dealers[0] || nonTanks.filter(x => x.isSupport)[0] || nonTanks[0];
+    
+    let dealers = nonTanks.filter(x => x.isDealer).sort((a, b) => b.dealerScore - a.dealerScore);
+    let mainDps = dealers[0];
+    if (!mainDps) {
+        let fallback = [...nonTanks].sort((a, b) => {
+            if (a.isSupport !== b.isSupport) return a.isSupport ? -1 : 1;
+            return b.dealerScore - a.dealerScore;
+        });
+        mainDps = fallback[0];
+    }
     
     let remaining = units.filter(x => x !== mainTank && x !== mainDps);
-    let subDps = remaining[0];
+    let subDps = remaining.sort((a, b) => {
+        if (a.isDealer !== b.isDealer) return a.isDealer ? -1 : 1;
+        if (a.isSupport !== b.isSupport) return a.isSupport ? -1 : 1;
+        return b.dealerScore - a.dealerScore;
+    })[0];
     
     deck.forEach(u => u.items = []);
     if (mainTank) deck[mainTank.idx].items = [...TANK_ITEMS];
     if (mainDps) deck[mainDps.idx].items = mainDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
-    if (subDps && subDps !== mainTank && subDps !== mainDps) deck[subDps.idx].items = subDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
+    if (subDps) deck[subDps.idx].items = subDps.isAD ? [...AD_ITEMS] : [...AP_ITEMS];
 }
 
 function fight(deckA, deckB) {
@@ -473,8 +496,50 @@ function fight(deckA, deckB) {
     
     let pBoard = Array(24).fill(null);
     let eBoard = Array(24).fill(null);
-    boardA.forEach((u, i) => pBoard[i] = u);
-    boardB.forEach((u, i) => eBoard[i] = u);
+    function placeUnits(units, targetBoard, isEnemy) {
+        const centerFirst = [3, 4, 2, 5, 1, 6, 0, 7];
+        let frontIdx = 0; let midIdx = 0; let backIdx = 0;
+        for (let u of units) {
+            let range = u.stats.range || 1;
+            let placed = false;
+            if (range === 1) {
+                if (frontIdx < 8) {
+                    let y = isEnemy ? 2 : 0;
+                    targetBoard[y * 8 + centerFirst[frontIdx++]] = u;
+                    placed = true;
+                } else if (midIdx < 8) {
+                    let y = 1;
+                    targetBoard[y * 8 + centerFirst[midIdx++]] = u;
+                    placed = true;
+                }
+            } else if (range === 2) {
+                if (midIdx < 8) {
+                    let y = 1;
+                    targetBoard[y * 8 + centerFirst[midIdx++]] = u;
+                    placed = true;
+                } else if (backIdx < 8) {
+                    let y = isEnemy ? 0 : 2;
+                    targetBoard[y * 8 + centerFirst[backIdx++]] = u;
+                    placed = true;
+                }
+            }
+            if (!placed) {
+                if (backIdx < 8) {
+                    let y = isEnemy ? 0 : 2;
+                    targetBoard[y * 8 + centerFirst[backIdx++]] = u;
+                } else if (midIdx < 8) {
+                    let y = 1;
+                    targetBoard[y * 8 + centerFirst[midIdx++]] = u;
+                } else if (frontIdx < 8) {
+                    let y = isEnemy ? 2 : 0;
+                    targetBoard[y * 8 + centerFirst[frontIdx++]] = u;
+                }
+            }
+        }
+    }
+    
+    placeUnits(boardA, pBoard, false);
+    placeUnits(boardB, eBoard, true);
     
     let engine = new BattleEngine(pBoard, eBoard, []);
     engine.run();

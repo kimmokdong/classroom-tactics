@@ -348,6 +348,9 @@ export class UnitManager {
         if (skill.allyApFlat) details.push(`아군 주문력 증가: ${formatArr(skill.allyApFlat, false, '', COLORS.ap, '🔮')}`);
         if (skill.enemyMrReduc) details.push(`적 마저 감소: ${formatArr(skill.enemyMrReduc, false, '', COLORS.mr, '🌀')}`);
         if (skill.adReducPct) details.push(`적 공격력 감소: ${formatArr(skill.adReducPct, true, '', COLORS.ad, '⚔️')}`);
+        if (skill.adjPassiveItems) details.push(`임시 부여 아이템 수: ${formatArr(skill.adjPassiveItems, false, '개', COLORS.ap, '🎁')}`);
+        if (skill.goldDrop) details.push(`스킬 시전 골드 드랍: ${formatArr(skill.goldDrop, false, 'G', COLORS.ad, '💰')}`);
+
 
         if (skill.trueDmgPct) details.push(`고정 피해량: ${formatArr(skill.trueDmgPct, true, '', COLORS.def, '')}`);
         if (skill.armorPen) details.push(`방어력 관통: ${formatArr(skill.armorPen, true, '', COLORS.def, '')}`);
@@ -458,8 +461,12 @@ export class UnitManager {
 
         if (skill.asBuff) {
             let asVal = Math.round(skill.asBuff[starIdx] * (currAp / 100) * 100);
-            html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가/, `공격 속도 ${wrap('+' + asVal + '%', COLORS.ap, '🔮')} 증가`);
+            html = html.replace(/공격 속도 대폭 증가|공격 속도 증가|공속 증가|공격 속도 버프/, `공격 속도 ${wrap('+' + asVal + '%', COLORS.ap, '🔮')} 증가`);
         }
+
+        if (skill.adjPassiveItems) html = html.replace(/수개/, wrap(skill.adjPassiveItems[starIdx] + '개', COLORS.ap, '🎁'));
+        if (skill.goldDrop) html = html.replace(/골드를 드랍합니다/, wrap(skill.goldDrop[starIdx] + '골드', COLORS.ad, '💰') + '를 드랍합니다');
+
 
         if (skill.allyApFlat) html = html.replace(/주문력 증가/, `주문력 ${wrap('+' + skill.allyApFlat[starIdx], COLORS.def)} 증가`);
         if (skill.enemyMrReduc) html = html.replace(/마저 감소/, `마저 ${wrap('-' + skill.enemyMrReduc[starIdx], COLORS.def)} 감소`);

@@ -192,6 +192,30 @@ export class BattleEngine {
             }
         }
 
+        // [경제부 시너지] 3/4 효과
+        {
+            const ecoCount = new Set(
+                activeUnits.filter(u => u.team === 'player' && (
+                    u.club === '경제부' || (Array.isArray(u.club) && u.club.includes('경제부'))
+                )).map(u => u.name)
+            ).size;
+
+
+
+            if (ecoCount >= 4) {
+                // 4시너지: 황금 만능주의
+                const buffPct = 0.3 + Math.floor(this.playerGold / 10) * 0.2;
+                activeUnits.forEach(u => {
+                    if (u.team === 'player') {
+                        u.stats.ad = Math.round(u.stats.ad * (1 + buffPct));
+                        u.stats.ap = Math.round(u.stats.ap * (1 + buffPct));
+                        u.stats.as = u.stats.as * (1 + buffPct);
+                    }
+                });
+                this.logs.push({ tick: this.tick, type: 'eco_buff', buffPct: buffPct });
+            }
+        }
+
         this.tick = -10;
         this.initItemEffects(activeUnits);
 
@@ -937,6 +961,18 @@ export class BattleEngine {
         if (ccImmune && (type === 'stun' || type === 'taunt' || type === 'zephyr' || type === 'disarm' || type === 'silence')) return;
         if (this.suddenDeath && (type === 'stun' || type === 'taunt' || type === 'zephyr' || type === 'disarm' || type === 'silence')) {
             duration = Math.max(1, Math.round(duration * this.ccDurationMult));
+        }
+        if (duration > 0 && type !== 'shield') {
+            let existingIdx = target.buffs.findIndex(b => b.type === type && b.stat === stat);
+            if (existingIdx !== -1) {
+                let existing = target.buffs[existingIdx];
+                if (Math.abs(val) > Math.abs(existing.val) || (val === 0 && existing.val === 0)) {
+                    target.buffs[existingIdx] = { type, stat, val, duration, sourceIdx };
+                } else if (Math.abs(val) === Math.abs(existing.val)) {
+                    existing.duration = Math.max(existing.duration, duration);
+                }
+                return; // 이미 존재하는 버프를 갱신/무시했으므로 새로 추가하지 않고 종료
+            }
         }
         target.buffs.push({ type, stat, val, duration, sourceIdx });
         // 즉시 스탯 적용

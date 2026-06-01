@@ -444,6 +444,21 @@ export class SkillEngine {
                 });
                 break;
 
+            case 'global_gold_drop_buff':
+                allies.forEach(a => {
+                    if (s.asBuff) {
+                        addBuff(a, 'attackSpeed', null, s.asBuff[starIdx], 999, unit.gridIndex);
+                    }
+                });
+                if (unit.team === 'player' && s.goldDrop) {
+                    const amount = s.goldDrop[starIdx];
+                    engine.earnedGold = (engine.earnedGold || 0) + amount;
+                    engine.logs.push({
+                        tick: engine.tick, type: 'gold_drop', amount: amount, target: unit.gridIndex, source: unit.gridIndex, unitName: unit.name
+                    });
+                }
+                break;
+
             case 'team_heal':
             case 'team_heal_buff':
             case 'team_heal_plus':

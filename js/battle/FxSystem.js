@@ -516,7 +516,7 @@ export class FxSystem {
             }
             return;
         } else if (type === 'school_appeal') {
-            const maxRadius = 180;
+            const maxRadius = 300; // 도발 범위인 주변 2칸까지 확실히 닿도록 반경 확장 (기존 180)
             // 1. 음파 확산 링 파티클
             for (let i = 0; i < 4; i++) {
                 this.particles.push({

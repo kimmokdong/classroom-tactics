@@ -499,14 +499,43 @@ export class BattleRenderer {
         } else if (action.type === 'gold_drop') {
             const cell = this.cells[action.target];
             if (cell) {
+                // 부모 셀이 relative가 아닐 경우를 대비해 명시적으로 지정 (샌드박스 중앙 고정 버그 해결)
+                if (getComputedStyle(cell).position === 'static') {
+                    cell.style.position = 'relative';
+                }
+                
+                // 시인성을 극대화한 큼직한 골드 팝업
                 const goldText = document.createElement('div');
-                goldText.className = 'dmg-text heal';
-                goldText.style.color = '#f1c40f'; // Gold color
-                goldText.style.textShadow = '0 0 4px #000';
-                goldText.innerText = `+${action.amount}G`;
+                goldText.style.position = 'absolute';
+                goldText.style.left = '50%';
+                goldText.style.top = '30%';
+                goldText.style.transform = 'translate(-50%, 0) scale(0.5)';
+                goldText.style.color = '#4ade80'; // 시인성 높은 밝은 초록색 (달러 느낌)
+                goldText.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 10px #000'; // 굵은 4방향 외곽선 + 그림자
+                goldText.style.fontWeight = '900';
+                goldText.style.fontSize = '1.8rem';
+                goldText.style.whiteSpace = 'nowrap';
+                goldText.style.zIndex = '1000'; // 최상단 노출
+                goldText.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; // 튕기는 듯한 팝업 애니메이션
+                goldText.style.pointerEvents = 'none';
+                goldText.innerHTML = `💰 +${action.amount}G`;
                 cell.appendChild(goldText);
-                setTimeout(() => { if(goldText.parentNode) goldText.parentNode.removeChild(goldText); }, 1000);
+
+                // 생성되자마자 서서히 위로 떠오르며 커짐
+                requestAnimationFrame(() => {
+                    goldText.style.transform = 'translate(-50%, -40px) scale(1.2)';
+                });
+
+                // 충분히 오래 보여준 후 서서히 사라짐
+                setTimeout(() => { 
+                    goldText.style.opacity = '0';
+                    goldText.style.transform = 'translate(-50%, -60px) scale(0.8)';
+                }, 2000); // 기존 800ms에서 2000ms로 대폭 연장
+
+                setTimeout(() => { if(goldText.parentNode) goldText.parentNode.removeChild(goldText); }, 3000); // 완전히 삭제되는 시간도 여유롭게 연장
+
             }
+
             if (window.gameApp && window.gameApp.state) {
                 window.gameApp.state.gold += action.amount;
                 window.gameApp.updateHeader();
@@ -519,6 +548,18 @@ export class BattleRenderer {
                 li.style.borderBottom = '1px dashed #eee';
                 li.style.paddingBottom = '3px';
                 li.innerHTML = `💰 <strong>${action.unitName}</strong>(이)가 적을 처치하여 ${action.amount}골드 획득!`;
+                logEl.appendChild(li);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+        } else if (action.type === 'eco_buff') {
+            const logEl = document.getElementById('battle-log');
+            if (logEl) {
+                const li = document.createElement('li');
+                li.style.color = '#f1c40f';
+                li.style.fontSize = '0.85rem';
+                li.style.borderBottom = '1px dashed #eee';
+                li.style.paddingBottom = '3px';
+                li.innerHTML = `💸 <strong>[황금 만능주의]</strong> 아군 전체 스탯 <span style="color:#2ecc71;">+${Math.round(action.buffPct * 100)}%</span> 증가!`;
                 logEl.appendChild(li);
                 logEl.scrollTop = logEl.scrollHeight;
             }
