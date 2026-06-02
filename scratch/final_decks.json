@@ -1,0 +1,1354 @@
+[
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 13
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 301,
+    "matches": 870,
+    "lastName": "방송부5_음악2_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.34597701149425286
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u1_6",
+        "gridIndex": 23
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 293,
+    "matches": 870,
+    "lastName": "방송부5 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.3367816091954023
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u1_6",
+        "gridIndex": 23
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 3,
+    "lastName": "방송부5 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 288,
+    "matches": 870,
+    "winrate": 0.3310344827586207
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 13
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 287,
+    "matches": 870,
+    "lastName": "방송부5_음악2_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.32988505747126434
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 13
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 286,
+    "matches": 870,
+    "lastName": "방송부5_음악2_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.32873563218390806
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 4,
+    "lastName": "방송부5_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 280,
+    "matches": 870,
+    "winrate": 0.3218390804597701
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u1_6",
+        "gridIndex": 23
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 280,
+    "matches": 870,
+    "lastName": "방송부5 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.3218390804597701
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u1_6",
+        "gridIndex": 23
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 3,
+    "lastName": "방송부5 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 274,
+    "matches": 870,
+    "winrate": 0.31494252873563217
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u2_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 3,
+    "lastName": "방송부5_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 253,
+    "matches": 870,
+    "winrate": 0.2908045977011494
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 13
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 8,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 236,
+    "matches": 870,
+    "winrate": 0.271264367816092
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 22
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 235,
+    "matches": 870,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2_보건부2_사회1 (🛡️피카소의 재림, 👑발명품 매니아, 🌟천재 피아니스트)",
+    "winrate": 0.27011494252873564
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 15
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 3
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 15
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 12
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 1
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "wins": 226,
+    "matches": 870,
+    "lastName": "방송부3_음악2_선도부2 (🛡️오케스트라 단장, 👑사회탐구 1타, 🌟천재 피아니스트)",
+    "winrate": 0.2597701149425287
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 22
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 224,
+    "matches": 870,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.2574712643678161
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 3
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 21
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 12
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 1
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "fitness": 9,
+    "lastName": "방송부3_음악2_선도부2 (🛡️올림피아드 금상, 👑사회탐구 1타, 🌟천재 피아니스트)",
+    "wins": 220,
+    "matches": 870,
+    "winrate": 0.25287356321839083
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_1",
+        "gridIndex": 14
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 220,
+    "matches": 870,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.25287356321839083
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 13
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 9,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 216,
+    "matches": 870,
+    "winrate": 0.2482758620689655
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 13
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 9,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 214,
+    "matches": 870,
+    "winrate": 0.24597701149425288
+  },
+  {
+    "strategy": 8,
+    "units": [
+      {
+        "id": "u2_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 20
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 6
+      },
+      {
+        "id": "u5_4",
+        "gridIndex": 8
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 0
+      },
+      {
+        "id": "u4_2",
+        "gridIndex": 6
+      },
+      {
+        "id": "u3_1",
+        "gridIndex": 19
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 213,
+    "matches": 870,
+    "lastName": "방송부5_수학2_선도부2_사회1 (🛡️교장 선생님, 👑천재 피아니스트, 🌟수능 만점자)",
+    "winrate": 0.24482758620689654
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 13
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 213,
+    "matches": 870,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "winrate": 0.24482758620689654
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 16
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 13
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 22
+      },
+      {
+        "id": "u1_5",
+        "gridIndex": 10
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 1
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "fitness": 4,
+    "lastName": "방송부3_음악2_선도부2 (🛡️오케스트라 단장, 👑천재 피아니스트, 🌟올림피아드 금상)",
+    "wins": 212,
+    "matches": 870,
+    "winrate": 0.24367816091954023
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 14
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 12
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u1_4",
+        "gridIndex": 1
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "fitness": 8,
+    "lastName": "방송부3_음악2_선도부2 (🛡️올림피아드 금상, 👑사회탐구 1타, 🌟천재 피아니스트)",
+    "wins": 210,
+    "matches": 870,
+    "winrate": 0.2413793103448276
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 22
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 202,
+    "matches": 870,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑수채화 장인, 🌟발명품 매니아)",
+    "winrate": 0.23218390804597702
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 22
+      }
+    ],
+    "rerollTargets": [],
+    "fitness": 11,
+    "lastName": "방송부3_과학2_음악2_미술2_장난꾸러기2 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟수채화 장인)",
+    "wins": 201,
+    "matches": 870,
+    "winrate": 0.23103448275862068
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_8",
+        "gridIndex": 10
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 8
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 16
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 3
+      },
+      {
+        "id": "u1_8",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 7
+      },
+      {
+        "id": "u4_2",
+        "gridIndex": 10
+      }
+    ],
+    "rerollTargets": [
+      "u3_8",
+      "u3_9",
+      "u3_4"
+    ],
+    "fitness": 5,
+    "lastName": "방송부3_음악2 (🛡️오케스트라 단장, 👑수채화 장인, 🌟천재 피아니스트)",
+    "wins": 168,
+    "matches": 870,
+    "winrate": 0.19310344827586207
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_8",
+        "gridIndex": 20
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 10
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 1
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 3
+      },
+      {
+        "id": "u1_8",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 7
+      },
+      {
+        "id": "u4_2",
+        "gridIndex": 10
+      }
+    ],
+    "rerollTargets": [
+      "u3_8",
+      "u3_9",
+      "u3_4"
+    ],
+    "wins": 158,
+    "matches": 870,
+    "lastName": "방송부3_음악2 (🛡️오케스트라 단장, 👑수채화 장인, 🌟발명품 매니아)",
+    "winrate": 0.18160919540229886
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_8",
+        "gridIndex": 17
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 17
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 6
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 3
+      },
+      {
+        "id": "u1_8",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_10",
+        "gridIndex": 7
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 7
+      },
+      {
+        "id": "u4_2",
+        "gridIndex": 10
+      }
+    ],
+    "rerollTargets": [
+      "u3_8",
+      "u3_9",
+      "u3_4"
+    ],
+    "wins": 147,
+    "matches": 870,
+    "lastName": "방송부3_음악2 (🛡️오케스트라 단장, 👑천재 피아니스트, 🌟수능 만점자)",
+    "winrate": 0.16896551724137931
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 21
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 19
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 23
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 12
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 23
+      },
+      {
+        "id": "u1_2",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "wins": 139,
+    "matches": 870,
+    "lastName": "음악2_선도부2_사회1 (🛡️피카소의 재림, 👑천재 피아니스트, 🌟양호실 도우미)",
+    "winrate": 0.15977011494252874
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 2
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 21
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 15
+      },
+      {
+        "id": "u4_4",
+        "gridIndex": 18
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "wins": 132,
+    "matches": 870,
+    "lastName": "음악2_선도부2_사회1 (🛡️올림피아드 금상, 👑사회탐구 1타, 🌟천재 피아니스트)",
+    "winrate": 0.15172413793103448
+  },
+  {
+    "strategy": 7,
+    "units": [
+      {
+        "id": "u3_1",
+        "gridIndex": 4
+      },
+      {
+        "id": "u3_8",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_5",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_4",
+        "gridIndex": 20
+      },
+      {
+        "id": "u4_7",
+        "gridIndex": 17
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 23
+      },
+      {
+        "id": "u2_5",
+        "gridIndex": 0
+      },
+      {
+        "id": "u3_2",
+        "gridIndex": 12
+      }
+    ],
+    "rerollTargets": [
+      "u3_1",
+      "u3_8",
+      "u3_5"
+    ],
+    "wins": 123,
+    "matches": 870,
+    "lastName": "음악2_선도부2_사회1 (🛡️오케스트라 단장, 👑사회탐구 1타, 🌟천재 피아니스트)",
+    "winrate": 0.1413793103448276
+  },
+  {
+    "strategy": 9,
+    "units": [
+      {
+        "id": "u1_7",
+        "gridIndex": 22
+      },
+      {
+        "id": "u5_3",
+        "gridIndex": 12
+      },
+      {
+        "id": "u3_9",
+        "gridIndex": 18
+      },
+      {
+        "id": "u3_4",
+        "gridIndex": 9
+      },
+      {
+        "id": "u2_6",
+        "gridIndex": 9
+      },
+      {
+        "id": "u3_6",
+        "gridIndex": 14
+      },
+      {
+        "id": "u4_4",
+        "gridIndex": 22
+      },
+      {
+        "id": "u2_9",
+        "gridIndex": 9
+      },
+      {
+        "id": "u1_9",
+        "gridIndex": 13
+      }
+    ],
+    "rerollTargets": [],
+    "wins": 1,
+    "matches": 870,
+    "lastName": "과학2_미술2_국어2_장난꾸러기2_육상부2 (🛡️논술의 신, 👑피카소의 재림, 🌟시조 읊는 선비)",
+    "winrate": 0.0011494252873563218
+  }
+]

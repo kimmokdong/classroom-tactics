@@ -1,0 +1,3254 @@
+{
+  "metaDecks": [
+    {
+      "level": 7,
+      "name": "국어(4), 사회(4), 보건부(2)",
+      "fullName": "[Lv.7] 국어(4), 사회(4), 보건부(2)",
+      "units": [
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "역사 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 9.4,
+      "mmr": 0
+    },
+    {
+      "level": 8,
+      "name": "도덕(4), 사회(1), 국어(2), 보건부(6)",
+      "fullName": "[Lv.8] 도덕(4), 사회(1), 국어(2), 보건부(6)",
+      "units": [
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 11.8,
+      "mmr": 45
+    },
+    {
+      "level": 7,
+      "name": "국어(2), 도덕(2), 사회(1), 보건부(6)",
+      "fullName": "[Lv.7] 국어(2), 도덕(2), 사회(1), 보건부(6)",
+      "units": [
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "미술 치료사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 12.5,
+      "mmr": 90
+    },
+    {
+      "level": 8,
+      "name": "사회(4), 국어(4), 방송부(3), 급식부(3)",
+      "fullName": "[Lv.8] 사회(4), 국어(4), 방송부(3), 급식부(3)",
+      "units": [
+        {
+          "name": "역사 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 13.1,
+      "mmr": 134
+    },
+    {
+      "level": 7,
+      "name": "사회(1), 국어(2), 음악(2), 급식부(7)",
+      "fullName": "[Lv.7] 사회(1), 국어(2), 음악(2), 급식부(7)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 14,
+      "mmr": 179
+    },
+    {
+      "level": 7,
+      "name": "사회(1), 국어(2), 음악(2), 급식부(7)",
+      "fullName": "[Lv.7] 사회(1), 국어(2), 음악(2), 급식부(7)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 14,
+      "mmr": 224
+    },
+    {
+      "level": 7,
+      "name": "도덕(4), 사회(1), 보건부(6)",
+      "fullName": "[Lv.7] 도덕(4), 사회(1), 보건부(6)",
+      "units": [
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "미술 치료사",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 14.5,
+      "mmr": 269
+    },
+    {
+      "level": 7,
+      "name": "체육(2), 사회(1), 음악(2), 미술(2), 장난꾸러기(2), 선도부(2), 급식부(3)",
+      "fullName": "[Lv.7] 체육(2), 사회(1), 음악(2), 미술(2), 장난꾸러기(2), 선도부(2), 급식부(3)",
+      "units": [
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수채화 장인",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 16.7,
+      "mmr": 313
+    },
+    {
+      "level": 7,
+      "name": "도덕(6), 사회(1), 보건부(2), 선도부(2)",
+      "fullName": "[Lv.7] 도덕(6), 사회(1), 보건부(2), 선도부(2)",
+      "units": [
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 18.4,
+      "mmr": 358
+    },
+    {
+      "level": 8,
+      "name": "국어(2), 사회(1), 도덕(6), 선도부(2), 보건부(2)",
+      "fullName": "[Lv.8] 국어(2), 사회(1), 도덕(6), 선도부(2), 보건부(2)",
+      "units": [
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 24.8,
+      "mmr": 403
+    },
+    {
+      "level": 7,
+      "name": "과학(2), 체육(2), 장난꾸러기(6)",
+      "fullName": "[Lv.7] 과학(2), 체육(2), 장난꾸러기(6)",
+      "units": [
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "sub_dealer"
+        }
+      ],
+      "winRate": 24.8,
+      "mmr": 448
+    },
+    {
+      "level": 8,
+      "name": "도덕(4), 사회(1), 국어(2), 체육(2), 선도부(4), 보건부(2)",
+      "fullName": "[Lv.8] 도덕(4), 사회(1), 국어(2), 체육(2), 선도부(4), 보건부(2)",
+      "units": [
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 28.2,
+      "mmr": 493
+    },
+    {
+      "level": 8,
+      "name": "국어(2), 사회(1), 도덕(2), 음악(2), 과학(2), 방송부(5), 급식부(3)",
+      "fullName": "[Lv.8] 국어(2), 사회(1), 도덕(2), 음악(2), 과학(2), 방송부(5), 급식부(3)",
+      "units": [
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 28.5,
+      "mmr": 537
+    },
+    {
+      "level": 9,
+      "name": "사회(1), 국어(2), 과학(4), 수학(4), 급식부(3), 육상부(2), 장난꾸러기(2)",
+      "fullName": "[Lv.9] 사회(1), 국어(2), 과학(4), 수학(4), 급식부(3), 육상부(2), 장난꾸러기(2)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 29.3,
+      "mmr": 582
+    },
+    {
+      "level": 9,
+      "name": "영어(2), 도덕(4), 사회(1), 국어(2), 보건부(6), 육상부(2)",
+      "fullName": "[Lv.9] 영어(2), 도덕(4), 사회(1), 국어(2), 보건부(6), 육상부(2)",
+      "units": [
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 29.9,
+      "mmr": 627
+    },
+    {
+      "level": 8,
+      "name": "수학(2), 과학(2), 국어(2), 사회(1), 음악(2), 급식부(7)",
+      "fullName": "[Lv.8] 수학(2), 과학(2), 국어(2), 사회(1), 음악(2), 급식부(7)",
+      "units": [
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 30,
+      "mmr": 672
+    },
+    {
+      "level": 8,
+      "name": "창체(1), 과학(2), 수학(2), 음악(2), 국어(2), 사회(1), 경제부(2), 급식부(5)",
+      "fullName": "[Lv.8] 창체(1), 과학(2), 수학(2), 음악(2), 국어(2), 사회(1), 경제부(2), 급식부(5)",
+      "units": [
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 31.6,
+      "mmr": 716
+    },
+    {
+      "level": 7,
+      "name": "음악(2), 사회(1), 방송부(7)",
+      "fullName": "[Lv.7] 음악(2), 사회(1), 방송부(7)",
+      "units": [
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 33.4,
+      "mmr": 761
+    },
+    {
+      "level": 7,
+      "name": "음악(2), 사회(1), 방송부(7)",
+      "fullName": "[Lv.7] 음악(2), 사회(1), 방송부(7)",
+      "units": [
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 33.4,
+      "mmr": 806
+    },
+    {
+      "level": 7,
+      "name": "체육(2), 과학(2), 장난꾸러기(6)",
+      "fullName": "[Lv.7] 체육(2), 과학(2), 장난꾸러기(6)",
+      "units": [
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        }
+      ],
+      "winRate": 36.9,
+      "mmr": 851
+    },
+    {
+      "level": 7,
+      "name": "과학(4), 수학(4), 장난꾸러기(2), 육상부(2)",
+      "fullName": "[Lv.7] 과학(4), 수학(4), 장난꾸러기(2), 육상부(2)",
+      "units": [
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 37.5,
+      "mmr": 896
+    },
+    {
+      "level": 7,
+      "name": "도덕(4), 체육(2), 선도부(4), 보건부(2)",
+      "fullName": "[Lv.7] 도덕(4), 체육(2), 선도부(4), 보건부(2)",
+      "units": [
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 38.1,
+      "mmr": 940
+    },
+    {
+      "level": 8,
+      "name": "미술(2), 체육(2), 음악(2), 도덕(2), 급식부(3), 장난꾸러기(2), 선도부(2)",
+      "fullName": "[Lv.8] 미술(2), 체육(2), 음악(2), 도덕(2), 급식부(3), 장난꾸러기(2), 선도부(2)",
+      "units": [
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 39.6,
+      "mmr": 985
+    },
+    {
+      "level": 9,
+      "name": "사회(4), 국어(4), 창체(1), 보건부(2), 급식부(3), 경제부(2)",
+      "fullName": "[Lv.9] 사회(4), 국어(4), 창체(1), 보건부(2), 급식부(3), 경제부(2)",
+      "units": [
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "역사 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 40,
+      "mmr": 1030
+    },
+    {
+      "level": 8,
+      "name": "도덕(4), 사회(1), 국어(2), 영어(2), 보건부(4), 육상부(2)",
+      "fullName": "[Lv.8] 도덕(4), 사회(1), 국어(2), 영어(2), 보건부(4), 육상부(2)",
+      "units": [
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 43.4,
+      "mmr": 1075
+    },
+    {
+      "level": 9,
+      "name": "영어(4), 과학(2), 도덕(2), 수학(2), 방송부(3), 장난꾸러기(2), 보건부(2), 경제부(2)",
+      "fullName": "[Lv.9] 영어(4), 과학(2), 도덕(2), 수학(2), 방송부(3), 장난꾸러기(2), 보건부(2), 경제부(2)",
+      "units": [
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "해외 보따리상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 44,
+      "mmr": 1119
+    },
+    {
+      "level": 8,
+      "name": "과학(2), 수학(2), 체육(2), 미술(2), 장난꾸러기(6)",
+      "fullName": "[Lv.8] 과학(2), 수학(2), 체육(2), 미술(2), 장난꾸러기(6)",
+      "units": [
+        {
+          "name": "미친 과학자",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 44.6,
+      "mmr": 1164
+    },
+    {
+      "level": 9,
+      "name": "국어(2), 사회(1), 미술(2), 체육(2), 음악(2), 급식부(5), 육상부(2), 장난꾸러기(2)",
+      "fullName": "[Lv.9] 국어(2), 사회(1), 미술(2), 체육(2), 음악(2), 급식부(5), 육상부(2), 장난꾸러기(2)",
+      "units": [
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 46.9,
+      "mmr": 1209
+    },
+    {
+      "level": 8,
+      "name": "과학(4), 수학(4), 장난꾸러기(2), 육상부(2), 방송부(3)",
+      "fullName": "[Lv.8] 과학(4), 수학(4), 장난꾸러기(2), 육상부(2), 방송부(3)",
+      "units": [
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 48.5,
+      "mmr": 1254
+    },
+    {
+      "level": 8,
+      "name": "과학(2), 체육(2), 수학(2), 국어(2), 사회(1), 육상부(6)",
+      "fullName": "[Lv.8] 과학(2), 체육(2), 수학(2), 국어(2), 사회(1), 육상부(6)",
+      "units": [
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 49,
+      "mmr": 1299
+    },
+    {
+      "level": 9,
+      "name": "도덕(6), 과학(2), 창체(1), 보건부(2), 경제부(2), 선도부(2)",
+      "fullName": "[Lv.9] 도덕(6), 과학(2), 창체(1), 보건부(2), 경제부(2), 선도부(2)",
+      "units": [
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 49.9,
+      "mmr": 1343
+    },
+    {
+      "level": 8,
+      "name": "도덕(2), 창체(1), 체육(2), 수학(2), 선도부(6), 경제부(2)",
+      "fullName": "[Lv.8] 도덕(2), 창체(1), 체육(2), 수학(2), 선도부(6), 경제부(2)",
+      "units": [
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수채화 장인",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        }
+      ],
+      "winRate": 50,
+      "mmr": 1388
+    },
+    {
+      "level": 8,
+      "name": "과학(2), 도덕(2), 창체(2), 수학(2), 경제부(2), 방송부(3)",
+      "fullName": "[Lv.8] 과학(2), 도덕(2), 창체(2), 수학(2), 경제부(2), 방송부(3)",
+      "units": [
+        {
+          "name": "미친 과학자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "또래 상담 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 50.1,
+      "mmr": 1433
+    },
+    {
+      "level": 7,
+      "name": "도덕(2), 체육(2), 수학(2), 선도부(6)",
+      "fullName": "[Lv.7] 도덕(2), 체육(2), 수학(2), 선도부(6)",
+      "units": [
+        {
+          "name": "수채화 장인",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 50.4,
+      "mmr": 1478
+    },
+    {
+      "level": 8,
+      "name": "체육(2), 과학(2), 수학(2), 미술(2), 장난꾸러기(6)",
+      "fullName": "[Lv.8] 체육(2), 과학(2), 수학(2), 미술(2), 장난꾸러기(6)",
+      "units": [
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        }
+      ],
+      "winRate": 51.5,
+      "mmr": 1522
+    },
+    {
+      "level": 9,
+      "name": "수학(2), 과학(2), 체육(2), 국어(2), 사회(1), 창체(1), 육상부(6), 경제부(2)",
+      "fullName": "[Lv.9] 수학(2), 과학(2), 체육(2), 국어(2), 사회(1), 창체(1), 육상부(6), 경제부(2)",
+      "units": [
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 51.9,
+      "mmr": 1567
+    },
+    {
+      "level": 8,
+      "name": "도덕(2), 수학(2), 영어(4), 보건부(2), 방송부(3), 경제부(2)",
+      "fullName": "[Lv.8] 도덕(2), 수학(2), 영어(4), 보건부(2), 방송부(3), 경제부(2)",
+      "units": [
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "해외 보따리상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 54.2,
+      "mmr": 1612
+    },
+    {
+      "level": 10,
+      "name": "국어(2), 도덕(2), 음악(2), 과학(2), 사회(1), 방송부(7), 급식부(3)",
+      "fullName": "[Lv.10] 국어(2), 도덕(2), 음악(2), 과학(2), 사회(1), 방송부(7), 급식부(3)",
+      "units": [
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 54.9,
+      "mmr": 1657
+    },
+    {
+      "level": 10,
+      "name": "도덕(4), 수학(2), 과학(2), 체육(2), 창체(1), 선도부(6), 경제부(2)",
+      "fullName": "[Lv.10] 도덕(4), 수학(2), 과학(2), 체육(2), 창체(1), 선도부(6), 경제부(2)",
+      "units": [
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 56.4,
+      "mmr": 1701
+    },
+    {
+      "level": 9,
+      "name": "음악(2), 국어(2), 미술(2), 과학(2), 사회(1), 급식부(7), 장난꾸러기(2)",
+      "fullName": "[Lv.9] 음악(2), 국어(2), 미술(2), 과학(2), 사회(1), 급식부(7), 장난꾸러기(2)",
+      "units": [
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 56.7,
+      "mmr": 1746
+    },
+    {
+      "level": 10,
+      "name": "사회(1), 국어(2), 수학(2), 체육(2), 음악(2), 과학(2), 급식부(3), 육상부(6)",
+      "fullName": "[Lv.10] 사회(1), 국어(2), 수학(2), 체육(2), 음악(2), 과학(2), 급식부(3), 육상부(6)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "sub_dealer"
+        }
+      ],
+      "winRate": 57.5,
+      "mmr": 1791
+    },
+    {
+      "level": 9,
+      "name": "과학(2), 미술(2), 체육(2), 수학(2), 장난꾸러기(6), 선도부(2)",
+      "fullName": "[Lv.9] 과학(2), 미술(2), 체육(2), 수학(2), 장난꾸러기(6), 선도부(2)",
+      "units": [
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 59,
+      "mmr": 1836
+    },
+    {
+      "level": 9,
+      "name": "국어(2), 창체(1), 체육(2), 과학(2), 수학(2), 사회(1), 육상부(4), 경제부(2), 급식부(3)",
+      "fullName": "[Lv.9] 국어(2), 창체(1), 체육(2), 과학(2), 수학(2), 사회(1), 육상부(4), 경제부(2), 급식부(3)",
+      "units": [
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 60,
+      "mmr": 1881
+    },
+    {
+      "level": 8,
+      "name": "음악(2), 과학(2), 수학(2), 사회(1), 방송부(7)",
+      "fullName": "[Lv.8] 음악(2), 과학(2), 수학(2), 사회(1), 방송부(7)",
+      "units": [
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "sub_dealer"
+        }
+      ],
+      "winRate": 60.3,
+      "mmr": 1925
+    },
+    {
+      "level": 10,
+      "name": "음악(2), 창체(1), 사회(4), 국어(4), 방송부(3), 급식부(3), 경제부(2), 보건부(2)",
+      "fullName": "[Lv.10] 음악(2), 창체(1), 사회(4), 국어(4), 방송부(3), 급식부(3), 경제부(2), 보건부(2)",
+      "units": [
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "역사 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 61.6,
+      "mmr": 1970
+    },
+    {
+      "level": 10,
+      "name": "체육(2), 수학(2), 과학(2), 미술(2), 창체(1), 음악(2), 장난꾸러기(2), 경제부(2), 방송부(3), 급식부(3)",
+      "fullName": "[Lv.10] 체육(2), 수학(2), 과학(2), 미술(2), 창체(1), 음악(2), 장난꾸러기(2), 경제부(2), 방송부(3), 급식부(3)",
+      "units": [
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 61.8,
+      "mmr": 2015
+    },
+    {
+      "level": 10,
+      "name": "도덕(4), 미술(2), 국어(2), 사회(1), 보건부(6), 장난꾸러기(2)",
+      "fullName": "[Lv.10] 도덕(4), 미술(2), 국어(2), 사회(1), 보건부(6), 장난꾸러기(2)",
+      "units": [
+        {
+          "name": "나이팅게일",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "미술 치료사",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 61.8,
+      "mmr": 2060
+    },
+    {
+      "level": 9,
+      "name": "사회(1), 수학(2), 음악(2), 과학(2), 도덕(2), 방송부(7)",
+      "fullName": "[Lv.9] 사회(1), 수학(2), 음악(2), 과학(2), 도덕(2), 방송부(7)",
+      "units": [
+        {
+          "name": "사회탐구 1타",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 62.1,
+      "mmr": 2104
+    },
+    {
+      "level": 9,
+      "name": "과학(2), 창체(1), 국어(2), 음악(2), 수학(2), 사회(1), 급식부(5), 경제부(2), 방송부(3)",
+      "fullName": "[Lv.9] 과학(2), 창체(1), 국어(2), 음악(2), 수학(2), 사회(1), 급식부(5), 경제부(2), 방송부(3)",
+      "units": [
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 63.9,
+      "mmr": 2149
+    },
+    {
+      "level": 9,
+      "name": "사회(1), 국어(2), 영어(2), 음악(2), 과학(2), 미술(2), 급식부(3), 육상부(2), 장난꾸러기(4)",
+      "fullName": "[Lv.9] 사회(1), 국어(2), 영어(2), 음악(2), 과학(2), 미술(2), 급식부(3), 육상부(2), 장난꾸러기(4)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 64.8,
+      "mmr": 2194
+    },
+    {
+      "level": 9,
+      "name": "미술(2), 체육(2), 도덕(2), 수학(2), 과학(2), 장난꾸러기(2), 선도부(6)",
+      "fullName": "[Lv.9] 미술(2), 체육(2), 도덕(2), 수학(2), 과학(2), 장난꾸러기(2), 선도부(6)",
+      "units": [
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수채화 장인",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 65.1,
+      "mmr": 2239
+    },
+    {
+      "level": 10,
+      "name": "사회(1), 국어(2), 과학(2), 음악(2), 수학(2), 도덕(2), 창체(1), 급식부(3), 방송부(5), 경제부(2)",
+      "fullName": "[Lv.10] 사회(1), 국어(2), 과학(2), 음악(2), 수학(2), 도덕(2), 창체(1), 급식부(3), 방송부(5), 경제부(2)",
+      "units": [
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 66.3,
+      "mmr": 2284
+    },
+    {
+      "level": 9,
+      "name": "과학(2), 수학(2), 국어(2), 음악(2), 영어(2), 창체(1), 방송부(5), 경제부(2), 육상부(2)",
+      "fullName": "[Lv.9] 과학(2), 수학(2), 국어(2), 음악(2), 영어(2), 창체(1), 방송부(5), 경제부(2), 육상부(2)",
+      "units": [
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "main_tank"
+        }
+      ],
+      "winRate": 67.5,
+      "mmr": 2328
+    },
+    {
+      "level": 10,
+      "name": "미술(2), 수학(2), 창체(1), 국어(2), 과학(2), 사회(1), 음악(2), 급식부(7), 경제부(2)",
+      "fullName": "[Lv.10] 미술(2), 수학(2), 창체(1), 국어(2), 과학(2), 사회(1), 음악(2), 급식부(7), 경제부(2)",
+      "units": [
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 69,
+      "mmr": 2373
+    },
+    {
+      "level": 9,
+      "name": "영어(2), 도덕(2), 국어(2), 음악(2), 사회(1), 보건부(4), 방송부(3), 육상부(2)",
+      "fullName": "[Lv.9] 영어(2), 도덕(2), 국어(2), 음악(2), 사회(1), 보건부(4), 방송부(3), 육상부(2)",
+      "units": [
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 69.3,
+      "mmr": 2418
+    },
+    {
+      "level": 10,
+      "name": "수학(2), 미술(2), 체육(2), 과학(2), 창체(1), 장난꾸러기(6), 선도부(2), 경제부(2)",
+      "fullName": "[Lv.10] 수학(2), 미술(2), 체육(2), 과학(2), 창체(1), 장난꾸러기(6), 선도부(2), 경제부(2)",
+      "units": [
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 70.6,
+      "mmr": 2463
+    },
+    {
+      "level": 10,
+      "name": "영어(4), 국어(2), 수학(2), 과학(2), 음악(2), 사회(1), 경제부(2), 육상부(2), 방송부(3), 급식부(3)",
+      "fullName": "[Lv.10] 영어(4), 국어(2), 수학(2), 과학(2), 음악(2), 사회(1), 경제부(2), 육상부(2), 방송부(3), 급식부(3)",
+      "units": [
+        {
+          "name": "해외 보따리상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "영어 프리토커",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 71.6,
+      "mmr": 2507
+    },
+    {
+      "level": 10,
+      "name": "도덕(6), 수학(2), 창체(1), 보건부(2), 경제부(2), 방송부(3), 선도부(2)",
+      "fullName": "[Lv.10] 도덕(6), 수학(2), 창체(1), 보건부(2), 경제부(2), 방송부(3), 선도부(2)",
+      "units": [
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 72.1,
+      "mmr": 2552
+    },
+    {
+      "level": 8,
+      "name": "과학(2), 수학(2), 체육(2), 창체(1), 국어(2), 사회(1), 육상부(4), 경제부(2)",
+      "fullName": "[Lv.8] 과학(2), 수학(2), 체육(2), 창체(1), 국어(2), 사회(1), 육상부(4), 경제부(2)",
+      "units": [
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 72.4,
+      "mmr": 2597
+    },
+    {
+      "level": 9,
+      "name": "수학(2), 과학(2), 도덕(4), 창체(1), 경제부(2), 선도부(4), 보건부(2)",
+      "fullName": "[Lv.9] 수학(2), 과학(2), 도덕(4), 창체(1), 경제부(2), 선도부(4), 보건부(2)",
+      "units": [
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 72.8,
+      "mmr": 2642
+    },
+    {
+      "level": 10,
+      "name": "국어(2), 음악(2), 수학(2), 도덕(2), 사회(1), 과학(2), 창체(1), 급식부(5), 방송부(3), 경제부(2)",
+      "fullName": "[Lv.10] 국어(2), 음악(2), 수학(2), 도덕(2), 사회(1), 과학(2), 창체(1), 급식부(5), 방송부(3), 경제부(2)",
+      "units": [
+        {
+          "name": "시조 읊는 선비",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        }
+      ],
+      "winRate": 76.9,
+      "mmr": 2687
+    },
+    {
+      "level": 9,
+      "name": "국어(2), 창체(2), 수학(2), 음악(2), 사회(1), 과학(2), 육상부(2), 경제부(2), 급식부(3)",
+      "fullName": "[Lv.9] 국어(2), 창체(2), 수학(2), 음악(2), 사회(1), 과학(2), 육상부(2), 경제부(2), 급식부(3)",
+      "units": [
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "진로진학 멘토",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 77.5,
+      "mmr": 2731
+    },
+    {
+      "level": 10,
+      "name": "과학(2), 음악(2), 사회(1), 국어(2), 수학(2), 도덕(2), 급식부(3), 육상부(4), 방송부(3)",
+      "fullName": "[Lv.10] 과학(2), 음악(2), 사회(1), 국어(2), 수학(2), 도덕(2), 급식부(3), 육상부(4), 방송부(3)",
+      "units": [
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 78.2,
+      "mmr": 2776
+    },
+    {
+      "level": 10,
+      "name": "국어(2), 과학(2), 창체(2), 음악(2), 수학(2), 사회(1), 육상부(2), 급식부(3), 방송부(3), 경제부(2)",
+      "fullName": "[Lv.10] 국어(2), 과학(2), 창체(2), 음악(2), 수학(2), 사회(1), 육상부(2), 급식부(3), 방송부(3), 경제부(2)",
+      "units": [
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "진로진학 멘토",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 80.3,
+      "mmr": 2821
+    },
+    {
+      "level": 10,
+      "name": "과학(4), 수학(4), 도덕(2), 창체(1), 방송부(3), 육상부(2), 장난꾸러기(2), 경제부(2)",
+      "fullName": "[Lv.10] 과학(4), 수학(4), 도덕(2), 창체(1), 방송부(3), 육상부(2), 장난꾸러기(2), 경제부(2)",
+      "units": [
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수능 만점자",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "공익광고 모델",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 84.8,
+      "mmr": 2866
+    },
+    {
+      "level": 10,
+      "name": "음악(2), 미술(2), 국어(2), 수학(2), 과학(2), 영어(2), 사회(1), 급식부(3), 장난꾸러기(4), 육상부(2)",
+      "fullName": "[Lv.10] 음악(2), 미술(2), 국어(2), 수학(2), 과학(2), 영어(2), 사회(1), 급식부(3), 장난꾸러기(4), 육상부(2)",
+      "units": [
+        {
+          "name": "천재 피아니스트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "논술의 신",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "영단어 암기왕",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "외고 전학생",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "전교 학생회장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "수석 연구원",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 85.1,
+      "mmr": 2910
+    },
+    {
+      "level": 10,
+      "name": "도덕(4), 미술(2), 과학(2), 창체(1), 선도부(2), 보건부(4), 장난꾸러기(2), 경제부(2)",
+      "fullName": "[Lv.10] 도덕(4), 미술(2), 과학(2), 창체(1), 선도부(2), 보건부(4), 장난꾸러기(2), 경제부(2)",
+      "units": [
+        {
+          "name": "교장 선생님",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미술 치료사",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        }
+      ],
+      "winRate": 88.7,
+      "mmr": 2955
+    },
+    {
+      "level": 10,
+      "name": "도덕(4), 창체(1), 과학(2), 수학(2), 선도부(4), 보건부(2), 경제부(2), 장난꾸러기(2)",
+      "fullName": "[Lv.10] 도덕(4), 창체(1), 과학(2), 수학(2), 선도부(4), 보건부(2), 경제부(2), 장난꾸러기(2)",
+      "units": [
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "나이팅게일",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "기부 천사",
+          "assignedRole": "sub_dealer"
+        },
+        {
+          "name": "미친 과학자",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "천재 퀀트",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "피카소의 재림",
+          "assignedRole": "main_dealer"
+        },
+        {
+          "name": "전교 체육부장",
+          "assignedRole": "main_tank"
+        },
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        }
+      ],
+      "winRate": 92.7,
+      "mmr": 3000
+    }
+  ],
+  "earlyDecks": [
+    {
+      "level": 3,
+      "name": "선도 보건부 초반",
+      "fullName": "[Lv.3] 선도 보건부 초반",
+      "units": [
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "name": "급식 경제부 초반",
+      "fullName": "[Lv.3] 급식 경제부 초반",
+      "units": [
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "급식 당번",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "해외 보따리상",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "name": "수학 과학 초반",
+      "fullName": "[Lv.3] 수학 과학 초반",
+      "units": [
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "name": "체육 국어 초반",
+      "fullName": "[Lv.4] 체육 국어 초반",
+      "units": [
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "name": "미술 음악 초반",
+      "fullName": "[Lv.4] 미술 음악 초반",
+      "units": [
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "리코더 요정",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "합창단 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "name": "장난 선도 초반",
+      "fullName": "[Lv.4] 장난 선도 초반",
+      "units": [
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "name": "사회 국어 혼합",
+      "fullName": "[Lv.5] 사회 국어 혼합",
+      "units": [
+        {
+          "name": "역사 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "국어부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "name": "선도 체육 빌드업",
+      "fullName": "[Lv.5] 선도 체육 빌드업",
+      "units": [
+        {
+          "name": "복도 지킴이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "바른생활 사나이",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "name": "과학 육상 장난",
+      "fullName": "[Lv.5] 과학 육상 장난",
+      "units": [
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "달리기 선수",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "체육부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "골목대장",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "name": "과학 수학 3코스트 밸류",
+      "fullName": "[Lv.6] 과학 수학 3코스트 밸류",
+      "units": [
+        {
+          "name": "올림피아드 금상",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "발명품 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학탐구원",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학 짝꿍",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "과학실험부장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "수학천재",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "name": "예체능 빌드업",
+      "fullName": "[Lv.6] 예체능 빌드업",
+      "units": [
+        {
+          "name": "수채화 장인",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "오케스트라 단장",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "찰흙 조각가",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "팝송 매니아",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판 낙서꾼",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "육상부 에이스",
+          "assignedRole": "filler"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "name": "보건부 3코스트 밸류",
+      "fullName": "[Lv.6] 보건부 3코스트 밸류",
+      "units": [
+        {
+          "name": "지리덕후",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "양호실 도우미",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "미술 치료사",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "또래 상담 에이스",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "문학소녀",
+          "assignedRole": "filler"
+        },
+        {
+          "name": "칠판닦이 당번",
+          "assignedRole": "filler"
+        }
+      ]
+    }
+  ]
+}

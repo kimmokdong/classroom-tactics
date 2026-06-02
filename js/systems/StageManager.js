@@ -11,7 +11,7 @@ export class StageManager {
     }
 
         spawnEnemyBoard() {
-        this.app.state.enemyBoard = generateEnemyBoard(this.app.state.stage[0], this.app.state.stage[1]);
+        this.app.state.enemyBoard = generateEnemyBoard(this.app.state);
         const enemySynergies = this.app.getSynergyData(this.app.state.enemyBoard);
         const activeTraits = [];
         for (const [club, count] of Object.entries(enemySynergies.clubs)) {
