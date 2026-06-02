@@ -249,7 +249,7 @@ function runLeague(decks, name, iterations) {
 // 6. 메인 실행부
 // ---------------------------------------------------------------------------
 async function main() {
-    const mdPath = 'C:\\Users\\user\\.gemini\\antigravity-ide\\brain\\dffff154-de57-4783-8295-ce019c0a3ef9\\standard_decks.md';
+    const mdPath = path.join(process.cwd(), 'docs', 'standard_decks.md');
     let decks = [];
     
     try {
