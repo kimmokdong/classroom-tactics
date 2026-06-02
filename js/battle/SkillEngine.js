@@ -138,6 +138,10 @@ export class SkillEngine {
 
             let preShieldDmg = finalDmg;
 
+            if (engine.peaceTimeEnd && engine.tick <= engine.peaceTimeEnd) {
+                finalDmg = 0;
+            }
+
             if (target.currShield > 0) {
                 if (target.currShield >= finalDmg) {
                     target.currShield -= finalDmg;

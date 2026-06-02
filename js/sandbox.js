@@ -807,6 +807,9 @@ function applyItemsToStats(board) {
                             if (itemDef.stats.mana) { u.currMana += itemDef.stats.mana; u.stats.mana = (u.stats.mana || 0) + itemDef.stats.mana; }
                             if (itemDef.stats.ad) u.stats.ad += itemDef.stats.ad;
                             if (itemDef.stats.ap) u.stats.ap += itemDef.stats.ap;
+                            if (itemDef.stats.adPct) u.combat.itemAdPct = (u.combat.itemAdPct || 0) + itemDef.stats.adPct;
+                            if (itemDef.stats.apPct) u.combat.itemApPct = (u.combat.itemApPct || 0) + itemDef.stats.apPct;
+                            if (itemDef.stats.as) u.stats.as *= (1 + itemDef.stats.as);
                             if (itemDef.stats.armor) u.stats.armor += itemDef.stats.armor;
                             if (itemDef.stats.mr) u.stats.mr += itemDef.stats.mr;
                             if (itemDef.stats.critChance) u.combat.critChance = (u.combat.critChance || 0.10) + itemDef.stats.critChance;
@@ -815,6 +818,9 @@ function applyItemsToStats(board) {
                         }
                     }
                 });
+
+                if (u.combat.itemAdPct > 0) u.stats.ad *= (1 + u.combat.itemAdPct);
+                if (u.combat.itemApPct > 0) u.stats.ap *= (1 + u.combat.itemApPct);
             }
         }
     }
@@ -1076,7 +1082,7 @@ function applySynergiesToStats(board, isEnemy = false) {
                 if (!a || a === u) return false;
                 const ax = aIdx % 8;
                 const ay = Math.floor(aIdx / 8);
-                return (Math.abs(ax - ux) + Math.abs(ay - uy)) === 1;
+                return Math.max(Math.abs(ax - ux), Math.abs(ay - uy)) === 1;
             });
             
             // 무작위로 인접 아군을 섞음

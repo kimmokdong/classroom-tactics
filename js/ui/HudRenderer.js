@@ -42,7 +42,7 @@ export class HudRenderer {
         document.getElementById('board-capacity').innerText = `배치: ${currentBoardCount}/${this.app.state.level}`;
 
         // 시너지나 기타 정보가 있으면 계속 업데이트
-        document.getElementById('current-stage').innerText = `${this.app.state.stage[0]}-${this.app.state.stage[1]}`;
+        document.getElementById('current-stage').innerText = `${this.app.state.stage[0]}교시-${this.app.state.stage[1]}`;
 
         // 스테이지 라운드 타임라인 UI 업데이트
         const timelineEl = document.getElementById('stage-timeline');

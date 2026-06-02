@@ -254,6 +254,18 @@ const itemsData = [
         id: "comb_crit_crit", name: "분실물 보관함", type: "combined", recipe: ["base_crit", "base_crit"],
         stats: { critChance: 0.40 }, effect: "thievesGloves",
         desc: "매 라운드마다 무작위 완성 아이템 2개를 임시로 장착합니다. (다른 아이템 장착 불가)"
+    },
+
+    // ==========================================
+    // 9. 소모품 (Consumables)
+    // ==========================================
+    {
+        id: "consumable_remover", name: "자석 제거기", type: "consumable",
+        desc: "유닛에게 사용하면 장착된 모든 아이템을 장비창으로 되돌립니다."
+    },
+    {
+        id: "consumable_reforge", name: "재조합기", type: "consumable",
+        desc: "유닛에게 사용하면 장착된 아이템을 장비창으로 되돌리며 무작위 다른 아이템으로 변환합니다. (기본 아이템은 기본으로, 완성 아이템은 완성으로 변환)"
     }
 ];
 

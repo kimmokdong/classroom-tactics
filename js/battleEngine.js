@@ -1,19 +1,20 @@
 import { SkillEngine } from './battle/SkillEngine.js';
 export class BattleEngine {
-    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50) {
+    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50, roundBuffs = []) {
         this.board = Array(48).fill(null);
         this.playerAugments = playerAugments;
         this.playerGold = playerGold;
+        this.roundBuffs = roundBuffs;
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
                 const u = playerBoard[i];
-                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, shields: u.combat.shield ? [{amount: u.combat.shield, expires: 40}] : [], buffs: []};
             }
         }
         for(let i=0; i<24; i++) {
             if (enemyBoard[i]) {
                 const u = enemyBoard[i];
-                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
+                this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, shields: u.combat.shield ? [{amount: u.combat.shield, expires: 40}] : [], buffs: []};
             }
         }
         
@@ -79,7 +80,43 @@ export class BattleEngine {
         return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
     }
 
-    
+    addShield(target, amount, duration = 40) {
+        amount *= this.shieldEfficiency;
+        if (!target.shields) target.shields = [];
+        target.shields.push({ amount, expires: this.tick + duration });
+        target.currShield = target.shields.reduce((sum, s) => sum + s.amount, 0);
+    }
+
+    damageShield(target, amount) {
+        if (!target.shields || target.shields.length === 0) {
+            target.currShield = 0;
+            return amount;
+        }
+        let remainingDmg = amount;
+        for (let i = 0; i < target.shields.length; i++) {
+            let sh = target.shields[i];
+            if (sh.amount >= remainingDmg) {
+                sh.amount -= remainingDmg;
+                remainingDmg = 0;
+                break;
+            } else {
+                remainingDmg -= sh.amount;
+                sh.amount = 0;
+            }
+        }
+        target.shields = target.shields.filter(s => s.amount > 0);
+        target.currShield = target.shields.reduce((sum, s) => sum + s.amount, 0);
+        return remainingDmg;
+    }
+
+    decayShields() {
+        this.board.forEach(u => {
+            if (u && u.currHp > 0 && u.shields && u.shields.length > 0) {
+                u.shields = u.shields.filter(s => s.expires > this.tick);
+                u.currShield = u.shields.reduce((sum, s) => sum + s.amount, 0);
+            }
+        });
+    }
 
     run() {
         let activeUnits = this.board.filter(u => u !== null);
@@ -98,6 +135,78 @@ export class BattleEngine {
         this.hasP23 = this.playerAugments.includes('p23') && countUniqueTrait('장난꾸러기') >= 6;
 
         this.tick = -20;
+
+        // --- 라운드 이벤트 버프 처리 ---
+        this.roundBuffs.forEach(buff => {
+            const targets = activeUnits.filter(u => buff.target === 'all' || u.team === buff.target);
+            
+            targets.forEach(u => {
+                if (buff.type === 'as') u.stats.as *= (1 + buff.value);
+                if (buff.type === 'ad') u.stats.ad += buff.value;
+                if (buff.type === 'ap') u.stats.ap += buff.value;
+                if (buff.type === 'armor') u.stats.armor += buff.value;
+                if (buff.type === 'mr') u.stats.mr += buff.value;
+                if (buff.type === 'maxHpPct') {
+                    const hpInc = u.stats.maxHp * buff.value;
+                    u.stats.maxHp += hpInc;
+                    u.currHp += hpInc;
+                }
+                if (buff.type === 'mana') u.currMana += buff.value;
+                if (buff.type === 'dmgReduction') u.combat.dmgReduction = (u.combat.dmgReduction || 0) + buff.value;
+                if (buff.type === 'armorPen') u.combat.armorPen = (u.combat.armorPen || 0) + buff.value;
+                if (buff.type === 'rangeLimit') u.stats.range = buff.value;
+                if (buff.type === 'manaGainPct') u.combat.manaGainPct = (u.combat.manaGainPct || 1) + buff.value;
+                if (buff.type === 'allStatsPct') {
+                    u.stats.ad *= (1 + buff.value);
+                    u.stats.ap *= (1 + buff.value);
+                    u.stats.armor *= (1 + buff.value);
+                    u.stats.mr *= (1 + buff.value);
+                }
+                if (buff.type === 'startHpPct') {
+                    u.currHp = Math.max(1, u.stats.maxHp * buff.value);
+                }
+                if (buff.type === 'startStun') {
+                    this.addBuff(u, 'stun', null, 0, buff.value * 10);
+                }
+                if (buff.type === 'adjacentAdPct') {
+                    const bx = u.gridIndex % 8;
+                    const by = Math.floor(u.gridIndex / 8);
+                    const hasAdj = targets.some(other => {
+                        if (other === u) return false;
+                        const ox = other.gridIndex % 8;
+                        const oy = Math.floor(other.gridIndex / 8);
+                        return Math.max(Math.abs(bx - ox), Math.abs(by - oy)) <= 1;
+                    });
+                    if (hasAdj) u.stats.ad *= (1 + buff.value);
+                }
+            });
+
+            if (buff.type === 'randomStun') {
+                if (targets.length > 0) {
+                    const randU = targets[Math.floor(Math.random() * targets.length)];
+                    this.addBuff(randU, 'stun', null, 0, 9999);
+                }
+            }
+            if (buff.type === 'bossBuff') {
+                if (targets.length > 0) {
+                    const boss = [...targets].sort((a,b) => {
+                        if (b.tier !== a.tier) return b.tier - a.tier;
+                        if (b.level !== a.level) return b.level - a.level;
+                        return (b.items ? b.items.length : 0) - (a.items ? a.items.length : 0);
+                    })[0];
+                    if (boss) {
+                        boss.stats.as *= (1 + buff.value);
+                        boss.stats.ap *= (1 + buff.value);
+                    }
+                }
+            }
+            if (buff.type === 'peaceTime') {
+                this.peaceTimeEnd = buff.value * 10;
+            }
+            if (buff.type === 'stressDmg') {
+                this.stressDmgPct = buff.value;
+            }
+        });
 
         // 선도부 시너지 활성화 시 전투 개시 호루라기 로그 격발
         const playerPrefectCount = countUniqueTrait('선도부', 'player');
@@ -229,6 +338,7 @@ export class BattleEngine {
         this.tick = 0;
 
         while (this.tick < this.maxTicks) {
+            this.decayShields();
             const playerAlive = activeUnits.some(u => u.team === 'player' && u.currHp > 0);
             const enemyAlive = activeUnits.some(u => u.team === 'enemy' && u.currHp > 0);
             
@@ -295,6 +405,18 @@ export class BattleEngine {
                     this.logs.push({ tick: this.tick, type: 'buff_update', target: u.gridIndex, buffs: u.buffs.map(b=>b.type) });
                 }
             });
+            
+            // 스트레스 이벤트 로직
+            if (this.stressDmgPct && this.tick % 10 === 0 && this.tick > 0) {
+                activeUnits.forEach(u => {
+                    if (u.currHp > 0) {
+                        const dmg = u.stats.maxHp * this.stressDmgPct;
+                        u.currHp -= dmg;
+                        this.logs.push({ tick: this.tick, type: 'damage', target: u.gridIndex, source: null, dmg: Math.round(dmg), dmgType: 'true', isCrit: false, fxType: 'fire_red', currHp: u.currHp, maxHp: u.stats.maxHp, currShield: u.currShield });
+                        if (u.currHp <= 0) this.handleDeath(u, activeUnits);
+                    }
+                });
+            }
             
             // 글로벌 아이템 틱 이벤트
             if (this.tick > 0) {
@@ -703,14 +825,13 @@ export class BattleEngine {
 
                     let preShieldDmg = totalDmg + trueDmg;
 
+                    if (this.peaceTimeEnd && this.tick <= this.peaceTimeEnd) {
+                        totalDmg = 0;
+                        trueDmg = 0;
+                    }
+
                     if (target.currShield > 0) {
-                        if (target.currShield >= totalDmg) {
-                            target.currShield -= totalDmg;
-                            totalDmg = 0;
-                        } else {
-                            totalDmg -= target.currShield;
-                            target.currShield = 0;
-                        }
+                        totalDmg = this.damageShield(target, totalDmg);
                     }
                     
                     target.currHp -= (totalDmg + trueDmg);
@@ -1019,7 +1140,7 @@ export class BattleEngine {
                 }
             }
         }
-        else if (stat === 'shield') target.currShield += val * this.shieldEfficiency; // 연장전 쉴드 효율
+        else if (stat === 'shield') this.addShield(target, val, duration || 40);
         else if (stat && target.stats[stat] !== undefined) {
             target.stats[stat] += val; // ad, ap, as, armor, mr, range 등 즉시 반영
         }
@@ -1056,7 +1177,7 @@ export class BattleEngine {
         if (target.combat.itemEffects.bloodthirsterShield && ratio <= 0.4 && !target.combat.btTriggered) {
             const count = target.combat.itemEffects.bloodthirsterShield;
             target.combat.btTriggered = true;
-            target.currShield += maxHp * 0.25 * count * this.shieldEfficiency;
+            this.addShield(target, maxHp * 0.25 * count, 40);
         }
         if (target.combat.itemEffects.steraks && ratio <= 0.6 && !target.combat.steraksTriggered) {
             const count = target.combat.itemEffects.steraks;
@@ -1070,7 +1191,7 @@ export class BattleEngine {
             target.combat.vowTriggered = true;
             activeUnits.forEach(u => {
                 if (u.team === target.team && this.getDist(target.gridIndex, u.gridIndex) <= 1) {
-                    u.currShield += u.stats.maxHp * 0.25 * count * this.shieldEfficiency;
+                    this.addShield(u, u.stats.maxHp * 0.25 * count, 40);
                     u.stats.armor += 20 * count;
                     u.stats.mr += 20 * count;
                 }
@@ -1130,7 +1251,7 @@ export class BattleEngine {
                 const allies = activeUnits.filter(u => u.team === target.team && u.currHp > 0 && !u.isDead);
                 allies.forEach(a => {
                     if (this.getDist(target.gridIndex, a.gridIndex) <= 1) {
-                        a.currShield += target.stats.maxHp * reviveShieldPct * this.shieldEfficiency;
+                        this.addShield(a, target.stats.maxHp * reviveShieldPct, 40);
                     }
                 });
             }

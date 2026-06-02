@@ -94,6 +94,7 @@ class GameApp {
     showCustomTooltip(e, html, isInteractive = false) { return this.tooltipManager.showCustomTooltip(e, html, isInteractive); }
     hideCustomTooltip() { return this.tooltipManager.hideCustomTooltip(); }
     showResultModal(title, msg, type, onConfirm) { return this.modalManager.showResultModal(title, msg, type, onConfirm); }
+    showEventModal(eventData, onSelect) { return this.modalManager.showEventModal(eventData, onSelect); }
 
     bindEvents() {
         document.addEventListener('click', () => {
@@ -177,6 +178,20 @@ class GameApp {
 
     formatSkillDesc(skill, unit) { return this.unitManager.formatSkillDesc(skill, unit); }
     showUnitInfo(baseUnit, uDiv) { return this.unitManager.showUnitInfo(baseUnit, uDiv); }
+
+    takeDamage(amount) {
+        this.state.hp = Math.max(0, this.state.hp - amount);
+        this.updateHeader();
+        if (this.state.hp <= 0) {
+            this.showResultModal('게임 오버', '<span style="color:#d63031; font-weight:800; font-size:1.3rem;">☠️ 체력이 0이 되었습니다.</span>', 'gameover', () => location.reload());
+        }
+    }
+
+    addGold(amount) {
+        this.state.gold += amount;
+        if (this.state.gold < 0) this.state.gold = 0;
+        this.updateHeader();
+    }
 
     getMaxExp(level) { return this.shopManager.getMaxExp(level); }
     addExp(amount) { return this.shopManager.addExp(amount); }

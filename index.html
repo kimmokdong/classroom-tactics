@@ -30,7 +30,7 @@
                     ⏱️ <span id="battle-timer">30</span>
                 </div>
                 <div class="stage-badge">
-                    스테이지 <span id="current-stage">1-1</span>
+                    <span id="current-stage">1교시-1</span>
                 </div>
                 <div id="stage-timeline" style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
                     <!-- 렌더링될 라운드 아이콘들 -->
@@ -186,6 +186,22 @@
             <p id="augment-subtitle" style="text-align: center; color: #7f8c8d; margin-bottom: 20px;">특기사항 하나를 선택하여 학생들에게 강력한 혜택을 부여하세요!</p>
             <div id="augment-cards-container" style="display: flex; gap: 20px; justify-content: center; padding: 20px;">
                 <!-- Cards injected here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal-overlay" style="display: none; z-index: 3100;">
+        <div class="modal-content" style="max-width: 900px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.5);">
+            <div class="modal-header" style="justify-content: center; border-bottom: none;">
+                <h2 id="event-title" style="color: #2c3e50; font-size: 2rem;">돌발 상황 발생!</h2>
+            </div>
+            <p id="event-subtitle" style="text-align: center; color: #7f8c8d; margin-bottom: 20px;">예상치 못한 일이 발생했습니다.</p>
+            <div id="event-cards-container" style="display: flex; gap: 20px; justify-content: center; padding: 20px;">
+                <!-- Choice Cards injected here -->
+            </div>
+            <div id="event-single-action" style="display: none; justify-content: center; margin-top: 20px;">
+                <button id="btn-event-ok" class="btn" style="padding: 10px 20px; font-size: 1.2rem; background: #3498db; color: white;">확인</button>
             </div>
         </div>
     </div>

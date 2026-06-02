@@ -14,7 +14,8 @@ export class ItemManager {
             comb_armor_armor: '🎒', comb_armor_mr: '🧣', comb_armor_hp: '♨️', comb_armor_crit: '📱',
             comb_mr_mr: '🔇', comb_mr_hp: '💌', comb_mr_crit: '👑',
             comb_hp_hp: '🧋', comb_hp_crit: '👊',
-            comb_crit_crit: '🗃️'
+            comb_crit_crit: '🗃️',
+            consumable_remover: '🧲', consumable_reforge: '♻️'
         };
         return ICONS[itemId] || '❓';
     }
@@ -282,6 +283,63 @@ export class ItemManager {
         if (!itemId) return;
 
         const itemDef = this.app.ITEMS.find(i => i.id === itemId);
+
+        if (itemDef.type === 'consumable') {
+            if (unit.items.length === 0) {
+                alert("장착된 아이템이 없습니다!");
+                return;
+            }
+            const removedItems = [...unit.items];
+            unit.items = [];
+            unit.thievesItems = null;
+
+            if (itemId === 'consumable_remover') {
+                for (let removed of removedItems) {
+                    let placed = false;
+                    for (let i = 0; i < 12; i++) {
+                        if (!this.app.state.inventory[i]) {
+                            this.app.state.inventory[i] = removed;
+                            placed = true;
+                            break;
+                        }
+                    }
+                    if (!placed) alert("인벤토리 공간이 부족하여 아이템이 증발했습니다!");
+                }
+            } else if (itemId === 'consumable_reforge') {
+                for (let removed of removedItems) {
+                    const originalDef = this.app.ITEMS.find(i => i.id === removed);
+                    let newItemsPool;
+                    if (originalDef.type === 'base') {
+                        newItemsPool = this.app.ITEMS.filter(i => i.type === 'base' && i.id !== removed);
+                    } else if (originalDef.type === 'combined') {
+                        newItemsPool = this.app.ITEMS.filter(i => i.type === 'combined' && i.id !== removed && i.id !== 'comb_crit_crit');
+                    }
+                    const newItem = newItemsPool ? newItemsPool[Math.floor(Math.random() * newItemsPool.length)].id : removed;
+                    
+                    let placed = false;
+                    for (let i = 0; i < 12; i++) {
+                        if (!this.app.state.inventory[i]) {
+                            this.app.state.inventory[i] = newItem;
+                            placed = true;
+                            break;
+                        }
+                    }
+                    if (!placed) alert("인벤토리 공간이 부족하여 아이템이 증발했습니다!");
+                }
+            }
+
+            this.app.state.inventory[itemIdx] = null;
+            this.app.soundManager.playSFX('item_combine'); // 임시 사운드
+            this.renderInventory();
+            this.app.renderUnits();
+            this.app.calculateSynergy();
+            
+            const activeDiv = document.querySelector(`.unit-character[data-index="${unit.gridIndex !== undefined ? unit.gridIndex : this.app.state.bench.indexOf(unit)}"][data-type="${unit.gridIndex !== undefined ? 'board' : 'bench'}"]`);
+            if (document.getElementById('unit-details') && document.getElementById('unit-details').innerHTML.includes(unit.name)) {
+                this.app.showUnitInfo(unit, activeDiv);
+            }
+            return;
+        }
 
         if (itemDef.type === 'base') {
             const baseIndex = unit.items.findIndex(id => this.app.ITEMS.find(i => i.id === id).type === 'base');

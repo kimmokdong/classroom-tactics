@@ -4,6 +4,7 @@ import { UNIT_POOL } from '../data.js';
 import { ITEMS } from '../items.js';
 import { generateEnemyBoard } from '../enemyAi.js';
 import { SYNERGIES } from '../data.js';
+import { EVENTS } from '../events.js';
 
 export class StageManager {
     constructor(gameApp) {
@@ -26,6 +27,33 @@ export class StageManager {
     }
 
     handleBattleStart() {
+        const app = this.app;
+        const st = app.state;
+        
+        if (st.eventRound === undefined || (st.stage[1] === 1 && st.eventFired)) {
+            // 새 스테이지 시작 시 (혹은 최초 실행 시)
+            st.eventRound = Math.floor(Math.random() * 5) + 1;
+            st.eventFired = false;
+            app.state.roundBuffs = []; // 새 라운드 시작 시 라운드 버프 초기화
+        } else if (!app.state.roundBuffs) {
+            app.state.roundBuffs = [];
+        }
+
+        // 라운드 버프 초기화(이벤트 외에 다른 곳에서 매 라운드 초기화 되도록 보장)
+        app.state.roundBuffs = [];
+
+        if (st.stage[1] === st.eventRound && !st.eventFired) {
+            st.eventFired = true;
+            this.triggerRandomEvent(() => {
+                this._continueBattleStart();
+            });
+            return;
+        }
+
+        this._continueBattleStart();
+    }
+
+    _continueBattleStart() {
         const app = this.app;
         let playerUnitsCount = app.state.board.filter(u => u !== null).length;
         const maxCapacity = app.state.level;
@@ -72,25 +100,50 @@ export class StageManager {
 
         // [기부 천사] 패시브 로직: 전투 시작 시 무작위 아군에게 완성 아이템 부여
         this.app.state.board.forEach(u => { if (u) u.donationItems = null; });
-        const donationAngels = this.app.state.board.filter(u => u && u.id === 'u5_5');
-        let totalDonations = 0;
-        donationAngels.forEach(angel => {
-            const star = angel.star || 1;
-            totalDonations += (star === 1 ? 1 : star === 2 ? 2 : 5);
-        });
+        const donationAngels = [];
+        this.app.state.board.forEach((u, idx) => { if (u && u.id === 'u5_5') donationAngels.push({ unit: u, idx }); });
 
-        if (totalDonations > 0) {
+        if (donationAngels.length > 0) {
             const completedItems = ITEMS.filter(i => i.isCombined);
-            let eligibleUnits = this.app.state.board.filter(u => u && (!u.items || u.items.length < 3) && u.id !== 'u5_5');
-            eligibleUnits = eligibleUnits.sort(() => 0.5 - Math.random());
-            let donationsGiven = 0;
-            for (const u of eligibleUnits) {
-                if (donationsGiven >= totalDonations) break;
-                const randomItem = completedItems[Math.floor(Math.random() * completedItems.length)];
-                u.donationItems = u.donationItems || [];
-                u.donationItems.push(randomItem.id);
-                donationsGiven++;
-            }
+            let totalDonationsGiven = 0;
+
+            donationAngels.forEach(angelData => {
+                const u = angelData.unit;
+                const index = angelData.idx;
+                const star = (u.star || 1) - 1;
+                const adjItemSkill = u.skill && u.skill.adjPassiveItems;
+                if (!adjItemSkill) return;
+                const giftCount = adjItemSkill[Math.min(star, adjItemSkill.length - 1)];
+
+                const ux = index % 8;
+                const uy = Math.floor(index / 8);
+                const adjacent = this.app.state.board.filter((a, aIdx) => {
+                    if (!a || a === u) return false;
+                    const ax = aIdx % 8;
+                    const ay = Math.floor(aIdx / 8);
+                    return Math.max(Math.abs(ax - ux), Math.abs(ay - uy)) <= 1;
+                });
+
+                let shuffledAdj = adjacent.sort(() => 0.5 - Math.random());
+                let givenCount = 0;
+
+                for (let i = 0; i < shuffledAdj.length; i++) {
+                    if (givenCount >= giftCount) break;
+                    
+                    const a = shuffledAdj[i];
+                    const existingItems = (a.items || []).length;
+                    if (existingItems < 3) {
+                        if (!a.donationItems) a.donationItems = [];
+                        const randomItem = completedItems[Math.floor(Math.random() * completedItems.length)];
+                        a.donationItems.push(randomItem.id);
+                        a.triggerDonationFX = true;
+                        givenCount++;
+                        totalDonationsGiven++;
+                    }
+                }
+            });
+
+            let donationsGiven = totalDonationsGiven;
             if (donationsGiven > 0) {
                 if (battleLogEl) {
                     const li = document.createElement('li');
@@ -237,7 +290,7 @@ export class StageManager {
         // 2. 엔진 계산 (백그라운드 틱 시뮬레이션)
         const preBattlePlayerBoard = JSON.parse(JSON.stringify(buffedPlayerBoard));
         const playerAugments = this.app.state.augments.map(a => a.id);
-        const engine = new BattleEngine(buffedPlayerBoard, buffedEnemyBoard, playerAugments, this.app.state.gold || 50);
+        const engine = new BattleEngine(buffedPlayerBoard, buffedEnemyBoard, playerAugments, this.app.state.gold || 50, this.app.state.roundBuffs || []);
         app.engine = engine; // 실시간 정보 조회용 참조 저장
         const logs = engine.run();
 
@@ -535,4 +588,114 @@ export class StageManager {
             }
         });
     }
+
+    triggerRandomEvent(onComplete) {
+        // 무작위 이벤트 1개 선택
+        const eventData = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+        
+        if (eventData.type === 'choice') {
+            this.app.showEventModal(eventData, (selectedChoice) => {
+                this.applyEventEffect(selectedChoice.id);
+                if (onComplete) onComplete();
+            });
+        } else {
+            this.app.showEventModal(eventData, () => {
+                this.applyEventEffect(eventData.id);
+                if (onComplete) onComplete();
+            });
+        }
+    }
+
+    applyEventEffect(eventId) {
+        const app = this.app;
+        const st = app.state;
+        if (!st.roundBuffs) st.roundBuffs = [];
+
+        // 이벤트별 효과 (버프, 디버프, 골드, 체력, 아이템 등)
+        switch (eventId) {
+            case "ev_1": st.roundBuffs.push({ target: 'player', type: 'as', value: 0.15 }); break;
+            case "ev_2": st.roundBuffs.push({ target: 'player', type: 'ad', value: 10 }); break;
+            case "ev_3": st.roundBuffs.push({ target: 'player', type: 'ap', value: 15 }); break;
+            case "ev_4": app.addGold(5); break;
+            case "ev_5": st.roundBuffs.push({ target: 'player', type: 'armor', value: 15 }); st.roundBuffs.push({ target: 'player', type: 'mr', value: 15 }); break;
+            case "ev_6": st.roundBuffs.push({ target: 'player', type: 'maxHpPct', value: 0.15 }); break;
+            case "ev_7": st.roundBuffs.push({ target: 'player', type: 'mana', value: 15 }); break;
+            case "ev_8": app.itemManager.giveRandomBaseItem(); break;
+            case "ev_9": st.roundBuffs.push({ target: 'player', type: 'dmgReduction', value: 0.10 }); break;
+            
+            case "ev_10_a": app.itemManager.giveRandomBaseItem(); break;
+            case "ev_10_b": app.addGold(10); st.roundBuffs.push({ target: 'player', type: 'ad', value: -10 }); break;
+            
+            case "ev_11_a": st.roundBuffs.push({ target: 'player', type: 'maxHpPct', value: 0.20 }); st.roundBuffs.push({ target: 'player', type: 'as', value: -0.10 }); break;
+            case "ev_11_b": st.roundBuffs.push({ target: 'player', type: 'as', value: 0.20 }); st.roundBuffs.push({ target: 'player', type: 'maxHpPct', value: -0.10 }); break;
+            
+            case "ev_12_a": 
+                if (Math.random() < 0.5) {
+                    app.itemManager.giveRandomCombinedItem();
+                } else {
+                    app.takeDamage(5);
+                }
+                break;
+            case "ev_12_b": break;
+
+            case "ev_13_a":
+                if (Math.random() < 0.5) {
+                    st.roundBuffs.push({ target: 'player', type: 'as', value: 0.10 });
+                } else {
+                    app.takeDamage(5);
+                }
+                break;
+            case "ev_13_b": break;
+
+            case "ev_14": st.roundBuffs.push({ target: 'all', type: 'rangeLimit', value: 1 }); break;
+            case "ev_15": st.roundBuffs.push({ target: 'player', type: 'manaGainPct', value: -0.30 }); break;
+            case "ev_16": st.roundBuffs.push({ target: 'player', type: 'as', value: 0.20 }); break;
+            
+            case "ev_17_a": 
+                st.roundBuffs.push({ target: 'player', type: 'ad', value: 20 });
+                st.roundBuffs.push({ target: 'player', type: 'randomStun', value: 9999 }); // 전투 내내 참여 불가
+                break;
+            case "ev_17_b": break;
+
+            case "ev_18_a": 
+                if (Math.random() < 0.5) {
+                    st.roundBuffs.push({ target: 'player', type: 'armorPen', value: 0.20 });
+                } else {
+                    app.takeDamage(10);
+                }
+                break;
+            case "ev_18_b": break;
+
+            case "ev_19": st.roundBuffs.push({ target: 'player', type: 'adjacentAdPct', value: 0.15 }); break;
+            case "ev_20": st.roundBuffs.push({ target: 'all', type: 'startStun', value: 3 }); break;
+
+            case "ev_21": st.roundBuffs.push({ target: 'enemy', type: 'maxHpPct', value: 0.30 }); break;
+            case "ev_22": st.roundBuffs.push({ target: 'enemy', type: 'adPct', value: 0.20 }); break;
+            case "ev_23": st.roundBuffs.push({ target: 'enemy', type: 'bossBuff', value: 0.50 }); break;
+            
+            case "ev_24_a": app.addGold(-10); break; // 골드가 마이너스 될 수도 있음. UI 갱신 필요
+            case "ev_24_b": app.takeDamage(8); break;
+
+            case "ev_25": st.roundBuffs.push({ target: 'player', type: 'startHpPct', value: 0.80 }); break;
+            case "ev_26": st.roundBuffs.push({ target: 'player', type: 'armor', value: -20 }); break;
+            case "ev_27": st.roundBuffs.push({ target: 'all', type: 'stressDmg', value: 0.02 }); break;
+            case "ev_28": st.roundBuffs.push({ target: 'all', type: 'peaceTime', value: 5 }); break;
+            case "ev_29": st.roundBuffs.push({ target: 'enemy', type: 'allStatsPct', value: 0.10 }); break;
+
+            case "ev_30_a": 
+                if (Math.random() < 0.5) {
+                    app.itemManager.giveRandomCombinedItem();
+                } else {
+                    st.roundBuffs.push({ target: 'player', type: 'maxHpPct', value: -0.15 });
+                }
+                break;
+            case "ev_30_b": break;
+        }
+
+        // addGold가 음수일 경우도 대비해서 최소 골드 0 보장
+        if (st.gold < 0) st.gold = 0;
+        app.updateHeader();
+    }
 }
+
+
