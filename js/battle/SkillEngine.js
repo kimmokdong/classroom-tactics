@@ -12,7 +12,7 @@ export class SkillEngine {
         enemies.sort((a,b) => engine.getDist(unit.gridIndex, a.gridIndex) - engine.getDist(unit.gridIndex, b.gridIndex));
         allies.sort((a,b) => (a.currHp/a.stats.maxHp) - (b.currHp/b.stats.maxHp));
         
-        // ?�온 충격�?겨울???�면?�말) 반사 ?�해
+        // ?댁삩 異⑷꺽湲?寃⑥슱???섎㈃?묐쭚) 諛섏궗 ?쇳빐
         const ionicEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && u.combat.itemEffects?.ionic && engine.getDist(unit.gridIndex, u.gridIndex) <= 1);
         ionicEnemies.forEach(e => {
             const ionicDmg = (unit.stats.maxMana || 0) * 2.5; 
@@ -29,7 +29,7 @@ export class SkillEngine {
                 if (unit.currHp <= 0) engine.handleDeath(unit, activeUnits);
             }
         });
-        if (unit.currHp <= 0) return; // ?�킬 ?�다 죽으�?중단
+        if (unit.currHp <= 0) return; // ?ㅽ궗 ?곕떎 二쎌쑝硫?以묐떒
         
         const { ad, ap, armor, mr, maxHp, as } = unit.stats;
         const apMult = ap / 100;
@@ -58,8 +58,8 @@ export class SkillEngine {
             }
             if (currentDmgAmp !== 0 && type !== 'true') finalDmg *= Math.max(0.1, (1 + currentDmgAmp));
             if (unit.combat.itemEffects?.giantSlayer) {
-                finalDmg *= 1.1; // 기본 10% 증�?
-                if (target && target.stats.maxHp > 1500) finalDmg *= 1.25; // 1500 초과 ??추�? 증폭
+                finalDmg *= 1.1; // 湲곕낯 10% 利앷?
+                if (target && target.stats.maxHp > 1500) finalDmg *= 1.25; // 1500 珥덇낵 ??異붽? 利앺룺
             }
             if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) finalDmg *= 1.25;
             if ((unit.combat.itemEffects?.skillCrit || unit.combat.skillCrit) && type !== 'true') {
@@ -69,7 +69,7 @@ export class SkillEngine {
                 }
             }
 
-            // [미술 ?�너지] ?�판 ?�과 ?�용 (?�킬)
+            // [誘몄닠 ?쒕꼫吏�] ?ν뙋 ?④낵 ?곸슜 (?ㅽ궗)
             let dmgAmpFromCanvas = 0;
             let dmgReducFromCanvas = 0;
             for (let canvas of engine.canvases) {
@@ -85,32 +85,32 @@ export class SkillEngine {
             if (dmgAmpFromCanvas > 0) finalDmg *= (1 + dmgAmpFromCanvas);
 
             if (type === 'physical') {
-                // ??방어??감쇄 먼�? ?�용
+                // ??諛⑹뼱??媛먯뇙 癒쇱? ?곸슜
                 let armor = target.stats.armor;
                 if (unit.buffs.some(b => b.type === 'precision')) armor = 0;
                 else {
                     let shredBuffs = target.buffs.filter(b => b.type === 'armorShred');
                     let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                    // 공격?�의 방�? ?�용 (armorPen???�으�?추�? 관??
+                    // 怨듦꺽?먯쓽 諛⑷? ?곸슜 (armorPen???덉쑝硫?異붽? 愿�??
                     let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
-                    if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 가고일 ?�으�?방�? 면역 (?�택 ?�항, ?�기???�단 ?�략) - ?�략
+                    if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 媛�怨좎씪 ?덉쑝硫?諛⑷? 硫댁뿭 (?좏깮 ?ы빆, ?ш린???쇰떒 ?앸왂) - ?앸왂
                     armor *= (1 - maxShred) * armorPenMult;
                 }
                 finalDmg *= (100 / (100 + armor));
-                // ??dmgReduc ?�용 (?�드�?75%)
+                // ??dmgReduc ?곸슜 (?섎뱶罹?75%)
                 let dr = target.combat?.dmgReduc || 0;
                 dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
                 dr = Math.min(dr, 0.75);
                 finalDmg *= (1 - dr);
             } else if (type === 'magic') {
-                // ??마법 ?�??�� 감쇄 먼�? ?�용
+                // ??留덈쾿 ?�??젰 媛먯뇙 癒쇱? ?곸슜
                 let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
                 let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
                 let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
                 let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
                 finalDmg *= (100 / (100 + actualMr));
-                // ??dmgReduc ?�용 (?�드�?75%) - 마법 ?�해?�도 ?�용
+                // ??dmgReduc ?곸슜 (?섎뱶罹?75%) - 留덈쾿 ?쇳빐?먮룄 ?곸슜
                 let dr = target.combat?.dmgReduc || 0;
                 dr += dmgReducFromCanvas;
                 if (target.buffs.some(b => b.type === 'dmgReduc25')) dr += 0.25;
@@ -124,7 +124,7 @@ export class SkillEngine {
                 finalDmg /= (unit.combat.critDmg || 1.5); // negate crit dmg
             }
 
-            // [?�어 ?�너지] ?�킬 ?�중 ??보너??마법 ?�해
+            // [?곸뼱 ?쒕꼫吏�] ?ㅽ궗 ?곸쨷 ??蹂대꼫??留덈쾿 ?쇳빐
             let engActualDmg = 0;
             if (unit.combat.bonusMagicDmgEng > 0 && type !== 'true') {
                 let engMagicDmg = (unit.stats.ap * unit.combat.bonusMagicDmgEng) + (unit.stats.as * 10);
@@ -149,13 +149,13 @@ export class SkillEngine {
             }
             target.currHp -= finalDmg;
 
-            // ?�킬 ?�해??근성 마나 ?�득 ?�용 (고정 10)
-            let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
+            // ?ㅽ궗 ?쇳빐??洹쇱꽦 留덈굹 ?띾뱷 ?곸슜 (怨좎젙 10)
+            let baseTargetGainMana = target.manaType === '洹쇱꽦' ? 10 : 0;
             let targetManaGainMult = Math.max(0, 1 + (target.combat.manaGain || 0));
             target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult)));
 
-            // [p15] 바른 ?�활??분노 (?��? ?�격 ??반사)
-            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('?�덕') : target.subject === '?�덕') && unit.team === 'enemy' && finalDmg > 0) {
+            // [p15] 諛붾Ⅸ ?앺솢??遺꾨끂 (?됲? ?쇨꺽 ??諛섏궗)
+            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('?꾨뜒') : target.subject === '?꾨뜒') && unit.team === 'enemy' && finalDmg > 0) {
                 const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
                 let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                 unit.currHp -= actualReflect;
@@ -203,7 +203,7 @@ export class SkillEngine {
             engine.addBuff(target, type, stat, val, duration, sourceIdx);
         };
 
-        // ?�킬 ?�?�별 처리 분기
+        // ?ㅽ궗 ?�?낅퀎 泥섎━ 遺꾧린
         switch(s.type) {
             case 'lowest_hp_magic_gold':
                 if (enemies.length > 0) {
@@ -241,7 +241,7 @@ export class SkillEngine {
                 if (enemies[0]) {
                     targets.push(enemies[0]);
                     let totalDmg = unit.stats.ap * s.apRatio[starIdx];
-                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10??1�????��?지
+                    let tickDmg = totalDmg / (s.dotDuration[starIdx] / 10); // 10??1珥????곕?吏�
                     addBuff(enemies[0], 'dot', null, tickDmg, s.dotDuration[starIdx], unit.gridIndex);
                 }
                 break;
@@ -267,7 +267,7 @@ export class SkillEngine {
                         unit.combat.vamp = (unit.combat.vamp || 0) + s.vampBuff[starIdx];
                         unit.combat.vampBuffTimer = s.buffDuration[starIdx];
                     }
-                    // ?�플?�시 로직 ?�정 (hpRatioSplash??발동 조건???�함)
+                    // ?ㅽ뵆?섏떆 濡쒖쭅 ?섏젙 (hpRatioSplash??諛쒕룞 議곌굔???ы븿)
                     if (s.splashAdRatio || s.hpRatioSplash) {
                         let splashDmg = 0;
                         if (s.splashAdRatio) splashDmg += ad * s.splashAdRatio[starIdx];
@@ -332,7 +332,7 @@ export class SkillEngine {
                     targets.push(e);
                     applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
                     if (s.manaReducPct) addBuff(e, 'debuff', 'manaGain', -s.manaReducPct[starIdx], s.debuffDuration[starIdx]);
-                    if (s.name === '?�의 마법') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
+                    if (s.name === '?됱쓽 留덈쾿') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
                 });
                 break;
 
@@ -429,7 +429,7 @@ export class SkillEngine {
                     if (engine.getDist(unit.gridIndex, a.gridIndex) <= s.aoeRange) {
                         let shieldAmt = s.shieldFlat[starIdx] * skillAmpMult;
                         addBuff(a, 'shield', 'shield', shieldAmt, 9999);
-                        // ?�재 ?�진 구조??보호�??�괴?� ?�버???�제�??�동?�기 ?�려?��?�? 5�?50?? 지?�으�?구현?�니??
+                        // ?꾩옱 ?붿쭊 援ъ“??蹂댄샇留??뚭눼?� ?붾쾭???댁젣瑜??곕룞?섍린 ?대젮?곕?濡? 5珥?50?? 吏�?띿쑝濡?援ы쁽?⑸땲??
                         addBuff(a, 'ccImmune', null, 0, 50);
                     }
                 });
@@ -657,7 +657,7 @@ export class SkillEngine {
             }
 
             case 'passive':
-                // ?�시�??�킬?� ?��? 루프?�서 처리, ?�기?�는 ?�무 ?�작 ?�음
+                // ?⑥떆釉??ㅽ궗?� ?됲? 猷⑦봽?먯꽌 泥섎━, ?ш린?쒕뒗 ?꾨Т ?숈옉 ?놁쓬
                 break;
         }
 
