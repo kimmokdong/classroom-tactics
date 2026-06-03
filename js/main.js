@@ -190,24 +190,10 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("게임 초기화: isBattlePhase = false");
     window.gameApp = new GameApp();
 
-    // 배치판 보드 테마 시스템 초기화 및 바인딩
-    const themeSelect = document.getElementById('select-board-theme');
-    if (themeSelect) {
-        const savedTheme = localStorage.getItem('board-theme') || 'theme-default';
-        themeSelect.value = savedTheme;
-        applyBoardTheme(savedTheme);
-        themeSelect.addEventListener('change', (e) => {
-            const theme = e.target.value;
-            applyBoardTheme(theme);
-            localStorage.setItem('board-theme', theme);
-        });
-    }
-
-    function applyBoardTheme(themeName) {
-        const board = document.getElementById('battle-board');
-        if (!board) return;
-        board.classList.remove('theme-default', 'theme-chalkboard', 'theme-wood', 'theme-floor');
-        board.classList.add(themeName);
+    // 배치판 보드 테마 시스템 유지 (기본값)
+    const board = document.getElementById('battle-board');
+    if (board) {
+        board.classList.add('theme-default');
     }
 
     // Info Panel 탭 전환 (유닛 정보 ↔ 전투 통계)
@@ -509,7 +495,23 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     // 전투 시작 버튼 연동 (Phase 4 & 5)
-    document.getElementById('btn-start-battle').onclick = () => window.gameApp.stageManager.handleBattleStart();
+    document.getElementById('btn-start-battle').onclick = () => {
+        const storeModal = document.getElementById('augment-modal');
+        const floatingBtn = document.getElementById('floating-store-btn');
+        
+        if ((storeModal && storeModal.style.display === 'flex') || (floatingBtn && floatingBtn.style.display === 'flex')) {
+            alert('먼저 매점 아이템이나 특기사항을 선택해 주세요!');
+            
+            // 만약 플로팅 버튼 모드라면 살짝 흔들리게(강조) 연출
+            if (floatingBtn && floatingBtn.style.display === 'flex') {
+                floatingBtn.style.transform = 'translateX(-50%) scale(1.1)';
+                setTimeout(() => floatingBtn.style.transform = 'translateX(-50%) scale(1)', 200);
+            }
+            return;
+        }
+        
+        window.gameApp.stageManager.handleBattleStart();
+    };
 
 
 });

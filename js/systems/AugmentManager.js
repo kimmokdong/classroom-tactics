@@ -7,15 +7,20 @@ export class AugmentManager {
         const modal = document.getElementById('augment-modal');
         const container = document.getElementById('augment-cards-container');
         document.getElementById('augment-title').innerText = "🏫 매점 타임";
-        document.getElementById('augment-subtitle').innerText = "매점에 신상품이 들어왔습니다! 원하는 기본 아이템 단 하나만 선택하세요!";
+        
+        // 부제목에 창 접기 안내 추가
+        document.getElementById('augment-subtitle').innerHTML = `매점에 신상품이 들어왔습니다! 원하는 기본 아이템 단 하나만 선택하세요!<br>
+            <span style="font-size:0.9rem; color:#f39c12; cursor:pointer; font-weight:bold; margin-top:10px; display:inline-block;" id="btn-minimize-store">
+                👀 [잠시 창 접고 보드/아이템 구경하기]
+            </span>`;
 
         container.innerHTML = '';
 
         const bases = this.app.ITEMS.filter(i => i.type === 'base');
-        const choices = [];
-        for (let i = 0; i < 3; i++) {
-            choices.push(bases[Math.floor(Math.random() * bases.length)]);
-        }
+        
+        // 아이템 중복 방지를 위한 Fisher-Yates Shuffle
+        const shuffledBases = [...bases].sort(() => 0.5 - Math.random());
+        const choices = shuffledBases.slice(0, 3);
 
         choices.forEach((item) => {
             const card = document.createElement('div');
@@ -32,10 +37,29 @@ export class AugmentManager {
             card.onclick = () => {
                 this.app.itemManager.addItemToInventory(item.id);
                 modal.style.display = 'none';
+                // 혹시 플로팅 버튼이 떠 있다면 숨김
+                const floatingBtn = document.getElementById('floating-store-btn');
+                if (floatingBtn) floatingBtn.style.display = 'none';
             };
 
             container.appendChild(card);
         });
+
+        // 접기 버튼 이벤트
+        const minBtn = document.getElementById('btn-minimize-store');
+        const floatingBtn = document.getElementById('floating-store-btn');
+        if (minBtn && floatingBtn) {
+            minBtn.onclick = () => {
+                modal.style.display = 'none';
+                floatingBtn.style.display = 'flex';
+            };
+            
+            // 플로팅 버튼 클릭 시 다시 모달 열기
+            floatingBtn.onclick = () => {
+                floatingBtn.style.display = 'none';
+                modal.style.display = 'flex';
+            };
+        }
 
         modal.style.display = 'flex';
     }
@@ -129,7 +153,7 @@ export class AugmentManager {
         if (id === 'g7') g.teamAdAp += 20;
         if (id === 'g8') g.vamp += 0.20;
         if (id === 'g9') g.startShield += 300;
-        if (id === 'g10') g.rerollDiscountEndWorld = 3;
+        if (id === 'g10') st.freeRerolls += 15;
         if (id === 'g11') { this.app.itemManager.giveRandomCombinedItem(); }
 
         // 프리즘

@@ -167,6 +167,8 @@ export class BattleRenderer {
         
         const SPRING_K = 0.3;
         const DAMPING = 0.7;
+        const breathTime = performance.now() / 400; // 호흡 애니메이션 주기
+        
         for (let i = 0; i < this.cells.length; i++) {
             let t = this.unitTransforms[i];
             let targetY = 0;
@@ -182,8 +184,14 @@ export class BattleRenderer {
             if (cell) {
                 const uDiv = cell.querySelector('.unit-character');
                 if (uDiv) {
-                    let scale = uDiv.dataset.fxScale || 1;
+                    // 미세한 상시 숨쉬기(Breath) 스케일
+                    const breathScale = 1 + (Math.sin(breathTime + i) * 0.03);
+                    let scale = (uDiv.dataset.fxScale || 1) * breathScale;
                     uDiv.style.transform = `translate(${t.x}px, ${t.y}px) scale(${scale})`;
+                    
+                    // Z-Index 정렬: 화면 아래쪽일수록 z-index 높게
+                    const center = this.getCellCenter(i);
+                    uDiv.style.zIndex = Math.round(center.y + t.y);
                 }
             }
             
@@ -306,13 +314,25 @@ export class BattleRenderer {
         } else if (action.type === 'move') {
             const oldCell = this.cells[action.unit];
             const newCell = this.cells[action.to];
+            const c1 = this.getCellCenter(action.unit);
+            const c2 = this.getCellCenter(action.to);
+            const dx = c1.x - c2.x; // 목적지 기준 출발지의 x 상대 좌표
+            const dy = c1.y - c2.y; // 목적지 기준 출발지의 y 상대 좌표
+
             const uDiv = oldCell.querySelector('.unit-character');
             if (uDiv) newCell.appendChild(uDiv);
             
-            if (this.unitTransforms[action.unit]) {
-                this.unitTransforms[action.to] = this.unitTransforms[action.unit];
-                this.unitTransforms[action.unit] = {x:0, y:0, vx:0, vy:0, buffs: []};
-            }
+            const oldT = this.unitTransforms[action.unit] || {x:0, y:0, vx:0, vy:0, buffs: []};
+            
+            // 새로운 셀을 기준으로 초기 위치(x, y)를 출발지 좌표 오프셋으로 설정
+            this.unitTransforms[action.to] = {
+                x: oldT.x + dx, 
+                y: oldT.y + dy, 
+                vx: oldT.vx, 
+                vy: oldT.vy - 20, // 살짝 붕 뜨도록 초기 상단 속도(점프) 부여
+                buffs: oldT.buffs 
+            };
+            this.unitTransforms[action.unit] = {x:0, y:0, vx:0, vy:0, buffs: []};
             if (this.dpsStats && this.dpsStats[action.unit]) {
                 this.dpsStats[action.to] = this.dpsStats[action.unit];
                 delete this.dpsStats[action.unit];

@@ -61,5 +61,15 @@ export class HudRenderer {
             }
             timelineEl.innerHTML = html;
         }
+
+        // 리롤 버튼 상태 업데이트
+        const btnReroll = document.getElementById('btn-reroll');
+        if (btnReroll) {
+            if (this.app.state.freeRerolls && this.app.state.freeRerolls > 0) {
+                btnReroll.innerText = `🔄 무료 리롤 (${this.app.state.freeRerolls})`;
+            } else {
+                btnReroll.innerText = `🔄 리롤 (2G)`;
+            }
+        }
     }
 }

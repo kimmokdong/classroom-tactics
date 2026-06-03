@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>교실 택틱스 샌드박스</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .sandbox-board-container {
+            flex: 1;
+            position: relative;
+        }
+        .unit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 76px);
+            justify-content: start;
+            grid-auto-rows: 76px;
+            gap: 8px;
+            align-content: start;
+        }
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(4, 76px);
+            justify-content: start;
+            grid-auto-rows: 76px;
+            gap: 8px;
+            align-content: start;
+        }
+        .selectable-btn {
+            padding: 6px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: move;
+            text-align: center;
+            font-size: 1.4rem;
+            transition: all 0.2s;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 76px;
+            box-sizing: border-box;
+        }
+        .selectable-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .selectable-btn .name {
+            font-size: 0.65rem;
+            display: block;
+            margin-top: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            width: 100%;
+            color: #475569;
+            font-weight: 600;
+        }
+        /* Cost filter button style */
+        .sandbox-cost-btn {
+            border: 1px solid #cbd5e1;
+            background: white;
+            color: #475569;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .sandbox-cost-btn:hover {
+            background: #f1f5f9;
+        }
+        .sandbox-cost-btn.active {
+            background: #334155 !important;
+            color: white !important;
+            border-color: #334155 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Top HUD -->
+        <header id="game-header">
+            <div class="hud-left" style="display: flex; gap: 10px; align-items: center;">
+                <span style="font-size: 1.5rem; font-weight: 800; color: #fff; white-space: nowrap;">🛠️ 샌드박스 모드</span>
+                <button id="btn-toggle-sound" class="stat btn" style="background:#2ecc71; border:1px solid #27ae60; color: white; cursor:pointer; font-weight: bold; width: 38px; height: 38px; border-radius: 12px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; padding: 0; white-space: nowrap; transition: background 0.2s;" title="사운드 켜기/끄기">🔊</button>
+            </div>
+            <div class="hud-center" style="display: flex; flex-direction: row; align-items: center; gap: 15px;">
+                <button id="btn-start" class="btn" style="background:#27ae60; font-size:1.2rem; padding: 10px 30px;">전투 시작</button>
+                <button id="btn-reset" class="btn" style="background:#e74c3c; font-size:1.2rem; padding: 10px 30px;">보드 초기화</button>
+            </div>
+            <div class="hud-right">
+                <button id="btn-dummy-mode" class="btn" style="background:#f39c12; color:white; font-weight:bold;">🎯 허수아비 3개 (적군)</button>
+            </div>
+        </header>
+
+        <main id="game-main">
+            <!-- Left Panel (Synergies & Augments) -->
+            <aside id="synergy-panel" style="display: flex; flex-direction: column; gap: 10px;">
+                <div id="unit-details" style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 150px; flex-shrink: 0; overflow-y: auto;">
+                    <div style="text-align:center; color:#888;">보드 위 유닛 클릭 시 정보 표시</div>
+                </div>
+
+                <div id="synergy-wrapper" style="flex: 3; overflow-y: auto; overflow-x: hidden; padding-right: 4px; background: rgba(255,255,255,0.9); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div style="font-weight: 800; color: #2c3e50; margin-bottom: 10px;">🌟 활성화된 시너지 (아군 기준)</div>
+                    <ul id="synergy-list" style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
+                </div>
+                
+                <div id="augments-container" style="flex: 2; overflow-y: auto; overflow-x: hidden; background: rgba(255,255,255,0.9); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                    <div style="font-weight: 800; color: #2c3e50; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📋 생기부 특기사항</span>
+                        <button id="btn-add-augment" class="btn" style="padding: 4px 10px; font-size: 0.8rem; background: #3498db;">+ 추가</button>
+                    </div>
+                    <div id="selected-augments-list" style="display: flex; flex-direction: column; gap: 6px; flex: 1;"></div>
+                </div>
+            </aside>
+
+            <!-- Center Board -->
+            <section id="board-area">
+                <div class="arena" style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div id="battle-container" style="position: relative; display: flex; justify-content: center; align-items: center;">
+                        <!-- JS setupBoard() will append #battle-board and #fx-canvas here -->
+                    </div>
+                </div>
+                
+                <!-- Bottom Area (Sandbox Tool Panel) -->
+                <footer id="bottom-area" style="background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 16px; border: 2px solid rgba(200, 200, 200, 0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #2c3e50;">🛠️ 무한 샌드박스 툴바 (원하는 유닛/아이템을 보드로 Drag & Drop 하세요)</h3>
+                    <div style="display: flex; gap: 20px; align-items: stretch;">
+                        <!-- 유닛 리스트 -->
+                        <div style="flex: 1; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                                <div style="font-weight: bold; color: #34495e;">유닛 목록 (위쪽 보드=적군, 아래쪽 보드=아군)</div>
+                                <!-- 유닛 필터링 UI 추가 -->
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <div id="sandbox-cost-filters" style="display: flex; gap: 4px;">
+                                        <button class="sandbox-cost-btn active" data-cost="0" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">ALL</button>
+                                        <button class="sandbox-cost-btn" data-cost="1" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">1코</button>
+                                        <button class="sandbox-cost-btn" data-cost="2" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">2코</button>
+                                        <button class="sandbox-cost-btn" data-cost="3" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">3코</button>
+                                        <button class="sandbox-cost-btn" data-cost="4" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">4코</button>
+                                        <button class="sandbox-cost-btn" data-cost="5" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">5코</button>
+                                    </div>
+                                    <select id="sandbox-synergy-filter" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; cursor: pointer; font-weight: bold; color: #334155; height: 28px; line-height: 1;">
+                                        <option value="all">모든 시너지</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="unit-list" id="sandbox-unit-list" style="flex: 1; max-height: 180px; overflow-y: scroll; padding-right: 5px;">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                        <!-- 아이템 리스트 -->
+                        <div style="width: 360px; display: flex; flex-direction: column;">
+                            <div style="font-weight: bold; margin-bottom: 8px; color: #34495e;">기본 아이템</div>
+                            <div class="item-list" id="sandbox-item-list" style="flex: 1; max-height: 180px; overflow-y: scroll; padding-right: 5px;">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+
+            <!-- Right Panel (Info & Stats Toggle) -->
+            <aside id="info-panel">
+                <!-- Tab Buttons -->
+                <div id="info-tab-btns" style="display: flex; gap: 6px; margin-bottom: 12px; background: rgba(0,0,0,0.04); border-radius: 12px; padding: 4px;">
+                    <button id="tab-btn-unit" style="flex: 1; padding: 8px 10px; border: none; border-radius: 9px; cursor: pointer; font-size: 0.85rem; font-weight: 700; background: white; color: #1e293b; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: all 0.2s;">📋 유닛 정보</button>
+                    <button id="tab-btn-dps" style="flex: 1; padding: 8px 10px; border: none; border-radius: 9px; cursor: pointer; font-size: 0.85rem; font-weight: 700; background: transparent; color: #64748b; transition: all 0.2s;">📊 전투 통계</button>
+                </div>
+
+                <!-- Unit Info Tab -->
+                <div id="tab-content-unit" style="display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto;">
+                    <div class="panel-section">
+                        <h3>유닛 정보</h3>
+                        <div id="unit-details">선택된 유닛 없음</div>
+                    </div>
+                    <div class="panel-section flex-grow">
+                        <h3>전투 로그</h3>
+                        <ul id="battle-log"></ul>
+                    </div>
+                </div>
+
+                <!-- DPS Stats Tab -->
+                <div id="tab-content-dps" style="display: none; flex-direction: column; flex: 1; overflow-y: auto;">
+                    <div id="dps-panel-content" style="width: 100%; padding: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: #1e293b; font-size: 1rem; display: flex; align-items: center; gap: 6px;">📊 전투 통계</h3>
+                            <select id="dps-type-select" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.82rem; background: white; cursor: pointer;">
+                                <option value="damage">가한 피해량</option>
+                                <option value="tank">받은 피해량</option>
+                                <option value="heal">회복량</option>
+                            </select>
+                        </div>
+                        <!-- Player Team Stats -->
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.82rem; font-weight: bold; color: #3b82f6; margin-bottom: 8px; border-bottom: 2px solid #bfdbfe; padding-bottom: 4px;">아군 통계</div>
+                            <div id="dps-list-player" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                        <!-- Enemy Team Stats -->
+                        <div>
+                            <div style="font-size: 0.82rem; font-weight: bold; color: #ef4444; margin-bottom: 8px; border-bottom: 2px solid #fecaca; padding-bottom: 4px;">적군 통계</div>
+                            <div id="dps-list-enemy" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+    
+    <div id="tooltip" class="glass-tooltip" style="display: none; position: absolute; z-index: 9999; pointer-events: none;"></div>
+
+    <!-- Augment Modal -->
+    <div id="sandbox-augment-modal" class="modal-overlay" style="display: none; z-index: 9999;">
+        <div class="modal-content" style="max-width: 900px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.5);">
+            <div class="modal-header" style="justify-content: space-between; border-bottom: none;">
+                <h2 style="margin: 0; font-size: 1.5rem; color: #2c3e50;">증강체 선택</h2>
+                <button id="btn-close-augment-modal" class="close-btn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+            </div>
+            <div id="sandbox-augment-pool" style="display: flex; gap: 20px; justify-content: center; padding: 20px; flex-wrap: wrap;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load engine and data first -->
+    <script type="module" src="./js/sandbox.js"></script>
+</body>
+</html>

@@ -3,7 +3,6 @@ import { ITEMS } from './items.js';
 import { BattleEngine } from './battleEngine.js';
 import { BattleRenderer } from './battleRenderer.js';
 
-let currentTool = null; // { type: 'unit'|'item'|'eraser', id: string|null }
 let isBattling = false;
 let battleRenderer = null;
 let battleEngine = null;
@@ -108,7 +107,6 @@ function init() {
         board.classList.add(themeName);
     }
 
-    document.getElementById('btn-erase').addEventListener('click', () => setTool('eraser', null));
     document.getElementById('btn-reset').addEventListener('click', resetBoard);
     document.getElementById('btn-start').addEventListener('click', startBattle);
     document.getElementById('btn-dummy-mode').addEventListener('click', spawnDummies);
@@ -121,18 +119,53 @@ function init() {
         document.getElementById('sandbox-augment-modal').style.display = 'none';
     });
 
-    // ESC 키로 현재 툴 취소
+    // ESC 키로 현재 정보창 닫기 등 확장 가능
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setTool(null, null);
-    });
-    
-    // 바탕화면 우클릭 시 현재 툴 취소 (cell의 우클릭은 지우개로 개별 동작하도록 cell 리스너에서 stopPropagation 처리)
-    document.addEventListener('contextmenu', (e) => {
-        if (!e.target.closest('.cell')) {
-            e.preventDefault();
-            setTool(null, null);
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.unit-character').forEach(u => u.dataset.viewing = "false");
+            document.getElementById('unit-details').innerHTML = '<div style="text-align:center; color:#888;">보드 위 유닛을 클릭하면 상세 정보가 표시됩니다.</div>';
         }
     });
+
+    // Info Panel 탭 전환 (유닛 정보 ↔ 전투 통계)
+    const tabBtnUnit = document.getElementById('tab-btn-unit');
+    const tabBtnDps = document.getElementById('tab-btn-dps');
+    const tabContentUnit = document.getElementById('tab-content-unit');
+    const tabContentDps = document.getElementById('tab-content-dps');
+
+    function setActiveInfoTab(tab) {
+        if (tab === 'dps') {
+            tabContentUnit.style.display = 'none';
+            tabContentDps.style.display = 'flex';
+            tabBtnDps.style.background = 'white';
+            tabBtnDps.style.color = '#1e293b';
+            tabBtnDps.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+            tabBtnUnit.style.background = 'transparent';
+            tabBtnUnit.style.color = '#64748b';
+            tabBtnUnit.style.boxShadow = 'none';
+        } else {
+            tabContentUnit.style.display = 'flex';
+            tabContentDps.style.display = 'none';
+            tabBtnUnit.style.background = 'white';
+            tabBtnUnit.style.color = '#1e293b';
+            tabBtnUnit.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+            tabBtnDps.style.background = 'transparent';
+            tabBtnDps.style.color = '#64748b';
+            tabBtnDps.style.boxShadow = 'none';
+        }
+    }
+
+    if (tabBtnUnit) tabBtnUnit.addEventListener('click', () => setActiveInfoTab('unit'));
+    if (tabBtnDps) tabBtnDps.addEventListener('click', () => setActiveInfoTab('dps'));
+
+    const dpsTypeSelect = document.getElementById('dps-type-select');
+    if (dpsTypeSelect) {
+        dpsTypeSelect.addEventListener('change', () => {
+            if (battleRenderer) {
+                battleRenderer.renderDpsUI();
+            }
+        });
+    }
 
     // 전역 드래그 드롭 (보드 밖으로 드래그 시 유닛 삭제)
     document.addEventListener('dragover', (e) => e.preventDefault());
@@ -158,13 +191,8 @@ function setupBoard() {
     container.style.width = '700px';
     container.style.height = '525px';
 
-    boardEl.className = 'grid';
-    boardEl.style.display = 'grid';
-    boardEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
-    boardEl.style.gridTemplateRows = 'repeat(6, 1fr)';
-    boardEl.style.width = '100%';
-    boardEl.style.height = '100%';
-    boardEl.style.gap = '5px';
+    boardEl.className = 'grid-board';
+    boardEl.classList.add('theme-default');
     
     fxCanvas.style.position = 'absolute';
     fxCanvas.style.top = '0';
@@ -176,7 +204,7 @@ function setupBoard() {
 
     for(let i=0; i<48; i++) {
         const cell = document.createElement('div');
-        cell.className = 'cell';
+        cell.className = 'board-cell cell';
         cell.dataset.index = i;
         
         // Visual distinction for player vs enemy territory
@@ -200,12 +228,26 @@ function setupBoard() {
             e.stopPropagation(); // 보드 밖 드롭과 구분하기 위해 전파 방지
             try {
                 const data = JSON.parse(e.dataTransfer.getData('application/json'));
+                const isEnemySide = i < 24;
+                const board = isEnemySide ? enemyBoard : playerBoard;
+                const localIdx = isEnemySide ? i : i - 24;
+
                 if (data && data.type === 'move') {
                     moveUnit(data.sourceIdx, i);
-                } else if (data && data.type && data.id) {
-                    currentTool = { type: data.type, id: data.id };
-                    handleCellClick(i, { button: 0, isDrop: true }); 
-                    setTool(null, null); // 드롭 직후 툴 해제
+                } else if (data && data.type === 'unit' && data.id) {
+                    const base = UNIT_POOL.find(u => u.id === data.id);
+                    if (base) {
+                        board[localIdx] = JSON.parse(JSON.stringify(base));
+                        board[localIdx].items = [];
+                        board[localIdx].star = 1;
+                        renderBoard();
+                    }
+                } else if (data && data.type === 'item' && data.id) {
+                    const u = board[localIdx];
+                    if (u && u.items.length < 3) {
+                        u.items.push(data.id);
+                        renderBoard();
+                    }
                 }
             } catch(err) {}
         });
@@ -217,24 +259,110 @@ function setupBoard() {
     renderBoard();
 }
 
-function populateLists() {
+let currentCostFilter = 0;
+let currentSynergyFilter = 'all';
+
+function initCostFilters() {
+    const buttons = document.querySelectorAll('.sandbox-cost-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCostFilter = parseInt(btn.dataset.cost);
+            updateUnitList();
+        });
+    });
+}
+
+function initSynergyFilter() {
+    const select = document.getElementById('sandbox-synergy-filter');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="all">모든 시너지</option>';
+    
+    const optGroupSubject = document.createElement('optgroup');
+    optGroupSubject.label = '과목 시너지';
+    Object.keys(SYNERGIES.subjects).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = key;
+        optGroupSubject.appendChild(opt);
+    });
+    select.appendChild(optGroupSubject);
+    
+    const optGroupClub = document.createElement('optgroup');
+    optGroupClub.label = '동아리 시너지';
+    Object.keys(SYNERGIES.clubs).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = key;
+        optGroupClub.appendChild(opt);
+    });
+    select.appendChild(optGroupClub);
+
+    select.addEventListener('change', (e) => {
+        currentSynergyFilter = e.target.value;
+        updateUnitList();
+    });
+}
+
+function updateUnitList() {
     const unitList = document.getElementById('sandbox-unit-list');
-    UNIT_POOL.forEach(u => {
+    if (!unitList) return;
+    unitList.innerHTML = '';
+
+    const filtered = UNIT_POOL.filter(u => {
+        const costMatch = (currentCostFilter === 0 || u.tier === currentCostFilter);
+        
+        let synMatch = true;
+        if (currentSynergyFilter !== 'all') {
+            const subjects = Array.isArray(u.subject) ? u.subject : [u.subject];
+            const clubs = Array.isArray(u.club) ? u.club : [u.club];
+            synMatch = subjects.includes(currentSynergyFilter) || clubs.includes(currentSynergyFilter);
+        }
+        
+        return costMatch && synMatch;
+    });
+
+    filtered.forEach(u => {
         const btn = document.createElement('div');
-        btn.className = 'selectable-btn';
+        btn.className = 'selectable-btn tier-' + u.tier;
         btn.dataset.type = 'unit';
         btn.dataset.id = u.id;
         btn.draggable = true;
         btn.innerHTML = `${u.icon}<span class="name">${u.name}</span>`;
-        btn.onclick = () => setTool('unit', u.id);
         btn.ondragstart = (e) => {
-            setTool('unit', u.id);
             e.dataTransfer.setData('application/json', JSON.stringify({ type: 'unit', id: u.id }));
         };
+        
+        btn.onmouseover = (e) => {
+            const subjects = Array.isArray(u.subject) ? u.subject.join('/') : u.subject;
+            const clubs = Array.isArray(u.club) ? u.club.join('/') : u.club;
+            showCustomTooltip(e, `
+                <div style="font-weight:bold; color:#1e3a8a; font-size:0.95rem; margin-bottom:4px;">
+                    ${u.icon} ${u.name} (${u.tier}코스트)
+                </div>
+                <div style="font-size:0.8rem; color:#475569; margin-bottom:4px;">
+                    시너지: ${subjects} / ${clubs}
+                </div>
+                <div style="font-size:0.8rem; color:#475569; max-width: 250px;">
+                    스킬: <strong>${u.skill.name}</strong> - ${u.skill.desc}
+                </div>
+            `);
+        };
+        btn.onmouseout = () => hideCustomTooltip();
+        
         unitList.appendChild(btn);
     });
+}
+
+function populateLists() {
+    initCostFilters();
+    initSynergyFilter();
+    updateUnitList();
 
     const itemList = document.getElementById('sandbox-item-list');
+    itemList.innerHTML = '';
     ITEMS.forEach(i => {
         if(i.type !== 'combined') return; // Only show combined items for testing
         const btn = document.createElement('div');
@@ -245,9 +373,7 @@ function populateLists() {
         
         const iconStr = getIconForItem(i.id);
         btn.innerHTML = `${iconStr}<span class="name">${i.name}</span>`;
-        btn.onclick = () => setTool('item', i.id);
         btn.ondragstart = (e) => {
-            setTool('item', i.id);
             hideCustomTooltip();
             e.dataTransfer.setData('application/json', JSON.stringify({ type: 'item', id: i.id }));
         };
@@ -258,7 +384,7 @@ function populateLists() {
                     ${iconStr} ${i.name}
                     <span style="font-size:0.75rem; color:#666; font-weight:normal; margin-left:4px;">${formatItemStats(i.stats)}</span>
                 </div>
-                <div style="color:#475569;">${i.desc}</div>
+                <div style="color:#475569; max-width:250px;">${i.desc}</div>
             `);
         };
         btn.onmouseout = () => hideCustomTooltip();
@@ -392,77 +518,31 @@ function spawnDummies() {
     renderBoard();
 }
 
-function setTool(type, id) {
-    if (currentTool && currentTool.type === type && currentTool.id === id) {
-        currentTool = null;
-        document.getElementById('current-tool').innerText = `모드: [ 선택 안됨 ]`;
-        document.querySelectorAll('.selectable-btn').forEach(b => b.classList.remove('selected'));
-        return;
-    }
-
-    currentTool = { type, id };
-    const label = type === 'eraser' ? '지우개' : (type === 'unit' ? '유닛 배치' : '아이템 부여');
-    document.getElementById('current-tool').innerText = `모드: [ ${label} ]`;
-
-    document.querySelectorAll('.selectable-btn').forEach(btn => {
-        const matchesType = btn.dataset.type === type;
-        const matchesId = (btn.dataset.id === id) || (id === null && !btn.dataset.id);
-        if (matchesType && matchesId) {
-            btn.classList.add('selected');
-        } else {
-            btn.classList.remove('selected');
-        }
-    });
-}
+// setTool removed
 
 function handleCellClick(index, e) {
     if (e.button === 2) return; // Right click is handled by contextmenu
     
-    // 전투 중일 경우 유닛 추가/삭제 등 툴 사용 로직으로 넘어가지 않게 방어막이 아래에 있음
+    const cells = document.getElementById('battle-board').children;
+    const el = cells[index].querySelector('.unit-character');
     
-    const isEnemySide = index < 24;
-    const board = isEnemySide ? enemyBoard : playerBoard;
-    const localIdx = isEnemySide ? index : index - 24;
-
-    if (!currentTool || isBattling) {
-        // 선택된 툴이 없거나 전투 중일 때는 유닛 정보 표시
+    if (el) {
+        const originalIndex = parseInt(el.dataset.index);
+        const isEnemySide = originalIndex < 24;
+        const board = isEnemySide ? enemyBoard : playerBoard;
+        const localIdx = isEnemySide ? originalIndex : originalIndex - 24;
         const u = board[localIdx];
+        
         if (u) {
-            const cells = document.getElementById('battle-board').children;
-            // 다른 유닛들의 viewing 상태 해제
             Array.from(cells).forEach(c => {
-                const el = c.querySelector('.unit-character');
-                if(el) el.dataset.viewing = 'false';
+                const childEl = c.querySelector('.unit-character');
+                if(childEl) childEl.dataset.viewing = 'false';
             });
-            const el = cells[index].querySelector('.unit-character');
-            if (el) el.dataset.viewing = 'true';
+            el.dataset.viewing = 'true';
             
             showUnitInfo(u, isEnemySide, el);
         }
-        return;
     }
-
-    if (currentTool.type === 'eraser') {
-        eraseCell(index);
-        return;
-    }
-
-    if (currentTool.type === 'unit') {
-        const base = UNIT_POOL.find(u => u.id === currentTool.id);
-        if (base) {
-            board[localIdx] = JSON.parse(JSON.stringify(base));
-            board[localIdx].items = [];
-            board[localIdx].star = 1;
-        }
-        // 연속 배치를 막으려면 여기서 setTool(null, null) 호출 (단 드래그 중이 아니면)
-        if (!e.isDrop) setTool(null, null);
-    } else if (currentTool.type === 'item') {
-        const u = board[localIdx];
-        if (u && u.items.length < 3) {
-            u.items.push(currentTool.id);
-        }
-    }
-    renderBoard();
 }
 
 function eraseCell(index) {
@@ -592,6 +672,39 @@ function renderBoard() {
     
     calculateSynergy();
 }
+
+window.setSandboxUnitStar = function(index, star) {
+    if (isBattling) return;
+    const isEnemySide = index < 24;
+    const board = isEnemySide ? enemyBoard : playerBoard;
+    const localIdx = isEnemySide ? index : index - 24;
+    const u = board[localIdx];
+    
+    if (u) {
+        u.star = star;
+        const baseId = u.id.split('_')[0];
+        const baseUnit = UNIT_POOL.find(b => b.id === baseId);
+        if (baseUnit) {
+            u.stats.hp = baseUnit.stats.hp * Math.pow(1.8, star - 1);
+            u.stats.maxHp = u.stats.hp;
+            u.stats.ad = baseUnit.stats.ad * Math.pow(1.5, star - 1);
+        }
+        
+        renderBoard();
+        
+        // Update UI explicitly to reflect changes smoothly
+        const cells = document.getElementById('battle-board').children;
+        const el = cells[index].querySelector('.unit-character');
+        if (el) {
+            Array.from(cells).forEach(c => {
+                const childEl = c.querySelector('.unit-character');
+                if(childEl) childEl.dataset.viewing = 'false';
+            });
+            el.dataset.viewing = 'true';
+            showUnitInfo(u, isEnemySide, el);
+        }
+    }
+};
 
 function showUnitInfo(u, isEnemySide, uDiv) {
     const infoEl = document.getElementById('unit-details');
@@ -726,6 +839,24 @@ function showUnitInfo(u, isEnemySide, uDiv) {
         </div>
         ${skillHtml}
     `;
+
+    if (!isBattling && uDiv && uDiv.dataset.index) {
+        const idx = parseInt(uDiv.dataset.index);
+        const s1 = u.star === 1 ? 'background:#334155;color:white;border-color:#334155;' : 'background:white;color:#475569;border-color:#cbd5e1;';
+        const s2 = u.star === 2 ? 'background:#334155;color:white;border-color:#334155;' : 'background:white;color:#475569;border-color:#cbd5e1;';
+        const s3 = u.star === 3 ? 'background:#334155;color:white;border-color:#334155;' : 'background:white;color:#475569;border-color:#cbd5e1;';
+        
+        infoEl.innerHTML += `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: bold; color: #475569; font-size: 0.9rem;">⭐ 성급 설정:</span>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="setSandboxUnitStar(${idx}, 1)" style="${s1} cursor:pointer; padding: 4px 8px; border-radius: 4px; border-width: 1px; border-style: solid; font-size: 0.8rem; font-weight: bold; transition: all 0.2s;">1성</button>
+                    <button onclick="setSandboxUnitStar(${idx}, 2)" style="${s2} cursor:pointer; padding: 4px 8px; border-radius: 4px; border-width: 1px; border-style: solid; font-size: 0.8rem; font-weight: bold; transition: all 0.2s;">2성</button>
+                    <button onclick="setSandboxUnitStar(${idx}, 3)" style="${s3} cursor:pointer; padding: 4px 8px; border-radius: 4px; border-width: 1px; border-style: solid; font-size: 0.8rem; font-weight: bold; transition: all 0.2s;">3성</button>
+                </div>
+            </div>
+        `;
+    }
 
     infoEl.querySelectorAll('.unit-item-slot[data-id]').forEach(slot => {
         slot.onmouseover = (e) => {
@@ -1302,12 +1433,13 @@ function startBattle() {
         }
         // viewing 상태인 유닛 갱신
         const cells = document.getElementById('battle-board').children;
-        Array.from(cells).forEach((c, index) => {
+        Array.from(cells).forEach((c) => {
             const el = c.querySelector('.unit-character');
             if (el && el.dataset.viewing === 'true') {
-                const isEnemySide = index < 24;
+                const originalIndex = parseInt(el.dataset.index);
+                const isEnemySide = originalIndex < 24;
                 const board = isEnemySide ? enemyBoard : playerBoard;
-                const localIdx = isEnemySide ? index : index - 24;
+                const localIdx = isEnemySide ? originalIndex : originalIndex - 24;
                 const u = board[localIdx];
                 if (u) {
                     showUnitInfo(u, isEnemySide, el);
