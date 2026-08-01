@@ -6,9 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test",
+    "evaluate:boards": "node scripts/evaluate_board_correlation.mjs",
+    "audit:ai": "node scripts/audit_opponent_ai.mjs",
+    "simulate:balance": "node scripts/run_balance_experiment.mjs",
+    "simulate:decks": "node scripts/balance-simulator/simulate-decks.mjs",
+    "simulate:compare": "node scripts/balance-simulator/compare-runs.mjs",
+    "analyze:stage11": "node scripts/balance-simulator/analyze-stage11.mjs",
+    "analyze:stage12": "node scripts/balance-simulator/analyze-stage12.mjs",
+    "analyze:stage13": "node scripts/balance-simulator/analyze-stage13.mjs",
+    "analyze:stage14": "node scripts/balance-simulator/analyze-stage14.mjs",
+    "analyze:stage15": "node scripts/balance-simulator/analyze-stage15.mjs"
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
     "vite": "^8.0.12"
   },
   "dependencies": {

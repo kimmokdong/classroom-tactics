@@ -33,6 +33,7 @@ export class SkillEngine {
         
         const { ad, ap, armor, mr, maxHp, as } = unit.stats;
         const apMult = ap / 100;
+        const buffPowerMult = engine.getUnbuffedStat(unit, 'ap') / 100;
         const skillAmpMult = 1 + (unit.combat.skillAmp || 0);
         
         const getBaseDmg = (s, starIdx) => {
@@ -54,7 +55,7 @@ export class SkillEngine {
             let currentDmgAmp = unit.combat.dmgAmp || 0;
             if (unit.combat.isSniper && target) {
                 const dist = engine.getDist(unit.gridIndex, target.gridIndex);
-                currentDmgAmp += dist * (unit.combat.distAmp || 0);
+                currentDmgAmp += engine.getDistanceDamageAmp(dist, unit.combat.distAmp);
             }
             if (currentDmgAmp !== 0 && type !== 'true') finalDmg *= Math.max(0.1, (1 + currentDmgAmp));
             if (unit.combat.itemEffects?.giantSlayer) {
@@ -63,7 +64,7 @@ export class SkillEngine {
             }
             if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) finalDmg *= 1.25;
             if ((unit.combat.itemEffects?.skillCrit || unit.combat.skillCrit) && type !== 'true') {
-                if (Math.random() < (unit.combat.critChance || 0)) {
+                if (engine.random() < (unit.combat.critChance || 0)) {
                     finalDmg *= (unit.combat.critDmg || 1.5);
                     isCrit = true;
                 }
@@ -92,7 +93,7 @@ export class SkillEngine {
                     let shredBuffs = target.buffs.filter(b => b.type === 'armorShred');
                     let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
                     // 怨듦꺽?먯쓽 諛⑷? ?곸슜 (armorPen???덉쑝硫?異붽? 愿�??
-                    let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                    let armorPenMult = 1 - engine.clampPenetration(unit.combat.armorPen);
                     if (target.combat?.itemEffects?.gargoyle) armorPenMult = 1; // 媛�怨좎씪 ?덉쑝硫?諛⑷? 硫댁뿭 (?좏깮 ?ы빆, ?ш린???쇰떒 ?앸왂) - ?앸왂
                     armor *= (1 - maxShred) * armorPenMult;
                 }
@@ -107,7 +108,7 @@ export class SkillEngine {
                 // ??留덈쾿 ?�??젰 媛먯뇙 癒쇱? ?곸슜
                 let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
                 let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                let armorPenMult = 1 - engine.clampPenetration(unit.combat.armorPen);
                 let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
                 finalDmg *= (100 / (100 + actualMr));
                 // ??dmgReduc ?곸슜 (?섎뱶罹?75%) - 留덈쾿 ?쇳빐?먮룄 ?곸슜
@@ -130,7 +131,7 @@ export class SkillEngine {
                 let engMagicDmg = (unit.stats.ap * unit.combat.bonusMagicDmgEng) + (unit.stats.as * 10);
                 let shredBuffs = target.buffs.filter(b => b.type === 'mrShred');
                 let maxShred = shredBuffs.length > 0 ? Math.max(...shredBuffs.map(b => b.val)) : 0;
-                let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                let armorPenMult = 1 - engine.clampPenetration(unit.combat.armorPen);
                 let actualMr = target.stats.mr * (1 - maxShred) * armorPenMult;
                 engActualDmg = engMagicDmg * (100 / (100 + actualMr));
             }
@@ -156,7 +157,7 @@ export class SkillEngine {
 
             // [p15] 諛붾Ⅸ ?앺솢??遺꾨끂 (?됲? ?쇨꺽 ??諛섏궗)
             if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('?꾨뜒') : target.subject === '?꾨뜒') && unit.team === 'enemy' && finalDmg > 0) {
-                const reflectDmg = (target.stats.armor + target.stats.mr) * 0.20;
+                const reflectDmg = (target.stats.armor + target.stats.mr) * 0.15;
                 let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                 unit.currHp -= actualReflect;
                 engine.logs.push({
@@ -170,7 +171,7 @@ export class SkillEngine {
 
             if (finalDmg > 0) {
                 engine.logs.push({
-                    tick: engine.tick, type: 'damage', target: target.gridIndex, 
+                    tick: engine.tick, type: 'damage', target: target.gridIndex, source: unit.gridIndex,
                     dmg: Math.round(finalDmg), dmgType: type, isCrit: isCrit,
                     currHp: target.currHp, maxHp: target.stats.maxHp, currShield: target.currShield
                 });
@@ -199,7 +200,7 @@ export class SkillEngine {
             if(target.currHp <= 0) engine.handleDeath(target, activeUnits);
         };
 
-        const addBuff = (target, type, stat, val, duration, sourceIdx) => {
+        const addBuff = (target, type, stat, val, duration, sourceIdx = unit.gridIndex) => {
             engine.addBuff(target, type, stat, val, duration, sourceIdx);
         };
 
@@ -213,7 +214,7 @@ export class SkillEngine {
                     let baseDmg = unit.stats.ap * s.apRatio[starIdx];
                     applyDmg(targetEnemy, baseDmg, 'magic');
                     
-                    if (targetEnemy.currHp <= 0 && unit.team === 'player' && Math.random() < 0.5) {
+                    if (targetEnemy.currHp <= 0 && unit.team === 'player' && engine.random() < 0.5) {
                         engine.earnedGold = (engine.earnedGold || 0) + 1;
                         engine.logs.push({
                             tick: engine.tick, type: 'gold_drop', amount: 1, target: targetEnemy.gridIndex, source: unit.gridIndex, unitName: unit.name
@@ -296,7 +297,7 @@ export class SkillEngine {
                             if (s.silenceDuration) addBuff(e, 'manaSeal', null, 0, s.silenceDuration[starIdx]);
                         }
                     });
-                    if (s.selfDefBuff) addBuff(unit, 'buff', 'armor', unit.stats.armor * s.selfDefBuff[starIdx], s.buffDuration[starIdx]);
+                    if (s.selfDefBuff) addBuff(unit, 'buff', 'armor', engine.getUnbuffedStat(unit, 'armor') * s.selfDefBuff[starIdx], s.buffDuration[starIdx]);
                     if (s.shieldFlat) addBuff(unit, 'shield', 'shield', s.shieldFlat[starIdx], 9999);
                     if (s.hpRatioShield) addBuff(unit, 'shield', 'shield', maxHp * s.hpRatioShield[starIdx], 9999);
                     if (s.adRatio && s.type.includes('shield')) addBuff(unit, 'shield', 'shield', ad * s.adRatio[starIdx], 9999);
@@ -326,13 +327,13 @@ export class SkillEngine {
 
             case 'random_aoe':
             case 'random_aoe_debuff':
-                const shuffled = [...enemies].sort(() => 0.5 - Math.random());
+                const shuffled = [...enemies].sort(() => 0.5 - engine.random());
                 const selected = shuffled.slice(0, s.targetCount);
                 selected.forEach(e => {
                     targets.push(e);
                     applyDmg(e, getBaseDmg(s, starIdx), s.adRatio ? 'physical' : 'magic');
                     if (s.manaReducPct) addBuff(e, 'debuff', 'manaGain', -s.manaReducPct[starIdx], s.debuffDuration[starIdx]);
-                    if (s.name === '?됱쓽 留덈쾿') addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
+                    if (s.manaSeal) addBuff(e, 'manaSeal', null, 0, s.debuffDuration[starIdx]);
                 });
                 break;
 
@@ -342,15 +343,15 @@ export class SkillEngine {
                 allies.forEach(a => {
                     if (s.buffStat) {
                         let val = s.buffPct[starIdx];
-                        if (s.buffStat === 'ap') val = a.stats.ap * val * apMult;
-                        else if (s.buffStat === 'ad') val = a.stats.ad * val * apMult;
-                        else if (s.buffStat === 'as') val = a.stats.as * val * apMult;
+                        if (s.buffStat === 'ap') val = engine.getUnbuffedStat(a, 'ap') * val * buffPowerMult;
+                        else if (s.buffStat === 'ad') val = engine.getUnbuffedStat(a, 'ad') * val * buffPowerMult;
+                        else if (s.buffStat === 'as') val = engine.getUnbuffedStat(a, 'as') * val * buffPowerMult;
                         addBuff(a, 'buff', s.buffStat, val, s.buffDuration[starIdx]);
                     }
                     if (s.statBuffPct) {
-                        let val = s.statBuffPct[starIdx] * apMult;
-                        addBuff(a, 'buff', 'ad', a.stats.ad * val, s.buffDuration[starIdx]);
-                        addBuff(a, 'buff', 'ap', a.stats.ap * val, s.buffDuration[starIdx]);
+                        const val = s.statBuffPct[starIdx];
+                        addBuff(a, 'buff', 'ad', engine.getUnbuffedStat(a, 'ad') * val, s.buffDuration[starIdx]);
+                        addBuff(a, 'buff', 'ap', engine.getUnbuffedStat(a, 'ap') * val, s.buffDuration[starIdx]);
                     }
                     if (s.shieldFlat) addBuff(a, 'shield', 'shield', s.shieldFlat[starIdx] * apMult, s.buffDuration[starIdx]);
                     if (s.dmgReducPct) addBuff(a, 'buff', 'dmgReduc', s.dmgReducPct[starIdx], s.buffDuration[starIdx]);
@@ -387,9 +388,9 @@ export class SkillEngine {
                             allies[0].buffs = allies[0].buffs.filter(b => ['buff','shield','heal','hyper','hyper_range','guaranteedCrit','precision'].includes(b.type));
                         }
                         if (s.buffPct) {
-                            let buffVal = s.buffPct[starIdx] * (unit.stats.ap / 100);
-                            addBuff(allies[0], 'buff', 'ad', allies[0].stats.ad * buffVal, s.buffDuration[starIdx]);
-                            addBuff(allies[0], 'buff', 'ap', allies[0].stats.ap * buffVal, s.buffDuration[starIdx]);
+                            let buffVal = s.buffPct[starIdx] * buffPowerMult;
+                            addBuff(allies[0], 'buff', 'ad', engine.getUnbuffedStat(allies[0], 'ad') * buffVal, s.buffDuration[starIdx]);
+                            addBuff(allies[0], 'buff', 'ap', engine.getUnbuffedStat(allies[0], 'ap') * buffVal, s.buffDuration[starIdx]);
                         }
                     }
                     
@@ -416,7 +417,7 @@ export class SkillEngine {
                     if (healAmt > 0) {
                         addBuff(targetAlly, 'heal', 'hp', healAmt, 1, unit.gridIndex);
                         if (enemies.length > 0) {
-                            const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                            const randomEnemy = enemies[Math.floor(engine.random() * enemies.length)];
                             targets.push(randomEnemy);
                             applyDmg(randomEnemy, healAmt, 'magic');
                         }
@@ -492,7 +493,7 @@ export class SkillEngine {
 
             case 'taunt':
                 if (s.dmgReduc) addBuff(unit, 'buff', 'dmgReduc', s.dmgReduc[starIdx] * apMult, s.tauntDuration[starIdx]);
-                if (s.selfMrBuff) addBuff(unit, 'buff', 'mr', unit.stats.mr * s.selfMrBuff[starIdx], s.tauntDuration[starIdx]);
+                if (s.selfMrBuff) addBuff(unit, 'buff', 'mr', engine.getUnbuffedStat(unit, 'mr') * s.selfMrBuff[starIdx], s.tauntDuration[starIdx]);
                 enemies.forEach(e => {
                     let stunVal = s.afterTauntStun ? s.afterTauntStun[starIdx] * apMult : 0;
                     if (engine.getDist(unit.gridIndex, e.gridIndex) <= 2) addBuff(e, 'taunt', null, stunVal, s.tauntDuration[starIdx], unit.gridIndex);
@@ -536,7 +537,7 @@ export class SkillEngine {
             case 'aoe_debuff':
                 enemies.forEach(e => {
                     if (engine.getDist(unit.gridIndex, e.gridIndex) <= s.aoeRange) {
-                        if (s.adReducPct) addBuff(e, 'debuff', 'ad', -e.stats.ad * s.adReducPct[starIdx], s.debuffDuration[starIdx]);
+                        if (s.adReducPct) addBuff(e, 'debuff', 'ad', -engine.getUnbuffedStat(e, 'ad') * s.adReducPct[starIdx], s.debuffDuration[starIdx]);
                         if (s.armorRatio) addBuff(e, 'debuff', 'ad', -(armor * s.armorRatio[starIdx]), s.debuffDuration[starIdx]);
                     }
                 });
@@ -583,8 +584,8 @@ export class SkillEngine {
                 if (s.teamShield || s.teamStatBuff) allies.forEach(a => {
                     if (s.teamShield) addBuff(a, 'shield', 'shield', s.teamShield[starIdx], 9999);
                     if (s.teamStatBuff) {
-                        addBuff(a, 'buff', 'ad', a.stats.ad * s.teamStatBuff[starIdx], 99999);
-                        addBuff(a, 'buff', 'ap', a.stats.ap * s.teamStatBuff[starIdx], 99999);
+                        addBuff(a, 'buff', 'ad', engine.getUnbuffedStat(a, 'ad') * s.teamStatBuff[starIdx], 99999);
+                        addBuff(a, 'buff', 'ap', engine.getUnbuffedStat(a, 'ap') * s.teamStatBuff[starIdx], 99999);
                     }
                 });
                 break;
@@ -612,8 +613,8 @@ export class SkillEngine {
                 enemies.forEach(e => {
                     targets.push(e);
                     addBuff(e, 'stun', null, 0, s.stunDuration[starIdx]);
-                    addBuff(e, 'debuff', 'ad', -e.stats.ad * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
-                    addBuff(e, 'debuff', 'ap', -e.stats.ap * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
+                    addBuff(e, 'debuff', 'ad', -engine.getUnbuffedStat(e, 'ad') * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
+                    addBuff(e, 'debuff', 'ap', -engine.getUnbuffedStat(e, 'ap') * s.statReducPct[starIdx], s.debuffDuration[starIdx]);
                     if (s.type === 'global_cc_dmg_debuff' && s.defMrRatio) {
                         applyDmg(e, (unit.stats.armor + unit.stats.mr) * s.defMrRatio[starIdx], 'magic');
                     }

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "categories": {
+    "combat": {
+      "silver": ["s4", "s7", "s8", "s9", "s13", "s14", "s15"],
+      "gold": ["g4", "g7", "g8", "g9", "g12", "g13", "g15"],
+      "prismatic": ["p3", "p5", "p7", "p10"]
+    },
+    "economic": {
+      "silver": ["s1", "s2", "s3", "s5", "s6", "s10", "s11", "s12"],
+      "gold": ["g1", "g2", "g3", "g5", "g6", "g10", "g11", "g14"],
+      "prismatic": ["p1", "p2", "p4", "p6", "p8", "p9", "p11"]
+    },
+    "synergy": {
+      "silver": [],
+      "gold": [],
+      "prismatic": ["p12", "p13", "p14", "p15", "p21", "p22", "p23"]
+    }
+  },
+  "eligibility": {
+    "s8": { "type": "board-size-lte", "value": 3 },
+    "p5": { "type": "player-hp-lte", "value": 30 },
+    "p10": { "type": "ranged-share-gte", "value": 0.6667 },
+    "p12": { "type": "synergy", "name": "보건부", "value": 6 },
+    "p13": { "type": "synergy", "name": "방송부", "value": 7 },
+    "p14": { "type": "synergy", "name": "육상부", "value": 6 },
+    "p15": { "type": "synergy", "name": "도덕", "value": 6 },
+    "p21": { "type": "synergy", "name": "선도부", "value": 6 },
+    "p22": { "type": "synergy", "name": "급식부", "value": 7 },
+    "p23": { "type": "synergy", "name": "장난꾸러기", "value": 6 }
+  },
+  "evaluationModes": {
+    "universal": {
+      "silver": ["s4", "s7", "s9", "s13", "s14", "s15"],
+      "gold": ["g4", "g7", "g8", "g9", "g12", "g13", "g15"],
+      "prismatic": ["p3", "p7"]
+    },
+    "conditional": {
+      "silver": ["s8"],
+      "gold": [],
+      "prismatic": ["p5", "p10"]
+    }
+  },
+  "economicModel": {
+    "horizonRounds": 6,
+    "horizonScenarios": [4, 6, 10],
+    "winRate": 0.5,
+    "winRateScenarios": [0.35, 0.5, 0.65],
+    "averageLossDamage": 10,
+    "rerollGold": 2,
+    "xpGold": 1,
+    "baseItemGold": 5,
+    "combinedItemGold": 10,
+    "interestBankScenarios": [70, 100],
+    "levelRange": [6, 9]
+  },
+  "targetBands": {
+    "combatUpliftPp": {
+      "silver": [3, 8],
+      "gold": [7, 14],
+      "prismatic": [12, 22]
+    },
+    "economicGoldEquivalent": {
+      "silver": [5, 10],
+      "gold": [10, 20],
+      "prismatic": [20, 40]
+    },
+    "synergyUpliftPp": {
+      "prismatic": [10, 25]
+    },
+    "crossDeckComparison": {
+      "center": "same-rarity-median",
+      "targetDeviationPp": 8,
+      "pauseDeviationPp": 12
+    }
+  }
+}

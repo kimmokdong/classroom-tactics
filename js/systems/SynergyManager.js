@@ -1,6 +1,58 @@
 import { SYNERGIES, UNIT_POOL } from '../data.js';
 import { formatStat } from '../core/constants.js';
 
+export function applyDonationItems(board, items, random = Math.random) {
+    const combined = items.filter(item => item.type === 'combined');
+    if (combined.length === 0) return board;
+
+    board.forEach((donor, donorIndex) => {
+        if (!donor || donor.id !== 'u5_5' || !donor.skill?.adjPassiveItems) return;
+        const starIndex = Math.min((donor.star || 1) - 1, donor.skill.adjPassiveItems.length - 1);
+        const giftCount = donor.skill.adjPassiveItems[starIndex];
+        const donorX = donorIndex % 8;
+        const donorY = Math.floor(donorIndex / 8);
+
+        board.forEach((unit, unitIndex) => {
+            if (!unit) return;
+            const distance = Math.abs((unitIndex % 8) - donorX) + Math.abs(Math.floor(unitIndex / 8) - donorY);
+            if (distance > 1) return;
+
+            unit.donationItems ||= [];
+            const slots = Math.min(giftCount, 3 - (unit.items || []).length - unit.donationItems.length);
+            for (let i = 0; i < slots; i++) {
+                unit.donationItems.push(combined[Math.floor(random() * combined.length)].id);
+            }
+        });
+    });
+
+    return board;
+}
+
+export function getSynergyData(boardArray) {
+    const uniqueUnits = [];
+    const seenIds = new Set();
+    boardArray.forEach(unit => {
+        if (unit && !seenIds.has(unit.id)) {
+            uniqueUnits.push(unit);
+            seenIds.add(unit.id);
+        }
+    });
+
+    const counts = { subjects: {}, clubs: {} };
+    uniqueUnits.forEach(unit => {
+        const subjects = Array.isArray(unit.subject) ? unit.subject : [unit.subject];
+        const clubs = Array.isArray(unit.club) ? unit.club : [unit.club];
+        subjects.filter(Boolean).forEach(subject => { counts.subjects[subject] = (counts.subjects[subject] || 0) + 1; });
+        clubs.filter(Boolean).forEach(club => { counts.clubs[club] = (counts.clubs[club] || 0) + 1; });
+    });
+    return counts;
+}
+
+export function getActiveSynergyLevel(count, levels, exactMatch = false) {
+    if (exactMatch) return levels.some(level => Number(level) === count) ? count : 0;
+    return levels.reduce((active, level) => count >= Number(level) ? Number(level) : active, 0);
+}
+
 export class SynergyManager {
     constructor(gameApp) {
         this.app = gameApp;
@@ -8,31 +60,7 @@ export class SynergyManager {
     }
 
     getSynergyData(boardArray) {
-        const uniqueUnits = [];
-        const seenIds = new Set();
-
-        boardArray.forEach(unit => {
-            if (unit && !seenIds.has(unit.id)) {
-                uniqueUnits.push(unit);
-                seenIds.add(unit.id);
-            }
-        });
-
-        const counts = { subjects: {}, clubs: {} };
-        uniqueUnits.forEach(u => {
-            if (Array.isArray(u.subject)) {
-                u.subject.forEach(sub => counts.subjects[sub] = (counts.subjects[sub] || 0) + 1);
-            } else {
-                counts.subjects[u.subject] = (counts.subjects[u.subject] || 0) + 1;
-            }
-            if (Array.isArray(u.club)) {
-                u.club.forEach(clb => counts.clubs[clb] = (counts.clubs[clb] || 0) + 1);
-            } else {
-                counts.clubs[u.club] = (counts.clubs[u.club] || 0) + 1;
-            }
-        });
-
-        return counts;
+        return getSynergyData(boardArray);
     }
 
     calculateSynergy() {
@@ -92,17 +120,12 @@ export class SynergyManager {
     }
 
     getActiveSynergyLevel(count, levelsArr, exactMatch = false) {
-        if (exactMatch) {
-            return levelsArr.includes(String(count)) ? count : 0;
-        }
-        let maxLvl = 0;
-        levelsArr.forEach(lvl => {
-            if (count >= Number(lvl)) maxLvl = Number(lvl);
-        });
-        return maxLvl;
+        return getActiveSynergyLevel(count, levelsArr, exactMatch);
     }
 
-    applySynergyStats(originalBoard, activeSynergies, isEnemy = false) {
+    applySynergyStats(originalBoard, activeSynergies, isEnemy = false, random = Math.random, context = {}) {
+        const teamRole = context.teamRole || (isEnemy ? 'opponent' : 'player');
+        const applyPlayerOnlyBonuses = context.applyPlayerOnlyBonuses ?? !isEnemy;
         const buffedBoard = originalBoard.map(u => {
             if (!u) return null;
             const newU = JSON.parse(JSON.stringify(u));
@@ -116,39 +139,7 @@ export class SynergyManager {
             return newU;
         });
 
-        // [기부천사 패시브] 전투 시작 전 인접한 아군에게 완성 아이템 임시 부여
-        if (!isEnemy && this.app && this.app.ITEMS) {
-            buffedBoard.forEach((u, index) => {
-                if (!u || u.id !== 'u5_5') return;
-                const star = (u.star || 1) - 1;
-                const adjItemSkill = u.skill && u.skill.adjPassiveItems;
-                if (!adjItemSkill) return;
-                const giftCount = adjItemSkill[Math.min(star, adjItemSkill.length - 1)];
-                const ux = index % 8;
-                const uy = Math.floor(index / 8);
-                const adjacent = buffedBoard.filter((a, aIdx) => {
-                    if (!a || a === u) return false;
-                    const ax = aIdx % 8;
-                    const ay = Math.floor(aIdx / 8);
-                    return (Math.abs(ax - ux) + Math.abs(ay - uy)) === 1;
-                });
-                
-                const ITEMS_DATA = this.app.ITEMS;
-                const combined = ITEMS_DATA.filter(it => it.type === 'combined');
-                if (!combined.length) return;
-                
-                adjacent.forEach(a => {
-                    const existingItems = (a.items || []).length;
-                    const slots = Math.min(giftCount, 3 - existingItems);
-                    if (slots <= 0) return;
-                    if (!a.donationItems) a.donationItems = [];
-                    for (let i = 0; i < slots; i++) {
-                        const randomItem = combined[Math.floor(Math.random() * combined.length)];
-                        a.donationItems.push(randomItem.id);
-                    }
-                });
-            });
-        }
+        if (teamRole === 'player' && this.app?.ITEMS) applyDonationItems(buffedBoard, this.app.ITEMS, random);
 
         const getLevelData = (type, name, count) => {
             const synData = SYNERGIES[type][name];
@@ -179,8 +170,8 @@ export class SynergyManager {
 
         const g = this.app.state.globalBuffs;
         const playerHp = this.app.state.hp;
-        const isSpartan = g.spartanTraining && playerHp <= 30 && !isEnemy;
-        const isDuty = g.dutyResponsibility && originalBoard.filter(u => u).length <= 3 && !isEnemy;
+        const isSpartan = g.spartanTraining && playerHp <= 30 && applyPlayerOnlyBonuses;
+        const isDuty = g.dutyResponsibility && originalBoard.filter(u => u).length <= 3 && applyPlayerOnlyBonuses;
 
         buffedBoard.forEach(u => {
             if (!u) return;
@@ -201,7 +192,7 @@ export class SynergyManager {
                 if (healthEff.teamHeal) u.combat.reviveTeamHeal = healthEff.teamHeal;
             }
 
-            if (!isEnemy) {
+            if (applyPlayerOnlyBonuses) {
                 u.stats.hp += g.teamHp;
                 u.stats.ad += g.teamAdAp;
                 u.stats.ap += g.teamAdAp;
@@ -219,9 +210,9 @@ export class SynergyManager {
 
                 if (isSpartan) { u.combat.dmgReduc += 0.3; u.combat.vamp += 0.3; }
                 if (isDuty) { u.combat.dmgReduc += 0.15; }
-            } else {
+            } else if (teamRole === 'opponent') {
                 if (g.enforcerAura) {
-                    u.stats.maxHp = Math.round(u.stats.maxHp * 0.85);
+                    u.stats.maxHp = Math.round(u.stats.maxHp * (1 - g.enforcerAura));
                     u.stats.hp = u.stats.maxHp;
                 }
             }
@@ -268,6 +259,7 @@ export class SynergyManager {
                         u.combat.canvasManaRegen = subjEff.canvasManaRegen || 0;
                     }
                     if (subjEff.teamManaRegen) u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + subjEff.teamManaRegen;
+                    if (subjEff.startMana) u.combat.startMana = (u.combat.startMana || 0) + subjEff.startMana;
                     if (subj === '음악' && subjEff.artManaRegen) { u.combat.artManaRegen = (u.combat.artManaRegen || 0) + subjEff.artManaRegen; }
                     if (subj === '도덕') { u.stats.armor += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); u.stats.mr += (subjEff.teamDef || 0) * ((subjEff.selfDefMult || 1) - 1); }
 
@@ -302,7 +294,16 @@ export class SynergyManager {
                         u.combat.runnerKeepStacks = clubEff.keepStacks || false;
                     }
                     if (clb === '급식부') { u.combat.isCafeteria = true; u.combat.shield += clubEff.startShield; u.combat.satietyTick = clubEff.satietyTick; u.combat.stackHpPct = clubEff.stackHpPct; u.combat.stackArmorMr = clubEff.stackArmorMr; }
-                    if (clb === '장난꾸러기') { u.combat.prankLevel = clubEff.prankLevel; }
+                    if (clb === '장난꾸러기') {
+                        u.combat.prankLevel = clubEff.prankLevel;
+                        u.combat.prankDudChance = clubEff.prankDudChance || 0;
+                        u.combat.prankBananaChance = clubEff.prankBananaChance || 0;
+                        u.combat.prankStunTargets = clubEff.prankStunTargets || 0;
+                        u.combat.prankStunDuration = clubEff.prankStunDuration;
+                        u.combat.prankDamageTargets = clubEff.prankDamageTargets || 0;
+                        u.combat.prankDamagePct = clubEff.prankDamagePct;
+                        u.combat.prankJackpot = clubEff.prankJackpot || false;
+                    }
                 }
             };
 
@@ -337,6 +338,8 @@ export class SynergyManager {
                     if (st.apPct) itemApPct += st.apPct;
                     if (st.as) u.stats.as *= (1 + st.as);
                     if (st.mana) u.combat.startMana = (u.combat.startMana || 0) + st.mana;
+                    if (st.maxMana) u.stats.maxMana = Math.max(10, u.stats.maxMana + st.maxMana);
+                    if (st.range) u.stats.range += st.range;
                     if (st.armor) u.stats.armor += st.armor;
                     if (st.mr) u.stats.mr += st.mr;
                     if (st.maxHp) u.stats.hp += st.maxHp;
@@ -345,7 +348,7 @@ export class SynergyManager {
                     if (st.vamp) u.combat.vamp += st.vamp;
 
                     if (itemDef.effect) {
-                        u.combat.itemEffects[itemDef.effect] = true;
+                        u.combat.itemEffects[itemDef.effect] = (u.combat.itemEffects[itemDef.effect] || 0) + 1;
                     }
                 });
 
@@ -354,7 +357,7 @@ export class SynergyManager {
 
                 if (u.combat.itemEffects.skillCrit) u.combat.critDmg += 0.10;
                 if (u.combat.itemEffects.hoj) {
-                    if (Math.random() < 0.5) {
+                    if (random() < 0.5) {
                         u.combat.dmgAmp += 0.30;
                         u.combat.vamp += 0.15;
                     } else {
@@ -365,7 +368,6 @@ export class SynergyManager {
             }
 
             u.stats.maxHp = u.stats.hp;
-            if (u.combat.startMana) u.stats.mana = Math.min(u.stats.maxMana, u.stats.mana + u.combat.startMana);
         });
 
         return buffedBoard;

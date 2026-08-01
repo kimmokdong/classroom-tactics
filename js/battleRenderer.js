@@ -9,6 +9,9 @@ export class BattleRenderer {
         this.boardEl = boardEl;
         this.currentTick = 0;
         this.timer = null;
+        this.animId = null;
+        this.endTimeout = null;
+        this.fxCleanupTimeout = null;
         this.cells = Array.from(boardEl.children);
         
         this.fxCanvas = fxCanvas;
@@ -56,6 +59,21 @@ export class BattleRenderer {
     }
 
     spawnFx(type, x, y, options = {}) { this.fxSystem.spawnFx(type, x, y, options); }
+
+    stop() {
+        if (this.timer !== null) clearInterval(this.timer);
+        if (this.endTimeout !== null) clearTimeout(this.endTimeout);
+        if (this.fxCleanupTimeout !== null) clearTimeout(this.fxCleanupTimeout);
+        if (this.animId !== null) cancelAnimationFrame(this.animId);
+        this.timer = null;
+        this.animId = null;
+        this.endTimeout = null;
+        this.fxCleanupTimeout = null;
+        window.removeEventListener('resize', this.resizeCanvas);
+        if (this.ctx && this.fxCanvas) this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
+        const timerContainer = document.getElementById('battle-timer-container');
+        if (timerContainer) timerContainer.style.display = 'none';
+    }
     
     play(onEnd) {
         if(this.logs.length === 0) {
@@ -119,14 +137,8 @@ export class BattleRenderer {
             
             if (logIndex >= this.logs.length) {
                 clearInterval(this.timer);
+                this.timer = null;
                 this.renderDpsUI(); // 전투 종료 시 최종 통계 한번 더 렌더링
-                if (this.fxCanvas) {
-                    setTimeout(() => {
-                        cancelAnimationFrame(this.animId);
-                        window.removeEventListener('resize', this.resizeCanvas);
-                        this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
-                    }, 2000);
-                }
                 if (timerContainer) timerContainer.style.display = 'none';
                 const lastLog = this.logs[this.logs.length - 1];
                 
@@ -137,21 +149,17 @@ export class BattleRenderer {
                     } else if (lastLog.winner === 'enemy') {
                         window.gameApp.soundManager.playSFX('battle_lose');
                     }
-                    
-                    // 전투 종료 시 플레이어 체력 경고 (체력 25 이하)
-                    if (window.gameApp.state && window.gameApp.state.hp <= 25) {
-                        setTimeout(() => {
-                            window.gameApp.soundManager.playSFX('low_hp');
-                        }, 2200);
-                    }
                 }
 
-                setTimeout(() => {
-                    if (window.gameApp && window.gameApp.soundManager) {
-                        window.gameApp.soundManager.stopHeartbeat();
-                        window.gameApp.soundManager.stopSiren();
+                this.endTimeout = setTimeout(() => {
+                    const soundManager = window.gameApp?.soundManager;
+                    if (soundManager) {
+                        soundManager.stopHeartbeat();
+                        soundManager.stopSiren();
                     }
+                    this.stop();
                     onEnd(lastLog.winner, lastLog);
+                    if (soundManager && window.gameApp?.state?.hp <= 25) soundManager.playSFX('low_hp');
                 }, 1500);
             }
             

@@ -1,6 +1,9 @@
+import { equipUnitItems } from '../battle/combatPreparation.js';
+
 export class ItemManager {
     constructor(gameApp) {
         this.app = gameApp;
+        this.random = gameApp.random || Math.random;
     }
 
     getIconForItem(itemId) {
@@ -35,6 +38,7 @@ export class ItemManager {
     }
 
     renderInventory() {
+        this.flushPendingRewards();
         const slotsEl = document.getElementById('inventory-slots');
         if (!slotsEl) return;
         slotsEl.innerHTML = '';
@@ -222,24 +226,35 @@ export class ItemManager {
 
     giveRandomBaseItem() {
         const bases = this.app.ITEMS.filter(i => i.type === 'base');
-        const item = bases[Math.floor(Math.random() * bases.length)];
+        const item = bases[Math.floor(this.random() * bases.length)];
         this.addItemToInventory(item.id);
     }
 
     giveRandomCombinedItem() {
         const combos = this.app.ITEMS.filter(i => i.type === 'combined' && i.id !== 'comb_crit_crit');
-        const item = combos[Math.floor(Math.random() * combos.length)];
+        const item = combos[Math.floor(this.random() * combos.length)];
         this.addItemToInventory(item.id);
     }
 
     addItemToInventory(itemId) {
-        for (let i = 0; i < 12; i++) {
-            if (!this.app.state.inventory[i]) {
-                this.app.state.inventory[i] = itemId;
-                break;
-            }
+        const emptyIndex = this.app.state.inventory.findIndex(item => !item);
+        if (emptyIndex === -1) {
+            this.app.state.pendingRewards.push({ type: 'item', itemId });
+            this.renderInventory();
+            return false;
         }
+        this.app.state.inventory[emptyIndex] = itemId;
         this.renderInventory();
+        return true;
+    }
+
+    flushPendingRewards() {
+        const pending = this.app.state.pendingRewards || [];
+        while (pending.length > 0) {
+            const emptyIndex = this.app.state.inventory.findIndex(item => !item);
+            if (emptyIndex === -1) break;
+            this.app.state.inventory[emptyIndex] = pending.shift().itemId;
+        }
     }
 
     combineOrMoveItem(sourceIdx, targetIdx) {
@@ -279,12 +294,14 @@ export class ItemManager {
 
     giveItemToUnit(itemIdx, unit) {
         const itemId = this.app.state.inventory[itemIdx];
-        if (!itemId) return;
+        if (!itemId) return false;
 
         const itemDef = this.app.ITEMS.find(i => i.id === itemId);
+        if (!itemDef) return false;
+        unit.items ||= [];
 
         if (itemDef.type === 'base') {
-            const baseIndex = unit.items.findIndex(id => this.app.ITEMS.find(i => i.id === id).type === 'base');
+            const baseIndex = unit.items.findIndex(id => this.app.ITEMS.find(i => i.id === id)?.type === 'base');
             if (baseIndex !== -1) {
                 const existingId = unit.items[baseIndex];
                 const combo = this.app.ITEMS.find(i => i.type === 'combined' && i.recipe &&
@@ -292,14 +309,9 @@ export class ItemManager {
                         (i.recipe[0] === itemId && i.recipe[1] === existingId))
                 );
                 if (combo) {
-                    unit.items[baseIndex] = combo.id;
-                    if (combo.id === 'comb_crit_crit') {
-                        const combinedItems = this.app.ITEMS.filter(i => i.type === 'combined' && i.id !== 'comb_crit_crit');
-                        unit.thievesItems = [
-                            combinedItems[Math.floor(Math.random() * combinedItems.length)].id,
-                            combinedItems[Math.floor(Math.random() * combinedItems.length)].id
-                        ];
-                    }
+                    const nextItems = [...unit.items];
+                    nextItems[baseIndex] = combo.id;
+                    equipUnitItems(unit, nextItems, { catalog: this.app.ITEMS, random: this.random });
                     this.app.state.inventory[itemIdx] = null;
                     this.app.soundManager.playSFX('item_combine');
                     console.log(`유닛 내부 아이템 조합 성공: ${combo.name}`);
@@ -311,24 +323,17 @@ export class ItemManager {
                     if (document.getElementById('unit-details').innerHTML.includes(unit.name)) {
                         this.app.showUnitInfo(unit, activeDiv);
                     }
-                    return;
+                    return true;
                 }
             }
         }
 
         if (unit.items.length >= 3) {
             alert("아이템 슬롯이 꽉 찼습니다!");
-            return;
+            return false;
         }
 
-        unit.items.push(itemId);
-        if (itemId === 'comb_crit_crit') {
-            const combinedItems = this.app.ITEMS.filter(i => i.type === 'combined' && i.id !== 'comb_crit_crit');
-            unit.thievesItems = [
-                combinedItems[Math.floor(Math.random() * combinedItems.length)].id,
-                combinedItems[Math.floor(Math.random() * combinedItems.length)].id
-            ];
-        }
+        equipUnitItems(unit, [...unit.items, itemId], { catalog: this.app.ITEMS, random: this.random });
         this.app.state.inventory[itemIdx] = null;
         this.renderInventory();
         this.app.renderUnits();
@@ -339,5 +344,6 @@ export class ItemManager {
         if (document.getElementById('unit-details').innerHTML.includes(unit.name)) {
             this.app.showUnitInfo(unit, activeDiv);
         }
+        return true;
     }
 }

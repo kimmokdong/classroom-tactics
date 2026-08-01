@@ -1,6 +1,33 @@
+import { promoteUnitToStar } from '../battle/combatPreparation.js';
+
+export const AUGMENT_EVENTS = Object.freeze({
+    SELECTED: 'AUGMENT_SELECTED',
+    BATTLE_STARTED: 'BATTLE_STARTED',
+    BATTLE_ENDED: 'BATTLE_ENDED',
+    ROUND_STARTED: 'ROUND_STARTED'
+});
+
+export function validateAugmentDefinition(augment) {
+    const required = ['id', 'name', 'description', 'rarity', 'triggers', 'target', 'condition', 'duration', 'stackPolicy', 'remove', 'serialization', 'effect'];
+    return Boolean(augment && required.every(key => augment[key] !== undefined) && Array.isArray(augment.triggers));
+}
+
+export function serializeAugments(augments = []) {
+    return augments.map(augment => augment.id);
+}
+
+export function deserializeAugments(ids = [], catalog = {}) {
+    const byId = new Map(Object.values(catalog).flat().map(augment => [augment.id, augment]));
+    return ids.map(id => byId.get(id)).filter(Boolean).map(augment => ({ ...augment, tier: augment.rarity }));
+}
+
 export class AugmentManager {
     constructor(gameApp) {
         this.app = gameApp;
+        this.random = gameApp.random || Math.random;
+        this.unsubscribers = [AUGMENT_EVENTS.BATTLE_ENDED, AUGMENT_EVENTS.ROUND_STARTED]
+            .map(event => this.app.eventBus?.on(event, payload => this.handleEvent(event, payload)))
+            .filter(Boolean);
     }
 
     showStoreTimeSelection() {
@@ -35,7 +62,14 @@ export class AugmentManager {
             `;
 
             card.onclick = () => {
-                this.app.itemManager.addItemToInventory(item.id);
+                const transactionId = `store:${this.app.state.runId}:${this.app.state.stage.join('-')}`;
+                const applied = this.app.saveManager
+                    ? this.app.saveManager.runTransaction(transactionId, () => this.app.itemManager.addItemToInventory(item.id), 'REWARD_APPLIED')
+                    : (this.app.itemManager.addItemToInventory(item.id), true);
+                if (!applied) {
+                    this.app.itemManager.renderInventory();
+                    return;
+                }
                 modal.style.display = 'none';
                 // 혹시 플로팅 버튼이 떠 있다면 숨김
                 const floatingBtn = document.getElementById('floating-store-btn');
@@ -107,80 +141,110 @@ export class AugmentManager {
         modal.style.display = 'flex';
     }
 
-    applyAugment(aug, tier) {
-        this.app.state.augments.push({ ...aug, tier });
-        const id = aug.id;
-        const g = this.app.state.globalBuffs;
-        const st = this.app.state;
+    applyAugment(augment, tier = augment.rarity) {
+        if (!validateAugmentDefinition(augment)) throw new Error(`잘못된 증강체 정의: ${augment?.id || 'unknown'}`);
+        if (augment.stackPolicy === 'unique' && this.app.state.augments.some(active => active.id === augment.id)) return false;
 
-        // 실버
-        if (id === 's1') st.invincibleRounds += 3;
-        if (id === 's2') st.snackShop = true;
-        if (id === 's3') st.freeRerolls += 5;
-        if (id === 's4') g.teamHp += 150;
-        if (id === 's5') this.app.addExp(10);
-        if (id === 's6') {
-            for (let i = 0; i < 3; i++) {
-                const pool = this.app.UNIT_POOL.filter(u => u.tier <= 2);
-                this.app.addToBench({ ...pool[Math.floor(Math.random() * pool.length)] });
+        const apply = () => {
+            const active = { ...augment, tier };
+            this.app.state.augments.push(active);
+            if (active.triggers.includes(AUGMENT_EVENTS.SELECTED)) this.executeEffect(active);
+            this.app.eventBus?.emit(AUGMENT_EVENTS.SELECTED, { augment: active });
+        };
+        const transactionId = `augment:${this.app.state.runId}:${this.app.state.stage.join('-')}:${tier}`;
+        const applied = this.app.saveManager
+            ? this.app.saveManager.runTransaction(transactionId, apply, 'REWARD_APPLIED')
+            : (apply(), true);
+        if (applied && typeof document !== 'undefined') this.renderActiveAugments();
+        if (applied) this.app.updateHeader?.();
+        return applied;
+    }
+
+    handleEvent(event, payload = {}) {
+        this.app.state.augments
+            .filter(augment => augment.triggers.includes(event))
+            .forEach(augment => this.executeEffect(augment, payload));
+    }
+
+    executeEffect(augment, payload = {}) {
+        const effect = augment.effect;
+        const state = this.app.state;
+        const globalBuffs = state.globalBuffs;
+
+        if (effect.type === 'state' || effect.type === 'global') {
+            const target = effect.type === 'state' ? state : globalBuffs;
+            Object.entries(effect.values).forEach(([key, value]) => {
+                target[key] = effect.mode === 'add' ? (target[key] || 0) + value : value;
+            });
+            return;
+        }
+
+        if (effect.type === 'grant') {
+            if (effect.gold) state.gold += effect.gold;
+            if (effect.exp) this.app.addExp(effect.exp);
+            this.grantUnits(effect.unitTier, effect.unitCount || 0);
+            for (let i = 0; i < (effect.baseItems || 0); i++) this.app.itemManager.giveRandomBaseItem();
+            for (let i = 0; i < (effect.combinedItems || 0); i++) this.app.itemManager.giveRandomCombinedItem();
+            return;
+        }
+
+        if (effect.type === 'upgrade-random') {
+            const candidates = state.board.filter(unit => unit && (unit.star || 1) === 1);
+            const target = candidates[Math.floor(this.random() * candidates.length)];
+            if (!target) return;
+            state.board[state.board.indexOf(target)] = promoteUnitToStar(target, effect.star);
+            this.app.renderUnits?.();
+            return;
+        }
+
+        if (effect.type === 'round-rerolls') {
+            state.roundFreeRerolls = effect.count;
+            return;
+        }
+
+        if (effect.type === 'win-unit' && payload.winner === 'player') {
+            let roll = this.random();
+            let tier = effect.tierChances.at(-1).tier;
+            for (const option of effect.tierChances) {
+                roll -= option.chance;
+                if (roll <= 0) { tier = option.tier; break; }
             }
+            this.grantUnits(tier, 1);
         }
-        if (id === 's7') g.tickHealPct += 0.02;
-        if (id === 's8') g.dutyResponsibility = true;
-        if (id === 's9') g.teamDef += 15;
-        if (id === 's10') st.lostAndFound = true;
-        if (id === 's11') { this.app.itemManager.giveRandomBaseItem(); this.app.itemManager.giveRandomBaseItem(); }
+    }
 
-        // 골드
-        if (id === 'g1') st.highEndShopping = true;
-        if (id === 'g2') g.cramming = true;
-        if (id === 'g3') st.honorStudent = true;
-        if (id === 'g4') g.enforcerAura = true;
-        if (id === 'g5') {
-            const board1Stars = [];
-            st.board.forEach((u, i) => { if (u && (u.star || 1) === 1) board1Stars.push(u); });
-            if (board1Stars.length > 0) {
-                const target = board1Stars[Math.floor(Math.random() * board1Stars.length)];
-                target.star = 2; target.stats.hp = Math.round(target.stats.hp * 1.8); target.stats.maxHp = target.stats.hp; target.stats.ad = Math.round(target.stats.ad * 1.5); target.stats.ap = Math.round(target.stats.ap * 1.5);
-                this.app.renderUnits();
-            }
+    grantUnits(tier, count) {
+        if (!tier || !count) return;
+        const pool = this.app.UNIT_POOL.filter(unit => unit.tier === tier);
+        for (let i = 0; i < count && pool.length; i++) {
+            const unit = pool[Math.floor(this.random() * pool.length)];
+            this.app.addToBench(structuredClone(unit));
         }
-        if (id === 'g6') {
-            st.gold += 10;
-            const pool = this.app.UNIT_POOL.filter(u => u.tier === 4);
-            if (pool.length) this.app.addToBench({ ...pool[Math.floor(Math.random() * pool.length)] });
-        }
-        if (id === 'g7') g.teamAdAp += 20;
-        if (id === 'g8') g.vamp += 0.20;
-        if (id === 'g9') g.startShield += 300;
-        if (id === 'g10') st.freeRerolls += 15;
-        if (id === 'g11') { this.app.itemManager.giveRandomCombinedItem(); }
+    }
 
-        // 프리즘
-        if (id === 'p1') {
-            const pool = this.app.UNIT_POOL.filter(u => u.tier === 5);
-            if (pool.length) this.app.addToBench({ ...pool[Math.floor(Math.random() * pool.length)] });
-            const req = this.app.getMaxExp(st.level);
-            if (req) this.app.addExp(req - st.exp);
-        }
-        if (id === 'p2') g.earlyGraduation = true;
-        if (id === 'p3') g.dmgAmp += 0.40;
-        if (id === 'p4') st.freeMeals = true;
-        if (id === 'p5') g.spartanTraining = true;
-        if (id === 'p6') st.richFoundation = true;
-        if (id === 'p7') { g.asMult += 0.30; g.startMana += 50; }
-        if (id === 'p8') st.lateLeave = true;
-        if (id === 'p9') {
-            const pool = this.app.UNIT_POOL.filter(u => u.tier === 5);
-            for (let i = 0; i < 3; i++) {
-                if (pool.length) this.app.addToBench({ ...pool[Math.floor(Math.random() * pool.length)] });
-            }
-        }
-        if (id === 'p10') { g.rangeBuff += 1; g.distAmp += 0.10; }
-        if (id === 'p11') { st.gold += 10; this.app.itemManager.giveRandomCombinedItem(); this.app.itemManager.giveRandomCombinedItem(); }
+    removeAugment(id) {
+        const index = this.app.state.augments.findIndex(augment => augment.id === id);
+        if (index < 0) return false;
+        const [augment] = this.app.state.augments.splice(index, 1);
+        if (augment.remove === 'revert') this.revertEffect(augment.effect);
+        if (typeof document !== 'undefined') this.renderActiveAugments();
+        return true;
+    }
 
-        this.renderActiveAugments();
-        this.app.updateHeader();
+    revertEffect(effect) {
+        const state = this.app.state;
+        if (effect.type === 'state' || effect.type === 'global') {
+            const target = effect.type === 'state' ? state : state.globalBuffs;
+            Object.entries(effect.values).forEach(([key, value]) => {
+                target[key] = effect.mode === 'add' ? (target[key] || 0) - value : (typeof value === 'boolean' ? false : 0);
+            });
+        }
+        if (effect.type === 'round-rerolls') state.roundFreeRerolls = 0;
+    }
+
+    dispose() {
+        this.unsubscribers.forEach(unsubscribe => unsubscribe());
+        this.unsubscribers = [];
     }
 
     renderActiveAugments() {

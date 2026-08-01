@@ -437,6 +437,12 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 .btn:active { transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+button, select, a { touch-action: manipulation; }
+:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(0, 95, 204, 0.2);
+}
 .buy-exp-btn { background: #42a5f5; border-bottom: 3px solid #1e88e5; flex: 1; }
 .buy-exp-btn:hover { background: #64b5f6; }
 .reroll-btn { background: #ef5350; border-bottom: 3px solid #e53935; }
@@ -978,6 +984,64 @@ body {
 #unit-detail-modal.active .modal-content {
     transform: scale(1);
     opacity: 1;
+}
+
+@media (max-width: 1200px) {
+  #synergy-panel { width: 210px; padding: 12px; }
+  #info-panel { width: 260px; padding: 12px; }
+  #shop-area { width: 820px; }
+  #shop-slots { width: 620px; }
+}
+
+@media (max-width: 900px) {
+  body { height: auto; min-height: 100dvh; overflow: auto; }
+  #app { height: auto; min-height: 100dvh; }
+  #game-header { height: auto; min-height: 60px; flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .hud-left, .hud-center, .hud-right { width: 100%; justify-content: center; flex-wrap: wrap; }
+  .hud-left { overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; }
+  .stage-badge { font-size: 1.15rem; padding: 5px 16px; }
+  #stage-timeline { max-width: 100%; overflow-x: auto; }
+  #game-main { flex-direction: column; overflow: visible; }
+  #synergy-panel, #info-panel { width: 100%; max-height: 240px; }
+  #synergy-panel { order: 2; }
+  #board-area { order: 1; min-width: 0; }
+  #info-panel { order: 3; }
+  .arena { width: 100%; overflow-x: auto; justify-content: flex-start !important; padding: 12px; }
+  #item-inventory { position: sticky; left: 0; z-index: 2; }
+  #bottom-area { align-items: stretch; padding: 12px; }
+  #bench-container, #shop-wrapper { width: 100%; overflow-x: auto; justify-content: flex-start; }
+  #shop-wrapper { align-items: flex-end; }
+  .grid-board { grid-template-columns: repeat(8, 58px); grid-template-rows: repeat(6, 58px); gap: 5px; }
+  .board-cell { height: 58px; }
+  .grid-bench { grid-template-columns: repeat(10, 58px); gap: 6px; }
+  .bench-cell { height: 58px; }
+  #shop-area { flex: 0 0 820px; }
+  .modal-overlay { padding: 12px; align-items: flex-start; overflow-y: auto; }
+  .modal-content { width: 100% !important; max-height: calc(100dvh - 24px) !important; margin: auto 0; }
+  .guide-tabs { overflow-x: auto; }
+  .guide-tab-btn { min-width: 150px; }
+}
+
+@media (max-width: 560px) {
+  .hud-center { gap: 6px !important; }
+  .enemy-info { height: auto; text-align: center; }
+  .arena { gap: 12px !important; }
+  #item-inventory { padding: 8px !important; }
+  .grid-board { grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(6, 45px); gap: 4px; padding: 6px; }
+  .board-cell { height: 45px; border-radius: 6px; }
+  .grid-bench { grid-template-columns: repeat(10, 45px); gap: 4px; }
+  .bench-cell { height: 45px; border-radius: 6px; }
+  #shop-wrapper { gap: 8px !important; }
+  .gold-panel { flex: 0 0 130px; width: 130px; }
+  #shop-area { flex-basis: 720px; height: 164px; }
+  .shop-controls { width: 170px; }
+  #shop-slots { width: 550px; padding: 8px; gap: 6px; }
+  .shop-card { min-width: 96px; }
+  .modal-header, .modal-body { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
 
 .preview-canvas-container {

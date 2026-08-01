@@ -2,6 +2,9 @@ import { UNIT_POOL, SYNERGIES, AUGMENTS } from './data.js';
 import { ITEMS } from './items.js';
 import { BattleEngine } from './battleEngine.js';
 import { BattleRenderer } from './battleRenderer.js';
+import { createInitialState } from './core/GameState.js';
+import { SynergyManager } from './systems/SynergyManager.js';
+import { createUnitInstance, equipUnitItems, prepareBattle } from './battle/combatPreparation.js';
 
 let isBattling = false;
 let battleRenderer = null;
@@ -237,15 +240,15 @@ function setupBoard() {
                 } else if (data && data.type === 'unit' && data.id) {
                     const base = UNIT_POOL.find(u => u.id === data.id);
                     if (base) {
-                        board[localIdx] = JSON.parse(JSON.stringify(base));
-                        board[localIdx].items = [];
-                        board[localIdx].star = 1;
+                        board[localIdx] = createUnitInstance(base, {
+                            teamRole: isEnemySide ? 'opponent' : 'player'
+                        });
                         renderBoard();
                     }
                 } else if (data && data.type === 'item' && data.id) {
                     const u = board[localIdx];
                     if (u && u.items.length < 3) {
-                        u.items.push(data.id);
+                        equipUnitItems(u, [...u.items, data.id], { catalog: ITEMS });
                         renderBoard();
                     }
                 }
@@ -678,16 +681,17 @@ window.setSandboxUnitStar = function(index, star) {
     const isEnemySide = index < 24;
     const board = isEnemySide ? enemyBoard : playerBoard;
     const localIdx = isEnemySide ? index : index - 24;
-    const u = board[localIdx];
+    let u = board[localIdx];
     
     if (u) {
-        u.star = star;
-        const baseId = u.id.split('_')[0];
-        const baseUnit = UNIT_POOL.find(b => b.id === baseId);
+        const baseUnit = UNIT_POOL.find(b => b.id === u.id);
         if (baseUnit) {
-            u.stats.hp = baseUnit.stats.hp * Math.pow(1.8, star - 1);
-            u.stats.maxHp = u.stats.hp;
-            u.stats.ad = baseUnit.stats.ad * Math.pow(1.5, star - 1);
+            u = createUnitInstance(baseUnit, {
+                star,
+                itemIds: u.items || [],
+                teamRole: isEnemySide ? 'opponent' : 'player'
+            });
+            board[localIdx] = u;
         }
         
         renderBoard();
@@ -1345,13 +1349,16 @@ function startBattle() {
     isBattling = true;
     document.getElementById('btn-start').disabled = true;
 
-    // Apply items
-    let pBoard = applyItemsToStats(playerBoard);
-    let eBoard = applyItemsToStats(enemyBoard);
-    
-    // Apply synergies
-    pBoard = applySynergiesToStats(pBoard, false);
-    eBoard = applySynergiesToStats(eBoard, true);
+    const state = createInitialState();
+    state.gold = 50;
+    const synergyManager = new SynergyManager({ state, ITEMS });
+    const prepared = prepareBattle({
+        player: { board: playerBoard, teamRole: 'player', applyPlayerOnlyBonuses: true },
+        opponent: { board: enemyBoard, teamRole: 'opponent', applyPlayerOnlyBonuses: false },
+        applySynergyStats: synergyManager.applySynergyStats.bind(synergyManager)
+    });
+    const pBoard = prepared.playerBoard;
+    const eBoard = prepared.enemyBoard;
 
     const augmentsArray = Array.from(selectedAugments);
 

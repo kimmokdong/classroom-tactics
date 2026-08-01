@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "profiles": {
+    "smoke": {
+      "repetitions": 1,
+      "placements": ["standard", "mirrored", "spread"],
+      "pairedPlacementsOnly": true,
+      "swapSides": true,
+      "outputDetail": "summary"
+    },
+    "quick": {
+      "repetitions": 4,
+      "placements": ["standard", "mirrored", "spread"],
+      "swapSides": true,
+      "outputDetail": "summary"
+    },
+    "standard": {
+      "repetitions": 12,
+      "placements": ["standard", "mirrored", "spread"],
+      "swapSides": true,
+      "outputDetail": "cases"
+    },
+    "deep": {
+      "repetitions": 32,
+      "placements": ["standard", "mirrored", "spread"],
+      "swapSides": true,
+      "outputDetail": "full"
+    }
+  }
+}

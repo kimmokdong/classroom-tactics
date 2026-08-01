@@ -1,0 +1,6292 @@
+{
+  "schemaVersion": 1,
+  "rulesVersion": "standard-decks-v1",
+  "deckSetVersion": "2026-07-17",
+  "primaryCheckpoint": "humanities-standard-final9",
+  "checkpoints": [
+    {
+      "id": "morality-leadership-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "morality-leadership-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "prank-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "prank-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "health-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "health-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "arts-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "arts-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "morality-vertical-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "morality-vertical-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "leadership-vertical-reroll-core7",
+      "name": "7레벨 리롤 핵심",
+      "phase": "core",
+      "boardLevel": 7
+    },
+    {
+      "id": "leadership-vertical-reroll-final8",
+      "name": "8레벨 리롤 최종",
+      "phase": "final",
+      "boardLevel": 8
+    },
+    {
+      "id": "morality-leadership-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "morality-leadership-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "humanities-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "humanities-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "stem-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "stem-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "capitalism-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "capitalism-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "broadcast-vertical-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "broadcast-vertical-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "health-vertical-standard-core8",
+      "name": "8레벨 운영 핵심",
+      "phase": "core",
+      "boardLevel": 8
+    },
+    {
+      "id": "health-vertical-standard-final9",
+      "name": "9레벨 운영 최종",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "morality-leadership-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "broadcast-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "athletics-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "cafeteria-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "prank-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "health-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "humanities-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "stem-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "arts-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "creative-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "cafeteria-vertical-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "leadership-vertical-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "athletics-vertical-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    },
+    {
+      "id": "prank-vertical-highvalue-final9",
+      "name": "9레벨 고밸류",
+      "phase": "final",
+      "boardLevel": 9
+    }
+  ],
+  "decks": [
+    {
+      "id": "morality-leadership-reroll-core7",
+      "name": "도덕 선도부 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "morality-leadership-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-001"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "3코스트 양호실 도우미와 올림피아드 금상을 핵심 탱커·딜러로 재지정했다.",
+      "units": [
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_1",
+        "subDealer": "u4_1"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "도덕선도 코어",
+        "reroll_core7"
+      ],
+      "notes": "도덕선도 코어 Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "morality-leadership-reroll-final8",
+      "name": "도덕 선도부 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "morality-leadership-reroll-final8",
+      "parentDeckId": "morality-leadership-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-001"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 나이팅게일을 추가했다.",
+      "units": [
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_1",
+        "subDealer": "u4_1"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "도덕선도 코어",
+        "reroll_final8"
+      ],
+      "notes": "morality-leadership-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "prank-reroll-core7",
+      "name": "장난꾸러기 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "prank-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-016"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "4코스트 탱커를 3코스트 또래 상담 에이스로 교체해 core7 조건을 맞췄다.",
+      "units": [
+        {
+          "unitId": "u1_3",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_4",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_4",
+        "subDealer": "u4_3"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "장난꾸러기 코어",
+        "reroll_core7"
+      ],
+      "notes": "장난꾸러기 코어 Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "prank-reroll-final8",
+      "name": "장난꾸러기 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "prank-reroll-final8",
+      "parentDeckId": "prank-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-016"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 천재 퀀트을 추가했다.",
+      "units": [
+        {
+          "unitId": "u1_3",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_4",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_4",
+        "subDealer": "u4_3"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "장난꾸러기 코어",
+        "reroll_final8"
+      ],
+      "notes": "prank-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "health-reroll-core7",
+      "name": "보건부 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "health-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-020"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "4코스트 딜러를 3코스트 시조 읊는 선비로 교체해 3코스트 핵심 쌍을 구성했다.",
+      "units": [
+        {
+          "unitId": "u3_6",
+          "star": 3,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_6",
+        "subDealer": "u2_6"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "보건부 코어",
+        "reroll_core7"
+      ],
+      "notes": "보건부 코어 Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "health-reroll-final8",
+      "name": "보건부 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "health-reroll-final8",
+      "parentDeckId": "health-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-020"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 나이팅게일을 추가했다.",
+      "units": [
+        {
+          "unitId": "u3_6",
+          "star": 3,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_6",
+        "subDealer": "u2_6"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "보건부 코어",
+        "reroll_final8"
+      ],
+      "notes": "health-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "arts-reroll-core7",
+      "name": "예체능 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "arts-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-035"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "4코스트 탱커를 3코스트 또래 상담 에이스로 교체하고 수채화 장인을 핵심 딜러로 유지했다.",
+      "units": [
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_8",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_9",
+          "star": 3,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_9",
+        "subDealer": "u2_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "예체능 코어 (음악+미술+체육)",
+        "reroll_core7"
+      ],
+      "notes": "예체능 코어 (음악+미술+체육) Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "arts-reroll-final8",
+      "name": "예체능 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "arts-reroll-final8",
+      "parentDeckId": "arts-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-035"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 천재 피아니스트을 추가했다.",
+      "units": [
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_8",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_9",
+          "star": 3,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_9",
+        "subDealer": "u2_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "예체능 코어 (음악+미술+체육)",
+        "reroll_final8"
+      ],
+      "notes": "arts-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "morality-vertical-reroll-core7",
+      "name": "6도덕 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "morality-vertical-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-050"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "비도덕 보조 칸을 3코스트 딜러로 교체해 6도덕과 core7 핵심 쌍을 함께 유지했다.",
+      "units": [
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_4",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_4",
+        "subDealer": "u1_1"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 6
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6도덕 코어 (단일 6시너지)",
+        "reroll_core7"
+      ],
+      "notes": "순수 6도덕 코어 (단일 6시너지) Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "morality-vertical-reroll-final8",
+      "name": "6도덕 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "morality-vertical-reroll-final8",
+      "parentDeckId": "morality-vertical-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-050"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 천재 퀀트을 추가했다.",
+      "units": [
+        {
+          "unitId": "u3_2",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_4",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_2",
+        "mainDealer": "u3_4",
+        "subDealer": "u1_1"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 6
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6도덕 코어 (단일 6시너지)",
+        "reroll_final8"
+      ],
+      "notes": "morality-vertical-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "leadership-vertical-reroll-core7",
+      "name": "6선도부 리롤 core7",
+      "strategyGroup": "reroll_core7",
+      "checkpointId": "leadership-vertical-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-054"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "비선도부 보조 칸을 3코스트 탱커로 교체하고 올림피아드 금상을 핵심 딜러로 지정했다.",
+      "units": [
+        {
+          "unitId": "u3_9",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_1",
+        "subDealer": "u3_9"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6선도부 코어 (단일 6시너지)",
+        "reroll_core7"
+      ],
+      "notes": "순수 6선도부 코어 (단일 6시너지) Lv.7 감사 결과에서 이관"
+    },
+    {
+      "id": "leadership-vertical-reroll-final8",
+      "name": "6선도부 리롤 final8",
+      "strategyGroup": "reroll_final8",
+      "checkpointId": "leadership-vertical-reroll-final8",
+      "parentDeckId": "leadership-vertical-reroll-core7",
+      "sourceLegacyIds": [
+        "legacy-054"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 공익광고 모델을 추가했다.",
+      "units": [
+        {
+          "unitId": "u3_9",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 3,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_11",
+          "star": 3,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u3_11",
+        "mainDealer": "u3_1",
+        "subDealer": "u3_9"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6선도부 코어 (단일 6시너지)",
+        "reroll_final8"
+      ],
+      "notes": "leadership-vertical-reroll-core7의 성장 체크포인트"
+    },
+    {
+      "id": "morality-leadership-standard-core8",
+      "name": "도덕 선도부 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "morality-leadership-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-002"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "core8의 5코스트 금지에 맞춰 교장 선생님을 공익광고 모델로 교체했다.",
+      "units": [
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_1",
+        "mainDealer": "u4_4",
+        "subDealer": "u2_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "도덕선도 코어",
+        "standard_core8"
+      ],
+      "notes": "도덕선도 코어 Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "morality-leadership-standard-final9",
+      "name": "도덕 선도부 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "morality-leadership-standard-final9",
+      "parentDeckId": "morality-leadership-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-002"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 교장 선생님 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_4",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_1",
+        "mainDealer": "u4_4",
+        "subDealer": "u2_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "도덕선도 코어",
+        "standard_final9"
+      ],
+      "notes": "morality-leadership-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "humanities-standard-core8",
+      "name": "문과 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "humanities-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-025"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u2_5",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_5",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_4",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u3_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u4_4",
+        "subDealer": "u4_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "문과 코어",
+        "standard_core8"
+      ],
+      "notes": "문과 코어 Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "humanities-standard-final9",
+      "name": "문과 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "humanities-standard-final9",
+      "parentDeckId": "humanities-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-025"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 기부 천사 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u2_5",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_5",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_4",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u3_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u4_4",
+        "subDealer": "u4_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "문과 코어",
+        "standard_final9"
+      ],
+      "notes": "humanities-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "stem-standard-core8",
+      "name": "이과 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "stem-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-029"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_3",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_1",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_7",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_3",
+        "subDealer": "u4_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "이과 코어",
+        "standard_core8"
+      ],
+      "notes": "이과 코어 Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "stem-standard-final9",
+      "name": "이과 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "stem-standard-final9",
+      "parentDeckId": "stem-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-029"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 수석 연구원 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u4_3",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_1",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_7",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_3",
+        "subDealer": "u4_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "이과 코어",
+        "standard_final9"
+      ],
+      "notes": "stem-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "capitalism-standard-core8",
+      "name": "영어 경제부 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "capitalism-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-032"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_7",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u3_12",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_2",
+        "subDealer": "u3_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "자본주의 코어 (영어+경제부)",
+        "standard_core8"
+      ],
+      "notes": "자본주의 코어 (영어+경제부) Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "capitalism-standard-final9",
+      "name": "영어 경제부 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "capitalism-standard-final9",
+      "parentDeckId": "capitalism-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-032"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 기부 천사 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_7",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u3_12",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_2",
+        "subDealer": "u3_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "자본주의 코어 (영어+경제부)",
+        "standard_final9"
+      ],
+      "notes": "capitalism-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "broadcast-vertical-standard-core8",
+      "name": "7방송부 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "broadcast-vertical-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-043"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "탱커가 없던 원본에서 비방송 보조 유닛을 방송부 4코스트 탱커로 교체했다.",
+      "units": [
+        {
+          "unitId": "u1_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_1",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_7",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_9",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u3_5",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_2",
+        "subDealer": "u4_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 7
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 7방송 코어 (단일 7시너지)",
+        "standard_core8"
+      ],
+      "notes": "순수 7방송 코어 (단일 7시너지) Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "broadcast-vertical-standard-final9",
+      "name": "7방송부 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "broadcast-vertical-standard-final9",
+      "parentDeckId": "broadcast-vertical-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-043"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 수석 연구원 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u1_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_1",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_7",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_9",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u3_5",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_2",
+        "subDealer": "u4_7"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 7
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 7방송 코어 (단일 7시너지)",
+        "standard_final9"
+      ],
+      "notes": "broadcast-vertical-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "health-vertical-standard-core8",
+      "name": "6보건부 운영 core8",
+      "strategyGroup": "standard_core8",
+      "checkpointId": "health-vertical-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-062"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_4",
+        "subDealer": "u2_6"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6보건부 코어 (단일 6시너지)",
+        "standard_core8"
+      ],
+      "notes": "순수 6보건부 코어 (단일 6시너지) Lv.8 감사 결과에서 이관"
+    },
+    {
+      "id": "health-vertical-standard-final9",
+      "name": "6보건부 운영 final9",
+      "strategyGroup": "standard_final9",
+      "checkpointId": "health-vertical-standard-final9",
+      "parentDeckId": "health-vertical-standard-core8",
+      "sourceLegacyIds": [
+        "legacy-062"
+      ],
+      "migrationStatus": "new-design",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 외고 전학생 1성을 추가했다.",
+      "units": [
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u3_2",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u4_4",
+        "subDealer": "u2_6"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 6
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "baseline6",
+      "tags": [
+        "순수 6보건부 코어 (단일 6시너지)",
+        "standard_final9"
+      ],
+      "notes": "health-vertical-standard-core8의 성장 체크포인트"
+    },
+    {
+      "id": "morality-leadership-highvalue-final9",
+      "name": "도덕선도 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "morality-leadership-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-003"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_4",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_6",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u5_4",
+        "mainDealer": "u4_8",
+        "subDealer": "u4_3"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "도덕선도 코어",
+        "highvalue_final9"
+      ],
+      "notes": "도덕선도 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "broadcast-highvalue-final9",
+      "name": "방송부 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "broadcast-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-007"
+      ],
+      "migrationStatus": "modified",
+      "changeReason": "탱커가 없던 원본에서 4코스트 탱커를 교체하고 9레벨 고밸류 조건으로 이관했다.",
+      "units": [
+        {
+          "unitId": "u2_1",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_4",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_9",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u3_7",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u5_1",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 5
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "방송부 코어",
+        "highvalue_final9"
+      ],
+      "notes": "방송부 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "athletics-highvalue-final9",
+      "name": "육상부 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "athletics-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-010"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u1_2",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u2_4",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_2",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "육상부 코어",
+        "highvalue_final9"
+      ],
+      "notes": "육상부 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "cafeteria-highvalue-final9",
+      "name": "급식부 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "cafeteria-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-014"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u5_2",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 5
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "급식부 코어",
+        "highvalue_final9"
+      ],
+      "notes": "급식부 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "prank-highvalue-final9",
+      "name": "장난꾸러기 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "prank-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-018"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_3",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_3",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_1",
+        "subDealer": "u5_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 4
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "장난꾸러기 코어",
+        "highvalue_final9"
+      ],
+      "notes": "장난꾸러기 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "health-highvalue-final9",
+      "name": "보건부 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "health-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-022"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u2_6",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_9",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_10",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_9",
+        "mainDealer": "u5_1",
+        "subDealer": "u4_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "영어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "방송부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "보건부 코어",
+        "highvalue_final9"
+      ],
+      "notes": "보건부 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "humanities-highvalue-final9",
+      "name": "문과 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "humanities-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-026"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u1_6",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_5",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_5",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_3",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u3_6",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_2",
+        "subDealer": "u4_4"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "보건부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "문과 코어",
+        "highvalue_final9"
+      ],
+      "notes": "문과 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "stem-highvalue-final9",
+      "name": "이과 코어 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "stem-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-030"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_5",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_4",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u1_7",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_2",
+        "subDealer": "u4_4"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 4
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "이과 코어",
+        "highvalue_final9"
+      ],
+      "notes": "이과 코어 Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "arts-highvalue-final9",
+      "name": "예체능 코어 (음악+미술+체육) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "arts-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-037"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u5_3",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_2",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_8",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u2_7",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u1_8",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_2",
+        "subDealer": "u5_3"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 5
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "예체능 코어 (음악+미술+체육)",
+        "highvalue_final9"
+      ],
+      "notes": "예체능 코어 (음악+미술+체육) Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "creative-highvalue-final9",
+      "name": "창의융합 코어 (창체) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "creative-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-040"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_11",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_1",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 3
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "창의융합 코어 (창체)",
+        "highvalue_final9"
+      ],
+      "notes": "창의융합 코어 (창체) Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "cafeteria-vertical-highvalue-final9",
+      "name": "순수 7급식 코어 (단일 7시너지) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "cafeteria-vertical-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-048"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u4_7",
+          "star": 1,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_6",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_3",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_7",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_8",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_2",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_8",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_3",
+        "subDealer": "u5_2"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "음악",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "급식부",
+          "level": 7
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "순수 7급식 코어 (단일 7시너지)",
+        "highvalue_final9"
+      ],
+      "notes": "순수 7급식 코어 (단일 7시너지) Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "leadership-vertical-highvalue-final9",
+      "name": "순수 6선도부 코어 (단일 6시너지) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "leadership-vertical-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-056"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u5_3",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_10",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u2_2",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_9",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u3_1",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_1",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_1",
+        "mainDealer": "u5_3",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "도덕",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 6
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "순수 6선도부 코어 (단일 6시너지)",
+        "highvalue_final9"
+      ],
+      "notes": "순수 6선도부 코어 (단일 6시너지) Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "athletics-vertical-highvalue-final9",
+      "name": "순수 6육상부 코어 (단일 6시너지) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "athletics-vertical-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-059"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u2_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_7",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u1_2",
+          "star": 2,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_4",
+          "star": 1,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_1",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u3_3",
+          "star": 2,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_5",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u5_5",
+          "star": 1,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u4_5",
+        "mainDealer": "u5_1",
+        "subDealer": "u4_8"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "국어",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "사회",
+          "level": 1
+        },
+        {
+          "type": "subjects",
+          "name": "창체",
+          "level": 1
+        },
+        {
+          "type": "clubs",
+          "name": "육상부",
+          "level": 6
+        },
+        {
+          "type": "clubs",
+          "name": "경제부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "순수 6육상부 코어 (단일 6시너지)",
+        "highvalue_final9"
+      ],
+      "notes": "순수 6육상부 코어 (단일 6시너지) Lv.9 감사 결과에서 이관"
+    },
+    {
+      "id": "prank-vertical-highvalue-final9",
+      "name": "순수 6장난꾸러기 코어 (단일 6시너지) 고밸류 final9",
+      "strategyGroup": "highvalue_final9",
+      "checkpointId": "prank-vertical-highvalue-final9",
+      "sourceLegacyIds": [
+        "legacy-067"
+      ],
+      "migrationStatus": "reclassified",
+      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "units": [
+        {
+          "unitId": "u3_4",
+          "star": 2,
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_3",
+          "star": 2,
+          "items": [
+            "comb_ap_ap",
+            "comb_ap_mana",
+            "comb_ap_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
+        },
+        {
+          "unitId": "u1_9",
+          "star": 2,
+          "items": [],
+          "position": 1,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u4_1",
+          "star": 1,
+          "items": [],
+          "position": 6,
+          "positionGroup": "front-side"
+        },
+        {
+          "unitId": "u5_4",
+          "star": 2,
+          "items": [
+            "comb_hp_hp",
+            "comb_armor_armor",
+            "comb_armor_mr"
+          ],
+          "position": 3,
+          "positionGroup": "front-center"
+        },
+        {
+          "unitId": "u2_12",
+          "star": 2,
+          "items": [],
+          "position": 11,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_2",
+          "star": 1,
+          "items": [],
+          "position": 12,
+          "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u5_3",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 20,
+          "positionGroup": "back-center"
+        },
+        {
+          "unitId": "u2_8",
+          "star": 2,
+          "items": [],
+          "position": 16,
+          "positionGroup": "back-side"
+        }
+      ],
+      "fixedItems": true,
+      "roles": {
+        "mainTank": "u5_4",
+        "mainDealer": "u5_3",
+        "subDealer": "u4_3"
+      },
+      "expectedSynergies": [
+        {
+          "type": "subjects",
+          "name": "과학",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "미술",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "체육",
+          "level": 2
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
+        },
+        {
+          "type": "clubs",
+          "name": "장난꾸러기",
+          "level": 6
+        },
+        {
+          "type": "clubs",
+          "name": "선도부",
+          "level": 2
+        }
+      ],
+      "defaultItemSet": "capped9",
+      "tags": [
+        "순수 6장난꾸러기 코어 (단일 6시너지)",
+        "highvalue_final9"
+      ],
+      "notes": "순수 6장난꾸러기 코어 (단일 6시너지) Lv.9 감사 결과에서 이관"
+    }
+  ],
+  "legacyAudit": [
+    {
+      "sourceId": "legacy-001",
+      "category": "도덕선도 코어",
+      "level": 7,
+      "unitIds": [
+        "u1_1",
+        "u2_10",
+        "u3_1",
+        "u2_2",
+        "u3_2",
+        "u1_10",
+        "u4_1"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "morality-leadership-reroll-core7",
+        "morality-leadership-reroll-final8"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-002",
+      "category": "도덕선도 코어",
+      "level": 8,
+      "unitIds": [
+        "u1_1",
+        "u4_5",
+        "u4_4",
+        "u2_2",
+        "u4_1",
+        "u1_10",
+        "u3_2",
+        "u5_4"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "morality-leadership-standard-core8",
+        "morality-leadership-standard-final9"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-003",
+      "category": "도덕선도 코어",
+      "level": 9,
+      "unitIds": [
+        "u4_8",
+        "u3_1",
+        "u2_2",
+        "u1_10",
+        "u5_5",
+        "u5_4",
+        "u2_10",
+        "u4_6",
+        "u4_3"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "morality-leadership-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-004",
+      "category": "도덕선도 코어",
+      "level": 10,
+      "unitIds": [
+        "u2_10",
+        "u4_6",
+        "u5_5",
+        "u4_3",
+        "u1_1",
+        "u4_8",
+        "u5_3",
+        "u4_1",
+        "u3_1",
+        "u3_2"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-005",
+      "category": "방송부 코어",
+      "level": 7,
+      "unitIds": [
+        "u4_9",
+        "u4_2",
+        "u4_7",
+        "u3_5",
+        "u2_9",
+        "u1_4",
+        "u3_7"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "서로 다른 3코스트 3성 메인 탱커·딜러 조건을 현재 구성으로 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-006",
+      "category": "방송부 코어",
+      "level": 8,
+      "unitIds": [
+        "u1_4",
+        "u4_5",
+        "u4_6",
+        "u4_7",
+        "u2_1",
+        "u5_2",
+        "u2_9",
+        "u4_9"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-007",
+      "category": "방송부 코어",
+      "level": 9,
+      "unitIds": [
+        "u2_1",
+        "u4_8",
+        "u1_4",
+        "u4_2",
+        "u2_9",
+        "u3_7",
+        "u5_1",
+        "u5_5",
+        "u4_4"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "broadcast-highvalue-final9"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-008",
+      "category": "방송부 코어",
+      "level": 10,
+      "unitIds": [
+        "u4_5",
+        "u5_2",
+        "u2_9",
+        "u4_7",
+        "u4_2",
+        "u4_6",
+        "u4_9",
+        "u4_8",
+        "u5_5",
+        "u1_4"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-009",
+      "category": "육상부 코어",
+      "level": 8,
+      "unitIds": [
+        "u1_7",
+        "u2_4",
+        "u4_8",
+        "u3_3",
+        "u5_5",
+        "u4_1",
+        "u4_4",
+        "u4_5"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-010",
+      "category": "육상부 코어",
+      "level": 9,
+      "unitIds": [
+        "u4_4",
+        "u5_5",
+        "u4_7",
+        "u3_3",
+        "u5_2",
+        "u1_2",
+        "u4_8",
+        "u2_4",
+        "u4_5"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "athletics-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-011",
+      "category": "육상부 코어",
+      "level": 10,
+      "unitIds": [
+        "u5_2",
+        "u5_1",
+        "u4_5",
+        "u4_2",
+        "u4_9",
+        "u2_4",
+        "u4_4",
+        "u5_4",
+        "u1_7",
+        "u4_7"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-012",
+      "category": "급식부 코어",
+      "level": 7,
+      "unitIds": [
+        "u4_5",
+        "u4_7",
+        "u1_5",
+        "u1_8",
+        "u3_6",
+        "u3_8",
+        "u2_7"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "서로 다른 3코스트 3성 메인 탱커·딜러 조건을 현재 구성으로 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-013",
+      "category": "급식부 코어",
+      "level": 8,
+      "unitIds": [
+        "u5_5",
+        "u4_3",
+        "u1_5",
+        "u4_8",
+        "u3_8",
+        "u1_8",
+        "u3_6",
+        "u4_5"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-014",
+      "category": "급식부 코어",
+      "level": 9,
+      "unitIds": [
+        "u5_2",
+        "u5_5",
+        "u3_6",
+        "u3_8",
+        "u4_9",
+        "u4_8",
+        "u4_7",
+        "u4_2",
+        "u4_5"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "cafeteria-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-015",
+      "category": "급식부 코어",
+      "level": 10,
+      "unitIds": [
+        "u3_6",
+        "u4_7",
+        "u4_2",
+        "u5_4",
+        "u4_5",
+        "u1_8",
+        "u4_9",
+        "u4_8",
+        "u5_5",
+        "u5_2"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-016",
+      "category": "장난꾸러기 코어",
+      "level": 7,
+      "unitIds": [
+        "u1_3",
+        "u1_9",
+        "u2_8",
+        "u4_1",
+        "u3_4",
+        "u2_12",
+        "u4_3"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "prank-reroll-core7",
+        "prank-reroll-final8"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-017",
+      "category": "장난꾸러기 코어",
+      "level": 8,
+      "unitIds": [
+        "u2_8",
+        "u3_4",
+        "u4_3",
+        "u4_1",
+        "u2_12",
+        "u4_2",
+        "u1_9",
+        "u5_3"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-018",
+      "category": "장난꾸러기 코어",
+      "level": 9,
+      "unitIds": [
+        "u4_5",
+        "u4_4",
+        "u5_1",
+        "u5_2",
+        "u1_3",
+        "u4_3",
+        "u4_7",
+        "u1_9",
+        "u5_3"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "prank-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-019",
+      "category": "장난꾸러기 코어",
+      "level": 10,
+      "unitIds": [
+        "u4_7",
+        "u1_9",
+        "u4_4",
+        "u4_8",
+        "u1_3",
+        "u2_12",
+        "u5_3",
+        "u5_1",
+        "u4_5",
+        "u5_2"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-020",
+      "category": "보건부 코어",
+      "level": 7,
+      "unitIds": [
+        "u4_4",
+        "u2_6",
+        "u1_10",
+        "u1_6",
+        "u3_2",
+        "u3_10",
+        "u2_3"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "health-reroll-core7",
+        "health-reroll-final8"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-021",
+      "category": "보건부 코어",
+      "level": 8,
+      "unitIds": [
+        "u3_2",
+        "u4_5",
+        "u4_4",
+        "u1_10",
+        "u2_6",
+        "u4_6",
+        "u5_1",
+        "u4_9"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-022",
+      "category": "보건부 코어",
+      "level": 9,
+      "unitIds": [
+        "u2_6",
+        "u4_2",
+        "u4_9",
+        "u4_4",
+        "u1_10",
+        "u5_1",
+        "u4_7",
+        "u2_3",
+        "u1_6"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "health-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-023",
+      "category": "보건부 코어",
+      "level": 10,
+      "unitIds": [
+        "u5_4",
+        "u3_2",
+        "u5_3",
+        "u4_8",
+        "u3_10",
+        "u1_10",
+        "u4_3",
+        "u4_6",
+        "u4_1",
+        "u5_5"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-024",
+      "category": "문과 코어",
+      "level": 7,
+      "unitIds": [
+        "u2_3",
+        "u4_5",
+        "u1_6",
+        "u2_5",
+        "u3_5",
+        "u3_6",
+        "u1_4"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "서로 다른 3코스트 3성 메인 탱커·딜러 조건을 현재 구성으로 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-025",
+      "category": "문과 코어",
+      "level": 8,
+      "unitIds": [
+        "u2_5",
+        "u3_5",
+        "u4_4",
+        "u4_7",
+        "u1_6",
+        "u1_4",
+        "u3_6",
+        "u4_5"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "humanities-standard-core8",
+        "humanities-standard-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-026",
+      "category": "문과 코어",
+      "level": 9,
+      "unitIds": [
+        "u1_6",
+        "u3_5",
+        "u5_2",
+        "u2_5",
+        "u2_3",
+        "u5_5",
+        "u4_4",
+        "u4_5",
+        "u3_6"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "humanities-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-027",
+      "category": "문과 코어",
+      "level": 10,
+      "unitIds": [
+        "u4_7",
+        "u5_5",
+        "u3_5",
+        "u5_1",
+        "u2_5",
+        "u1_6",
+        "u4_5",
+        "u2_3",
+        "u3_6",
+        "u1_4"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-028",
+      "category": "이과 코어",
+      "level": 7,
+      "unitIds": [
+        "u3_4",
+        "u4_8",
+        "u2_12",
+        "u2_4",
+        "u3_1",
+        "u1_7",
+        "u2_1"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "서로 다른 3코스트 3성 메인 탱커·딜러 조건을 현재 구성으로 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-029",
+      "category": "이과 코어",
+      "level": 8,
+      "unitIds": [
+        "u4_3",
+        "u2_4",
+        "u4_9",
+        "u2_1",
+        "u4_2",
+        "u1_7",
+        "u4_8",
+        "u2_12"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "stem-standard-core8",
+        "stem-standard-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-030",
+      "category": "이과 코어",
+      "level": 9,
+      "unitIds": [
+        "u4_5",
+        "u5_2",
+        "u4_4",
+        "u4_8",
+        "u2_12",
+        "u1_5",
+        "u3_4",
+        "u4_2",
+        "u1_7"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "stem-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-031",
+      "category": "이과 코어",
+      "level": 10,
+      "unitIds": [
+        "u2_1",
+        "u2_4",
+        "u4_2",
+        "u5_4",
+        "u4_3",
+        "u4_8",
+        "u1_7",
+        "u5_5",
+        "u4_9",
+        "u2_12"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-032",
+      "category": "자본주의 코어 (영어+경제부)",
+      "level": 8,
+      "unitIds": [
+        "u4_6",
+        "u4_2",
+        "u4_9",
+        "u3_7",
+        "u3_12",
+        "u4_8",
+        "u1_3",
+        "u2_6"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "capitalism-standard-core8",
+        "capitalism-standard-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-033",
+      "category": "자본주의 코어 (영어+경제부)",
+      "level": 9,
+      "unitIds": [
+        "u3_7",
+        "u4_3",
+        "u4_6",
+        "u4_2",
+        "u3_12",
+        "u2_6",
+        "u4_9",
+        "u4_8",
+        "u1_3"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "기존 core8의 1명 확장 구성이 아니며 highvalue_final9의 메인 5코스트 2성 조건도 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-034",
+      "category": "자본주의 코어 (영어+경제부)",
+      "level": 10,
+      "unitIds": [
+        "u3_12",
+        "u4_4",
+        "u4_8",
+        "u5_1",
+        "u3_7",
+        "u5_2",
+        "u4_2",
+        "u4_5",
+        "u4_7",
+        "u1_3"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-035",
+      "category": "예체능 코어 (음악+미술+체육)",
+      "level": 7,
+      "unitIds": [
+        "u2_8",
+        "u2_2",
+        "u4_5",
+        "u1_8",
+        "u3_8",
+        "u3_9",
+        "u1_9"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "arts-reroll-core7",
+        "arts-reroll-final8"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-036",
+      "category": "예체능 코어 (음악+미술+체육)",
+      "level": 8,
+      "unitIds": [
+        "u2_7",
+        "u2_8",
+        "u3_8",
+        "u1_8",
+        "u1_9",
+        "u4_6",
+        "u4_1",
+        "u5_4"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-037",
+      "category": "예체능 코어 (음악+미술+체육)",
+      "level": 9,
+      "unitIds": [
+        "u5_2",
+        "u4_4",
+        "u4_5",
+        "u5_3",
+        "u1_2",
+        "u2_8",
+        "u3_8",
+        "u2_7",
+        "u1_8"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "arts-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-038",
+      "category": "예체능 코어 (음악+미술+체육)",
+      "level": 10,
+      "unitIds": [
+        "u2_8",
+        "u4_8",
+        "u4_2",
+        "u1_9",
+        "u5_5",
+        "u4_7",
+        "u4_1",
+        "u2_9",
+        "u5_2",
+        "u2_7"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-039",
+      "category": "창의융합 코어 (창체)",
+      "level": 8,
+      "unitIds": [
+        "u4_3",
+        "u4_6",
+        "u3_11",
+        "u4_8",
+        "u4_2",
+        "u4_9",
+        "u5_5",
+        "u4_7"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-040",
+      "category": "창의융합 코어 (창체)",
+      "level": 9,
+      "unitIds": [
+        "u4_4",
+        "u5_5",
+        "u2_11",
+        "u4_2",
+        "u4_7",
+        "u4_5",
+        "u4_8",
+        "u5_1",
+        "u5_2"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "creative-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-041",
+      "category": "창의융합 코어 (창체)",
+      "level": 10,
+      "unitIds": [
+        "u4_4",
+        "u5_2",
+        "u2_11",
+        "u5_1",
+        "u4_2",
+        "u4_5",
+        "u4_7",
+        "u4_9",
+        "u5_5",
+        "u4_8"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-042",
+      "category": "순수 7방송 코어 (단일 7시너지)",
+      "level": 7,
+      "unitIds": [
+        "u4_2",
+        "u4_7",
+        "u4_9",
+        "u1_4",
+        "u3_7",
+        "u3_5",
+        "u2_9"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "legacy-005과 유닛 구성이 완전히 같아 중복 제외했다."
+    },
+    {
+      "sourceId": "legacy-043",
+      "category": "순수 7방송 코어 (단일 7시너지)",
+      "level": 8,
+      "unitIds": [
+        "u1_4",
+        "u4_7",
+        "u2_1",
+        "u4_2",
+        "u3_7",
+        "u2_9",
+        "u3_5",
+        "u4_8"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "broadcast-vertical-standard-core8",
+        "broadcast-vertical-standard-final9"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-044",
+      "category": "순수 7방송 코어 (단일 7시너지)",
+      "level": 9,
+      "unitIds": [
+        "u3_5",
+        "u3_7",
+        "u4_2",
+        "u4_7",
+        "u2_1",
+        "u4_8",
+        "u4_9",
+        "u2_9",
+        "u4_6"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "기존 core8의 1명 확장 구성이 아니며 highvalue_final9의 메인 5코스트 2성 조건도 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-045",
+      "category": "순수 7방송 코어 (단일 7시너지)",
+      "level": 10,
+      "unitIds": [
+        "u1_4",
+        "u5_4",
+        "u3_7",
+        "u2_9",
+        "u4_7",
+        "u2_1",
+        "u4_5",
+        "u5_2",
+        "u4_9",
+        "u4_2"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-046",
+      "category": "순수 7급식 코어 (단일 7시너지)",
+      "level": 7,
+      "unitIds": [
+        "u4_5",
+        "u1_5",
+        "u2_7",
+        "u3_8",
+        "u4_7",
+        "u1_8",
+        "u3_6"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "legacy-012과 유닛 구성이 완전히 같아 중복 제외했다."
+    },
+    {
+      "sourceId": "legacy-047",
+      "category": "순수 7급식 코어 (단일 7시너지)",
+      "level": 8,
+      "unitIds": [
+        "u4_8",
+        "u5_2",
+        "u3_6",
+        "u2_7",
+        "u4_5",
+        "u1_5",
+        "u4_7",
+        "u3_8"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-048",
+      "category": "순수 7급식 코어 (단일 7시너지)",
+      "level": 9,
+      "unitIds": [
+        "u4_7",
+        "u3_6",
+        "u5_3",
+        "u2_7",
+        "u3_8",
+        "u4_3",
+        "u5_2",
+        "u1_8",
+        "u4_5"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "cafeteria-vertical-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-049",
+      "category": "순수 7급식 코어 (단일 7시너지)",
+      "level": 10,
+      "unitIds": [
+        "u5_3",
+        "u1_5",
+        "u5_5",
+        "u3_6",
+        "u5_2",
+        "u4_5",
+        "u4_8",
+        "u1_8",
+        "u2_7",
+        "u4_7"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-050",
+      "category": "순수 6도덕 코어 (단일 6시너지)",
+      "level": 7,
+      "unitIds": [
+        "u3_2",
+        "u4_6",
+        "u4_5",
+        "u4_9",
+        "u1_1",
+        "u1_10",
+        "u2_10"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "morality-vertical-reroll-core7",
+        "morality-vertical-reroll-final8"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-051",
+      "category": "순수 6도덕 코어 (단일 6시너지)",
+      "level": 8,
+      "unitIds": [
+        "u4_4",
+        "u4_5",
+        "u1_1",
+        "u4_6",
+        "u5_4",
+        "u1_10",
+        "u3_2",
+        "u2_10"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-052",
+      "category": "순수 6도덕 코어 (단일 6시너지)",
+      "level": 9,
+      "unitIds": [
+        "u4_6",
+        "u4_9",
+        "u4_8",
+        "u1_1",
+        "u4_3",
+        "u3_2",
+        "u1_10",
+        "u5_5",
+        "u2_10"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "기존 core8의 1명 확장 구성이 아니며 highvalue_final9의 메인 5코스트 2성 조건도 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-053",
+      "category": "순수 6도덕 코어 (단일 6시너지)",
+      "level": 10,
+      "unitIds": [
+        "u3_2",
+        "u4_8",
+        "u4_2",
+        "u4_6",
+        "u1_10",
+        "u5_4",
+        "u1_1",
+        "u4_9",
+        "u5_5",
+        "u4_7"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-054",
+      "category": "순수 6선도부 코어 (단일 6시너지)",
+      "level": 7,
+      "unitIds": [
+        "u3_9",
+        "u2_10",
+        "u2_2",
+        "u1_1",
+        "u3_1",
+        "u4_2",
+        "u4_1"
+      ],
+      "disposition": "modified",
+      "targetDeckIds": [
+        "leadership-vertical-reroll-core7",
+        "leadership-vertical-reroll-final8"
+      ],
+      "reason": "유닛 또는 역할을 수정하고 별 등급·아이템·위치를 명시해 이관했다."
+    },
+    {
+      "sourceId": "legacy-055",
+      "category": "순수 6선도부 코어 (단일 6시너지)",
+      "level": 8,
+      "unitIds": [
+        "u2_10",
+        "u3_9",
+        "u5_5",
+        "u2_2",
+        "u3_1",
+        "u1_1",
+        "u4_1",
+        "u4_8"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-056",
+      "category": "순수 6선도부 코어 (단일 6시너지)",
+      "level": 9,
+      "unitIds": [
+        "u5_3",
+        "u4_1",
+        "u2_10",
+        "u2_2",
+        "u3_9",
+        "u3_1",
+        "u4_8",
+        "u1_1",
+        "u4_3"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "leadership-vertical-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-057",
+      "category": "순수 6선도부 코어 (단일 6시너지)",
+      "level": 10,
+      "unitIds": [
+        "u2_10",
+        "u4_8",
+        "u4_1",
+        "u5_2",
+        "u3_1",
+        "u5_4",
+        "u1_1",
+        "u5_5",
+        "u2_2",
+        "u4_6"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-058",
+      "category": "순수 6육상부 코어 (단일 6시너지)",
+      "level": 8,
+      "unitIds": [
+        "u1_7",
+        "u3_3",
+        "u4_8",
+        "u4_4",
+        "u2_4",
+        "u4_5",
+        "u5_1",
+        "u1_2"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "기본 core8의 5코스트 금지 조건을 위반하며 highroll8은 활성 전략군이 아니다."
+    },
+    {
+      "sourceId": "legacy-059",
+      "category": "순수 6육상부 코어 (단일 6시너지)",
+      "level": 9,
+      "unitIds": [
+        "u2_4",
+        "u1_7",
+        "u1_2",
+        "u4_4",
+        "u5_1",
+        "u3_3",
+        "u4_5",
+        "u5_5",
+        "u4_8"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "athletics-vertical-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-060",
+      "category": "순수 6육상부 코어 (단일 6시너지)",
+      "level": 10,
+      "unitIds": [
+        "u4_5",
+        "u4_2",
+        "u3_3",
+        "u2_4",
+        "u1_2",
+        "u4_4",
+        "u4_7",
+        "u5_2",
+        "u1_7",
+        "u5_1"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-061",
+      "category": "순수 6보건부 코어 (단일 6시너지)",
+      "level": 7,
+      "unitIds": [
+        "u4_6",
+        "u4_9",
+        "u2_3",
+        "u1_6",
+        "u3_10",
+        "u3_2",
+        "u1_10"
+      ],
+      "disposition": "needs-new-design",
+      "targetDeckIds": [],
+      "reason": "서로 다른 3코스트 3성 메인 탱커·딜러 조건을 현재 구성으로 충족하지 못한다."
+    },
+    {
+      "sourceId": "legacy-062",
+      "category": "순수 6보건부 코어 (단일 6시너지)",
+      "level": 8,
+      "unitIds": [
+        "u2_6",
+        "u3_2",
+        "u1_6",
+        "u4_6",
+        "u4_4",
+        "u1_10",
+        "u4_9",
+        "u2_3"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "health-vertical-standard-core8",
+        "health-vertical-standard-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-063",
+      "category": "순수 6보건부 코어 (단일 6시너지)",
+      "level": 9,
+      "unitIds": [
+        "u2_6",
+        "u5_1",
+        "u3_2",
+        "u1_6",
+        "u4_4",
+        "u2_3",
+        "u4_6",
+        "u1_10",
+        "u4_9"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "health-vertical-standard-final9과 유닛 구성이 완전히 같아 별도 변형을 만들지 않고 제외했다."
+    },
+    {
+      "sourceId": "legacy-064",
+      "category": "순수 6보건부 코어 (단일 6시너지)",
+      "level": 10,
+      "unitIds": [
+        "u4_6",
+        "u3_10",
+        "u1_10",
+        "u2_3",
+        "u4_9",
+        "u1_6",
+        "u4_3",
+        "u5_3",
+        "u4_4",
+        "u3_2"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    },
+    {
+      "sourceId": "legacy-065",
+      "category": "순수 6장난꾸러기 코어 (단일 6시너지)",
+      "level": 7,
+      "unitIds": [
+        "u1_3",
+        "u4_3",
+        "u4_1",
+        "u2_8",
+        "u1_9",
+        "u2_12",
+        "u3_4"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "legacy-016과 유닛 구성이 완전히 같아 중복 제외했다."
+    },
+    {
+      "sourceId": "legacy-066",
+      "category": "순수 6장난꾸러기 코어 (단일 6시너지)",
+      "level": 8,
+      "unitIds": [
+        "u4_3",
+        "u2_12",
+        "u4_1",
+        "u5_3",
+        "u4_2",
+        "u1_9",
+        "u3_4",
+        "u2_8"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "legacy-017과 유닛 구성이 완전히 같아 중복 제외했다."
+    },
+    {
+      "sourceId": "legacy-067",
+      "category": "순수 6장난꾸러기 코어 (단일 6시너지)",
+      "level": 9,
+      "unitIds": [
+        "u3_4",
+        "u4_3",
+        "u1_9",
+        "u4_1",
+        "u5_4",
+        "u2_12",
+        "u4_2",
+        "u5_3",
+        "u2_8"
+      ],
+      "disposition": "reclassified",
+      "targetDeckIds": [
+        "prank-vertical-highvalue-final9"
+      ],
+      "reason": "유닛 조합을 유지하고 별 등급·아이템·위치를 명시해 새 전략군으로 재분류했다."
+    },
+    {
+      "sourceId": "legacy-068",
+      "category": "순수 6장난꾸러기 코어 (단일 6시너지)",
+      "level": 10,
+      "unitIds": [
+        "u2_12",
+        "u1_9",
+        "u5_3",
+        "u4_1",
+        "u4_8",
+        "u2_8",
+        "u5_4",
+        "u3_4",
+        "u5_5",
+        "u4_3"
+      ],
+      "disposition": "excluded",
+      "targetDeckIds": [],
+      "reason": "새 전략군 정의에 10레벨 체크포인트가 없어 제외했다."
+    }
+  ]
+}

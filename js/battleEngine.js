@@ -1,18 +1,123 @@
 import { SkillEngine } from './battle/SkillEngine.js';
+
+const CROWD_CONTROL_TYPES = new Set(['stun', 'taunt', 'zephyr', 'disarm', 'silence', 'manaSeal']);
+const REVERSIBLE_BUFF_STATS = new Set(['ad', 'ap', 'as', 'armor', 'mr', 'range', 'maxHp']);
+const MAX_BATTLE_DISTANCE = 7;
+
+function battleLogIdentity(unit, position = unit.gridIndex) {
+    const unitId = unit.id || unit.unitId || (unit.isZzrotDog || unit.isSummon ? 'zzrot-dog' : null);
+    return {
+        instanceId: unit.instanceId || `${unit.team || 'unknown'}:${unitId || unit.name || 'unit'}:${position}`,
+        unitId,
+        team: unit.team || null,
+        isSummon: Boolean(unit.isZzrotDog || unit.isSummon),
+        ownerInstanceId: unit.ownerInstanceId || null
+    };
+}
+
+function enrichBattleLogs(logs, initialUnits) {
+    const byPosition = new Map(initialUnits.map(unit => [unit.gridIndex, battleLogIdentity(unit)]));
+    const at = position => Number.isInteger(position) ? byPosition.get(position) : null;
+
+    for (const log of logs) {
+        if (log.type === 'spawn' && log.unit) byPosition.set(log.target, battleLogIdentity(log.unit, log.target));
+        const sourcePosition = log.type === 'attack' ? log.from
+            : log.type === 'skill' ? log.caster
+                : log.type === 'move' ? log.unit : log.source;
+        const targetPosition = log.type === 'attack' ? log.to : log.type === 'move' ? null : log.target;
+        const source = at(sourcePosition);
+        const target = at(targetPosition);
+
+        if (source) {
+            log.sourceInstanceId ??= source.instanceId;
+            log.sourceUnitId ??= source.unitId;
+            log.ownerInstanceId ??= source.ownerInstanceId;
+        }
+        if (target) {
+            log.targetInstanceId ??= target.instanceId;
+            log.targetUnitId ??= target.unitId;
+        }
+        if (Array.isArray(log.targets)) {
+            log.targetInstanceIds ??= log.targets.map(position => at(position)?.instanceId || null);
+        }
+        log.team ??= source?.team || target?.team || null;
+        if (!log.sourceType && (source || ['attack', 'damage', 'heal', 'shield', 'cc', 'skill'].includes(log.type))) {
+            log.sourceType = source?.isSummon ? 'summon'
+                : log.type === 'attack' ? 'basic-attack'
+                    : log.type === 'skill' ? 'skill' : source ? 'unit' : 'unknown';
+        }
+        if (log.type === 'attack' || log.type === 'damage') {
+            log.damageType ??= log.dmgType || null;
+            log.isExecute ??= false;
+            log.isSummonDamage ??= Boolean(source?.isSummon);
+        }
+
+        if (log.type === 'move') {
+            const moving = at(log.unit);
+            if (moving) {
+                byPosition.delete(log.unit);
+                byPosition.set(log.to, moving);
+            }
+        }
+    }
+}
+
+export function createSeededRandom(seed) {
+    let value = 2166136261;
+    for (const char of String(seed)) {
+        value ^= char.charCodeAt(0);
+        value = Math.imul(value, 16777619);
+    }
+    return () => {
+        value += 0x6D2B79F5;
+        let next = value;
+        next = Math.imul(next ^ (next >>> 15), next | 1);
+        next ^= next + Math.imul(next ^ (next >>> 7), next | 61);
+        return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+export function getBattleWinner(playerAlive, enemyAlive) {
+    if (playerAlive && enemyAlive) return null;
+    if (!playerAlive && !enemyAlive) return 'draw';
+    return playerAlive ? 'player' : 'enemy';
+}
+
+export function clampPenetration(value) {
+    return Math.min(0.9, Math.max(0, Number.isFinite(value) ? value : 0));
+}
+
+export function getAttackCooldown(attackSpeed) {
+    const normalized = Math.min(10, Math.max(0.1, Number.isFinite(attackSpeed) ? attackSpeed : 0.1));
+    return Math.max(1, Math.round(10 / normalized));
+}
+
+export function updateGargoyleDefense(unit, targetingCount, itemCount) {
+    const previous = unit.combat.gargoyleBonus || 0;
+    unit.stats.armor -= previous;
+    unit.stats.mr -= previous;
+    const next = Math.max(0, targetingCount) * 15 * Math.max(0, itemCount);
+    unit.stats.armor += next;
+    unit.stats.mr += next;
+    unit.combat.gargoyleBonus = next;
+}
+
 export class BattleEngine {
-    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50) {
+    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50, seed = null, enemyGold = playerGold) {
         this.board = Array(48).fill(null);
         this.playerAugments = playerAugments;
         this.playerGold = playerGold;
+        this.enemyGold = enemyGold;
+        this.random = seed === null ? Math.random : createSeededRandom(seed);
         for(let i=0; i<24; i++) {
             if (playerBoard[i]) {
-                const u = playerBoard[i];
+                const u = structuredClone(playerBoard[i]);
                 this.board[i + 24] = {...u, team: 'player', gridIndex: i + 24, originalBoardIdx: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
         for(let i=0; i<24; i++) {
             if (enemyBoard[i]) {
-                const u = enemyBoard[i];
+                const u = structuredClone(enemyBoard[i]);
                 this.board[i] = {...u, team: 'enemy', gridIndex: i, currHp: (u.currHp > 0) ? u.currHp : u.stats.hp, currMana: (u.stats.mana || 0) + (u.combat.bonusMana || 0) + (u.combat.startMana || 0), currShield: u.combat.shield || 0, buffs: []};
             }
         }
@@ -79,10 +184,56 @@ export class BattleEngine {
         return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
     }
 
+    getDistanceDamageAmp(distance, maximumAmp) {
+        return Math.min(Math.max(distance, 0) / MAX_BATTLE_DISTANCE, 1) * (maximumAmp || 0);
+    }
+
+    getUnbuffedStat(target, stat) {
+        const activeDelta = (target.buffs || [])
+            .filter(buff => buff.stat === stat && REVERSIBLE_BUFF_STATS.has(stat))
+            .reduce((sum, buff) => sum + (Number(buff.val) || 0), 0);
+        return (Number(target.stats?.[stat]) || 0) - activeDelta;
+    }
+
+    addRunnerStacks(unit, count = 1) {
+        const maxStacks = unit.combat.runnerMaxStacks || 0;
+        const current = Math.min(unit.combat.runnerStacks || 0, maxStacks);
+        const next = Math.min(current + Math.max(0, count), maxStacks);
+        const added = next - current;
+        if (added <= 0) return;
+
+        unit.combat.runnerStacks = next;
+        unit.stats.as *= Math.pow(1 + (unit.combat.moveAsBuff || 0), added);
+        unit.combat.armorPen = clampPenetration((unit.combat.armorPen || 0) + (unit.combat.movePenBuff || 0) * added);
+        if (current < maxStacks && next === maxStacks) {
+            unit.stats.as *= 1 + (unit.combat.runnerMaxBonusAs || 0);
+            unit.combat.armorPen = clampPenetration(unit.combat.armorPen + (unit.combat.runnerMaxBonusPen || 0));
+        }
+    }
+
+    clampPenetration(value) {
+        return clampPenetration(value);
+    }
+
     
 
     run() {
         let activeUnits = this.board.filter(u => u !== null);
+        const initialLogUnits = activeUnits.map(unit => ({ ...battleLogIdentity(unit), gridIndex: unit.gridIndex }));
+        const finishBattle = (winner, endReason) => {
+            const players = activeUnits.filter(unit => unit.team === 'player' && unit.currHp > 0);
+            const enemies = activeUnits.filter(unit => unit.team === 'enemy' && unit.currHp > 0);
+            this.logs.push({
+                tick: this.tick,
+                type: 'end',
+                winner,
+                endReason,
+                survivingPlayers: players.length,
+                survivingEnemies: enemies.length,
+                survivingPlayerHp: players.reduce((sum, unit) => sum + unit.currHp, 0),
+                survivingEnemyHp: enemies.reduce((sum, unit) => sum + unit.currHp, 0)
+            });
+        };
 
         const countUniqueTrait = (trait, team = 'player') => {
             const units = activeUnits.filter(u => u.team === team && (u.subject === trait || (Array.isArray(u.subject) ? u.subject.includes(trait) : false) || u.club === trait || (Array.isArray(u.club) ? u.club.includes(trait) : false)));
@@ -115,7 +266,7 @@ export class BattleEngine {
             });
             broadcastUnits.forEach(u => {
                 this.addBuff(u, 'buff', 'range', 99, 9999);
-                this.addBuff(u, 'buff', 'as', u.stats.as * 0.30, 9999);
+                this.addBuff(u, 'buff', 'as', this.getUnbuffedStat(u, 'as') * 0.30, 9999);
             });
             this.logs.push({
                 tick: this.tick, type: 'broadcast_silence', fxType: 'aug_mass_silence', targets: enemies.map(e => e.gridIndex)
@@ -126,9 +277,7 @@ export class BattleEngine {
         if (this.hasP14) {
             activeUnits.forEach(u => {
                 if (u.team === 'player' && (u.club === '육상부' || (Array.isArray(u.club) && u.club.includes('육상부')))) {
-                    u.combat.runnerStacks = 5;
-                    u.stats.as *= Math.pow(1 + (u.combat.moveAsBuff||0), 5);
-                    u.combat.armorPen = (u.combat.armorPen || 0) + ((u.combat.movePenBuff||0) * 5);
+                    this.addRunnerStacks(u, 5);
                 }
             });
         }
@@ -143,10 +292,45 @@ export class BattleEngine {
             });
         }
 
+        // 장난꾸러기: 팀마다 전투 시작 시 장난 룰렛 1회
+        for (const team of ['player', 'enemy']) {
+            const source = activeUnits.find(u => u.team === team && u.combat.prankLevel > 0);
+            if (!source) continue;
+
+            const enemies = activeUnits.filter(u => u.team !== team && u.currHp > 0 && !u.isDead);
+            const enhancedJackpot = team === 'player' && this.hasP23;
+            const roll = (source.combat.prankJackpot || enhancedJackpot) ? 1 : this.random();
+            const result = (source.combat.prankJackpot || enhancedJackpot) ? 'jackpot'
+                : roll < source.combat.prankDudChance ? 'dud'
+                    : roll < source.combat.prankDudChance + source.combat.prankBananaChance ? 'banana' : 'firecracker';
+            const pickTargets = count => {
+                const pool = [...enemies];
+                const picked = [];
+                while (pool.length > 0 && picked.length < count) {
+                    picked.push(pool.splice(Math.floor(this.random() * pool.length), 1)[0]);
+                }
+                return picked;
+            };
+            const stunTargets = result === 'jackpot' ? enemies : result === 'banana' ? pickTargets(source.combat.prankStunTargets) : [];
+            const damageTargets = result === 'jackpot' ? enemies : result === 'firecracker' ? pickTargets(source.combat.prankDamageTargets) : [];
+
+            stunTargets.forEach(target => this.addBuff(target, 'stun', null, 0, source.combat.prankStunDuration));
+            damageTargets.forEach(target => {
+                const pct = enhancedJackpot ? 0.36 : source.combat.prankDamagePct;
+                const damage = target.stats.maxHp * pct * (100 / (100 + target.stats.mr));
+                target.currHp -= damage;
+                this.logs.push({ tick: this.tick, type: 'damage', target: target.gridIndex, source: source.gridIndex, dmg: Math.round(damage), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: target.currHp, maxHp: target.stats.maxHp, currShield: target.currShield });
+                this.checkHpThresholds(target, activeUnits, source);
+                if (target.currHp <= 0) this.handleDeath(target, activeUnits);
+            });
+            this.logs.push({ tick: this.tick, type: 'prank_roulette', team, result, source: source.gridIndex, targets: [...new Set([...stunTargets, ...damageTargets])].map(target => target.gridIndex) });
+        }
+
         // [창체 시너지] 누적 특별 교육 발동
-        {
+        for (const team of ['player', 'enemy']) {
+            const opponentTeam = team === 'player' ? 'enemy' : 'player';
             const changcheCount = new Set(
-                activeUnits.filter(u => u.team === 'player' && (
+                activeUnits.filter(u => u.team === team && (
                     u.subject === '창체' || (Array.isArray(u.subject) && u.subject.includes('창체'))
                 )).map(u => u.name)
             ).size;
@@ -154,7 +338,7 @@ export class BattleEngine {
             // [1시너지] 학교폭력 예방 교육: 적 공격력 상위 2명 4초(40틱) 무장해제+침묵
             if (changcheCount >= 1) {
                 const top2 = activeUnits
-                    .filter(u => u.team === 'enemy' && u.currHp > 0)
+                    .filter(u => u.team === opponentTeam && u.currHp > 0)
                     .sort((a, b) => b.stats.ad - a.stats.ad)
                     .slice(0, 2);
                 top2.forEach(e => {
@@ -162,21 +346,21 @@ export class BattleEngine {
                     this.addBuff(e, 'silence', null, 0, 40);
                 });
                 if (top2.length > 0) {
-                    this.logs.push({ tick: this.tick, type: 'changche_lv1', targets: top2.map(e => e.gridIndex) });
+                    this.logs.push({ tick: this.tick, type: 'changche_lv1', team, targets: top2.map(e => e.gridIndex) });
                 }
             }
 
             // [2시너지] 심폐소생술 교육: 아군 최초 2명 사망 면역 부여
             if (changcheCount >= 2) {
-                this.playerCprCharges = 2;
+                this[`${team}CprCharges`] = 2;
             }
 
             // [3시너지] 맞춤형 진로 교육: 역할군 맞춤 영구 버프 (복합 역할군은 랜덤 1개)
             if (changcheCount >= 3) {
                 activeUnits.forEach(u => {
-                    if (u.team !== 'player') return;
+                    if (u.team !== team) return;
                     const roles = Array.isArray(u.role) ? u.role : [u.role];
-                    const picked = roles[Math.floor(Math.random() * roles.length)];
+                    const picked = roles[Math.floor(this.random() * roles.length)];
                     if (picked === 'dealer') {
                         // 딜러: 공격력 25%, 주문력 25% 증폭
                         u.stats.ad = Math.round(u.stats.ad * 1.25);
@@ -195,36 +379,58 @@ export class BattleEngine {
                         u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + 2;
                     }
                 });
-                this.logs.push({ tick: this.tick, type: 'changche_lv3' });
+                this.logs.push({ tick: this.tick, type: 'changche_lv3', team });
             }
         }
 
-        // [경제부 시너지] 3/4 효과
-        {
+        // [경제부 시너지] 4 효과
+        for (const team of ['player', 'enemy']) {
             const ecoCount = new Set(
-                activeUnits.filter(u => u.team === 'player' && (
+                activeUnits.filter(u => u.team === team && (
                     u.club === '경제부' || (Array.isArray(u.club) && u.club.includes('경제부'))
                 )).map(u => u.name)
             ).size;
 
-
-
             if (ecoCount >= 4) {
-                // 4시너지: 황금 만능주의
-                const buffPct = 0.3 + Math.floor(this.playerGold / 10) * 0.2;
+                const teamGold = team === 'player' ? this.playerGold : this.enemyGold;
+                const buffPct = 0.3 + Math.floor(teamGold / 10) * 0.2;
                 activeUnits.forEach(u => {
-                    if (u.team === 'player') {
+                    if (u.team === team) {
                         u.stats.ad = Math.round(u.stats.ad * (1 + buffPct));
                         u.stats.ap = Math.round(u.stats.ap * (1 + buffPct));
                         u.stats.as = u.stats.as * (1 + buffPct);
                     }
                 });
-                this.logs.push({ tick: this.tick, type: 'eco_buff', buffPct: buffPct });
+                this.logs.push({ tick: this.tick, type: 'eco_buff', team, buffPct });
             }
         }
 
         this.tick = -10;
         this.initItemEffects(activeUnits);
+
+        activeUnits.forEach(u => {
+            if (u.combat.isCafeteria || (this.hasP22 && u.team === 'player')) u.combat.cafeteriaBaseHp = u.stats.maxHp;
+        });
+
+        this.tick = -5;
+        activeUnits.filter(u => u.combat.runnerDash).forEach(unit => {
+            const target = activeUnits
+                .filter(other => other.team !== unit.team && other.currHp > 0)
+                .sort((a, b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex))[0];
+            if (!target) return;
+
+            const destination = Array.from({ length: 48 }, (_, index) => index)
+                .filter(index => this.getDist(index, target.gridIndex) === 1
+                    && !activeUnits.some(other => other !== unit && other.currHp > 0 && other.gridIndex === index))
+                .sort((a, b) => this.getDist(unit.gridIndex, a) - this.getDist(unit.gridIndex, b) || a - b)[0];
+            const steps = destination === undefined ? 0 : this.getDist(unit.gridIndex, destination);
+            if (steps <= 0) return;
+
+            const oldIndex = unit.gridIndex;
+            unit.gridIndex = destination;
+            this.addRunnerStacks(unit, steps);
+            this.logs.push({ tick: this.tick, type: 'move', unit: oldIndex, to: destination, isRunner: true, isDash: true, steps });
+        });
 
         this.tick = 0;
 
@@ -232,10 +438,9 @@ export class BattleEngine {
             const playerAlive = activeUnits.some(u => u.team === 'player' && u.currHp > 0);
             const enemyAlive = activeUnits.some(u => u.team === 'enemy' && u.currHp > 0);
             
-            if (!playerAlive || !enemyAlive) {
-                const survivingEnemies = activeUnits.filter(u => u.team === 'enemy' && u.currHp > 0).length;
-                const survivingPlayers = activeUnits.filter(u => u.team === 'player' && u.currHp > 0).length;
-                this.logs.push({ tick: this.tick, type: 'end', winner: playerAlive ? 'player' : 'enemy', survivingEnemies, survivingPlayers });
+            const winner = getBattleWinner(playerAlive, enemyAlive);
+            if (winner) {
+                finishBattle(winner, winner === 'draw' ? 'simultaneous-draw' : 'decisive');
                 break;
             }
 
@@ -284,10 +489,9 @@ export class BattleEngine {
                             this.addBuff(u, 'stun', null, 0, expired.val);
                         }
                         // 스탯 버프 만료 시 원상복구
-                        const statKeys = ['ad','ap','as','armor','mr','range','maxHp'];
-                        if (expired.stat && statKeys.includes(expired.stat) && u.stats[expired.stat] !== undefined) {
-                            u.stats[expired.stat] -= expired.val;
-                        }
+                            if (expired.stat && REVERSIBLE_BUFF_STATS.has(expired.stat) && u.stats[expired.stat] !== undefined) {
+                                u.stats[expired.stat] -= expired.val;
+                            }
                         buffChanged = true;
                     }
                 }
@@ -380,11 +584,8 @@ export class BattleEngine {
                             });
                         }
                         if (u.combat.itemEffects?.gargoyle) {
-                            // count enemies targeting me
-                            let targetingMe = activeUnits.filter(e => e.team !== u.team && this.getDist(e.gridIndex, u.gridIndex) <= e.stats.range).length;
-                            const count = u.combat.itemEffects.gargoyle;
-                            u.stats.armor += targetingMe * 15 * count;
-                            u.stats.mr += targetingMe * 15 * count;
+                            const targetingMe = activeUnits.filter(e => e.team !== u.team && e.currHp > 0 && this.getDist(e.gridIndex, u.gridIndex) <= e.stats.range).length;
+                            updateGargoyleDefense(u, targetingMe, u.combat.itemEffects.gargoyle);
                         }
                     });
                 }
@@ -412,9 +613,9 @@ export class BattleEngine {
                         u.currMana = Math.max(u.currMana, Math.min(u.stats.maxMana, u.currMana + gainMana));
                     }
                     
-                    // [p15] 도덕 6 절대 선: 매초 최대 체력의 4% 지속 회복
+                    // [p15] 도덕 6 절대 선: 매초 최대 체력의 1% 지속 회복
                     if (this.hasP15 && u.team === 'player' && (u.subject === '도덕' || (Array.isArray(u.subject) && u.subject.includes('도덕')))) {
-                        const heal = u.stats.maxHp * 0.04;
+                        const heal = u.stats.maxHp * 0.01;
                         u.currHp = Math.min(u.stats.maxHp, u.currHp + heal);
                         this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(heal), currHp: u.currHp, maxHp: u.stats.maxHp });
                     }
@@ -423,6 +624,9 @@ export class BattleEngine {
 
             // 글로벌 틱 이벤트
             if (this.tick > 0) {
+                const specialMealSource = this.hasP22
+                    ? activeUnits.find(a => a.team === 'player' && a.currHp > 0 && a.combat.isCafeteria)
+                    : null;
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
                     
@@ -432,18 +636,19 @@ export class BattleEngine {
                     }
                     
                     // [급식부 시너지 & p22 특급 만찬] 포만감(Satiety) 틱마다 체력/방마저 증가
-                    if (u.combat.isCafeteria) {
+                    if (u.combat.isCafeteria && (!this.hasP22 || u.team !== 'player' || u === specialMealSource)) {
                         const baseSatietyTick = u.combat.satietyTick || 50; // 기본 50틱(5초)
-                        const actualSatietyTick = (this.hasP22 && u.team === 'player') ? 25 : baseSatietyTick; // p22 활성화 시 2.5초
+                        const isSpecialMeal = u === specialMealSource;
+                        const actualSatietyTick = isSpecialMeal ? 25 : baseSatietyTick; // p22 활성화 시 팀 전체가 2.5초마다 1회 중첩
                         
                         if (this.tick % actualSatietyTick === 0) {
-                            const bonusHp = u.stats.maxHp * u.combat.stackHpPct;
                             const bonusArmor = u.combat.stackArmorMr;
                             
                             // [p22] 아군 전체에게 공유
-                            if (this.hasP22 && u.team === 'player') {
+                            if (isSpecialMeal) {
                                 const allies = activeUnits.filter(a => a.team === 'player' && a.currHp > 0);
                                 allies.forEach(a => {
+                                    const bonusHp = a.combat.cafeteriaBaseHp * u.combat.stackHpPct;
                                     a.stats.maxHp += bonusHp;
                                     a.currHp += bonusHp;
                                     a.stats.armor += bonusArmor;
@@ -452,6 +657,7 @@ export class BattleEngine {
                                     this.addBuff(a, 'buff', 'dummy', 0, 10);
                                 });
                             } else {
+                                const bonusHp = u.combat.cafeteriaBaseHp * u.combat.stackHpPct;
                                 u.stats.maxHp += bonusHp;
                                 u.currHp += bonusHp;
                                 u.stats.armor += bonusArmor;
@@ -474,7 +680,7 @@ export class BattleEngine {
             }
 
             // 유닛별 행동 순서를 매 틱마다 무작위로 섞어 공정한 전투 보장
-            const actionOrder = [...activeUnits].sort(() => Math.random() - 0.5);
+            const actionOrder = [...activeUnits].sort(() => this.random() - 0.5);
             
             actionOrder.forEach(unit => {
                 if (unit.currHp <= 0) return;
@@ -505,41 +711,6 @@ export class BattleEngine {
                             team: unit.team
                         });
                         this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'art_canvas', target: unit.gridIndex, radius: unit.combat.canvasRadius || 1 });
-                    }
-                    
-                    // [장난꾸러기 시너지 & p23 대혼돈의 교실] 스킬 사용 시 장난 발동
-                    if (unit.combat.prankLevel > 0) {
-                        unit.combat.prankCount = (unit.combat.prankCount || 0) + 1;
-                        const reqCount = (this.hasP23 && unit.team === 'player') ? 1 : 2;
-                        if (unit.combat.prankCount >= reqCount) {
-                            unit.combat.prankCount = 0;
-                            const prankEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
-                            const prankTarget = prankEnemies.length > 0 ? prankEnemies[Math.floor(Math.random() * prankEnemies.length)] : null;
-                            if (prankTarget) {
-                                if (unit.combat.prankLevel === 1) {
-                                    this.addBuff(prankTarget, 'stun', null, 0, 15);
-                                    this.logs.push({ tick: this.tick, type: 'damage', target: prankTarget.gridIndex, source: unit.gridIndex, dmg: 0, dmgType: 'magic', isCrit: false, fxType: 'banana', currHp: prankTarget.currHp, maxHp: prankTarget.stats.maxHp, currShield: prankTarget.currShield });
-                                } else if (unit.combat.prankLevel === 2) {
-                                    this.addBuff(prankTarget, 'stun', null, 0, 15);
-                                    let prankDmg = prankTarget.stats.maxHp * 0.10 * (100 / (100 + prankTarget.stats.mr));
-                                    prankTarget.currHp -= prankDmg;
-                                    this.logs.push({ tick: this.tick, type: 'damage', target: prankTarget.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: prankTarget.currHp, maxHp: prankTarget.stats.maxHp, currShield: prankTarget.currShield });
-                                    this.checkHpThresholds(prankTarget, activeUnits, unit);
-                                    if (prankTarget.currHp <= 0) this.handleDeath(prankTarget, activeUnits);
-                                } else if (unit.combat.prankLevel === 3) {
-                                    const allEnemies = activeUnits.filter(u => u.team !== unit.team && u.currHp > 0 && !u.isDead);
-                                    allEnemies.forEach(e => {
-                                        this.addBuff(e, 'stun', null, 0, 25);
-                                        const pct = (this.hasP23 && unit.team === 'player') ? 0.36 : 0.20;
-                                        let prankDmg = e.stats.maxHp * pct * (100 / (100 + e.stats.mr));
-                                        e.currHp -= prankDmg;
-                                        this.logs.push({ tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex, dmg: Math.round(prankDmg), dmgType: 'magic', isCrit: false, fxType: 'fire_red', currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield });
-                                        this.checkHpThresholds(e, activeUnits, unit);
-                                        if (e.currHp <= 0) this.handleDeath(e, activeUnits);
-                                    });
-                                }
-                            }
-                        }
                     }
                     
                     // [영어 시너지] 스킬 사용 시 마나 번 및 분배
@@ -586,7 +757,7 @@ export class BattleEngine {
                         unit.combat.shroudPenalty = 0;
                         this.logs.push({ tick: this.tick, type: 'mana_update', target: unit.gridIndex, currMana: unit.currMana, maxMana: unit.stats.maxMana });
                     }
-                    unit.cooldown = Math.max(1, Math.round(10 / unit.stats.as)); // 스킬 사용 후 쿨다운
+                    unit.cooldown = getAttackCooldown(unit.stats.as); // 스킬 사용 후 쿨다운
                     return;
                 }
 
@@ -624,7 +795,7 @@ export class BattleEngine {
                     
                     let currentDmgAmp = unit.combat.dmgAmp || 0;
                     if (unit.combat.isSniper) {
-                        currentDmgAmp += dist * (unit.combat.distAmp || 0);
+                        currentDmgAmp += this.getDistanceDamageAmp(dist, unit.combat.distAmp);
                     }
                     if (currentDmgAmp !== 0) dmg *= Math.max(0.1, (1 + currentDmgAmp));
                     if (unit.combat.itemEffects?.giantSlayer) {
@@ -634,7 +805,7 @@ export class BattleEngine {
                     if (unit.combat.itemEffects?.guardbreaker && target.currShield > 0) dmg *= 1.25;
                     
                     let isCrit = false;
-                    if (Math.random() < unit.combat.critChance) {
+                    if (this.random() < unit.combat.critChance) {
                         dmg *= unit.combat.critDmg;
                         isCrit = true;
                     }
@@ -677,7 +848,7 @@ export class BattleEngine {
                     // ① 방어력 감쇄 먼저 적용
                     let shred = target.buffs.some(b => b.type === 'armorPct') ? 0.5 : 1;
                     // ② 공격자의 방관 적용
-                    let armorPenMult = unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1;
+                    let armorPenMult = 1 - clampPenetration(unit.combat.armorPen);
                     let actualArmor = target.stats.armor * shred * armorPenMult;
                     let actualMr = target.stats.mr * armorPenMult; // 마법 저항력도 동일하게 관통
                     let totalDmg = dmg * (100 / (100 + actualArmor));
@@ -715,9 +886,9 @@ export class BattleEngine {
                     
                     target.currHp -= (totalDmg + trueDmg);
 
-                    // [p15] 도덕 6 절대 선 (평타 피격 시 100% 반사)
+                    // [p15] 도덕 6 절대 선 (평타 피격 시 15% 반사)
                     if (this.hasP15 && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team === 'enemy') {
-                        const reflectDmg = (target.stats.armor + target.stats.mr) * 1.0;
+                        const reflectDmg = (target.stats.armor + target.stats.mr) * 0.15;
                         let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                         unit.currHp -= actualReflect;
                         this.logs.push({
@@ -731,7 +902,7 @@ export class BattleEngine {
                     
                     if (trueDmg > 0) {
                         this.logs.push({
-                            tick: this.tick, type: 'damage', target: target.gridIndex, 
+                            tick: this.tick, type: 'damage', target: target.gridIndex, source: unit.gridIndex,
                             dmg: Math.round(trueDmg), dmgType: 'true', isCrit: false,
                             currHp: target.currHp, maxHp: target.stats.maxHp, currShield: target.currShield
                         });
@@ -803,7 +974,7 @@ export class BattleEngine {
                                     const nIdx = ny * 8 + nx;
                                     const e = activeUnits.find(u => u.gridIndex === nIdx && u.team !== unit.team && u.currHp > 0);
                                     if (e) {
-                                        let pierceDmg = (unit.stats.ad * (isCrit ? unit.combat.critDmg : 1)) * (100 / (100 + (e.stats.armor * (unit.combat.armorPen ? (1 - unit.combat.armorPen) : 1))));
+                                        let pierceDmg = (unit.stats.ad * (isCrit ? unit.combat.critDmg : 1)) * (100 / (100 + (e.stats.armor * (1 - clampPenetration(unit.combat.armorPen)))));
                                         e.currHp -= pierceDmg;
                                         this.logs.push({
                                             tick: this.tick, type: 'damage', target: e.gridIndex, source: unit.gridIndex,
@@ -857,7 +1028,7 @@ export class BattleEngine {
                             unit.combat.statikkStack = 0;
                             const statikkTargets = targetableEnemies.slice(0, 4);
                             statikkTargets.forEach(st => {
-                                let stDmg = (100 * count) * (100/(100+st.stats.mr));
+                                let stDmg = (60 * count) * (100/(100+st.stats.mr));
                                 st.currHp -= stDmg;
                                 this.logs.push({
                                     tick: this.tick, type: 'damage', target: st.gridIndex, source: unit.gridIndex,
@@ -891,7 +1062,7 @@ export class BattleEngine {
                     this.checkHpThresholds(target, activeUnits, unit);
                     if (target.currHp <= 0) this.handleDeath(target, activeUnits);
                     
-                    unit.cooldown = Math.max(1, Math.round(10 / unit.stats.as)); 
+                    unit.cooldown = getAttackCooldown(unit.stats.as);
                 } else {
                     const x1 = unit.gridIndex % 8; const y1 = Math.floor(unit.gridIndex / 8);
                     const x2 = target.gridIndex % 8; const y2 = Math.floor(target.gridIndex / 8);
@@ -914,7 +1085,7 @@ export class BattleEngine {
                     
                     // 목표와 가장 가까운 셀부터 탐색 (거리가 같으면 랜덤성 부여하여 무한 와리가리 방지)
                     neighbors.sort((a, b) => {
-                        if (a.dist === b.dist) return Math.random() - 0.5;
+                        if (a.dist === b.dist) return this.random() - 0.5;
                         return a.dist - b.dist;
                     });
                     
@@ -926,18 +1097,7 @@ export class BattleEngine {
                             this.logs.push({ tick: this.tick, type: 'move', unit: oldIdx, to: n.idx, isRunner: !!unit.combat.isRunner });
                             
                             // [육상부 리워크] 이동 시 스택 누적
-                            if (unit.combat.isRunner) {
-                                unit.combat.runnerStacks = (unit.combat.runnerStacks || 0) + 1;
-                                if (unit.combat.runnerStacks <= unit.combat.runnerMaxStacks) {
-                                    unit.stats.as *= (1 + unit.combat.moveAsBuff);
-                                    unit.combat.armorPen = (unit.combat.armorPen || 0) + unit.combat.movePenBuff;
-                                    
-                                    if (unit.combat.runnerStacks === unit.combat.runnerMaxStacks) {
-                                        unit.stats.as *= (1 + (unit.combat.runnerMaxBonusAs || 0));
-                                        unit.combat.armorPen += (unit.combat.runnerMaxBonusPen || 0);
-                                    }
-                                }
-                            }
+                            if (unit.combat.isRunner) this.addRunnerStacks(unit);
                             
                             unit.cooldown = 6;
                             moved = true;
@@ -952,12 +1112,15 @@ export class BattleEngine {
             });
             this.tick++;
         }
-        // 타임오버: 양쪽 모두 생존 → 무승부
+        // 마지막 tick의 행동 결과를 한 번 더 판정한 뒤 양쪽 생존일 때만 시간 종료로 처리한다.
         if (!this.logs.some(l => l.type === 'end')) {
-            const survivingEnemies = activeUnits.filter(u => u.team === 'enemy' && u.currHp > 0).length;
-            const survivingPlayers = activeUnits.filter(u => u.team === 'player' && u.currHp > 0).length;
-            this.logs.push({ tick: this.tick, type: 'end', winner: 'draw', survivingEnemies, survivingPlayers });
+            const winner = getBattleWinner(
+                activeUnits.some(unit => unit.team === 'player' && unit.currHp > 0),
+                activeUnits.some(unit => unit.team === 'enemy' && unit.currHp > 0)
+            );
+            finishBattle(winner || 'draw', winner ? (winner === 'draw' ? 'simultaneous-draw' : 'decisive') : 'max-time');
         }
+        enrichBattleLogs(this.logs, initialLogUnits);
         return this.logs;
     }
 
@@ -973,15 +1136,25 @@ export class BattleEngine {
             let existingIdx = target.buffs.findIndex(b => b.type === type && b.stat === stat);
             if (existingIdx !== -1) {
                 let existing = target.buffs[existingIdx];
+                const addedDuration = Math.max(0, duration - existing.duration);
                 if (Math.abs(val) > Math.abs(existing.val) || (val === 0 && existing.val === 0)) {
+                    if (REVERSIBLE_BUFF_STATS.has(stat) && target.stats[stat] !== undefined) {
+                        target.stats[stat] += val - existing.val;
+                    }
                     target.buffs[existingIdx] = { type, stat, val, duration, sourceIdx };
                 } else if (Math.abs(val) === Math.abs(existing.val)) {
                     existing.duration = Math.max(existing.duration, duration);
+                }
+                if (CROWD_CONTROL_TYPES.has(type) && addedDuration > 0) {
+                    this.logs.push({ tick: this.tick, type: 'cc', source: sourceIdx, target: target.gridIndex, ccType: type, duration: addedDuration });
                 }
                 return; // 이미 존재하는 버프를 갱신/무시했으므로 새로 추가하지 않고 종료
             }
         }
         target.buffs.push({ type, stat, val, duration, sourceIdx });
+        if (CROWD_CONTROL_TYPES.has(type) && duration > 0) {
+            this.logs.push({ tick: this.tick, type: 'cc', source: sourceIdx, target: target.gridIndex, ccType: type, duration });
+        }
         // 즉시 스탯 적용
         if (stat === 'hp') {
             if (val > 0) val *= this.healEfficiency; // 연장전 힐 효율
@@ -997,29 +1170,12 @@ export class BattleEngine {
                 });
             }
 
-            // [p12] 과잉 진료 (보건부 유닛이 치유 시 초과된 회복량의 1.5배 광역 고정 피해)
-            const overheal = val - healed;
-            if (overheal > 0 && this.playerAugments.includes('p12') && sourceIdx !== undefined) {
-                const sourceUnit = this.board[sourceIdx];
-                if (sourceUnit && sourceUnit.team === 'player' && sourceUnit.club === '보건부') {
-                    const dmg = overheal * 1.5;
-                    const enemies = this.board.filter(u => u !== null && u.team === 'enemy' && u.currHp > 0);
-                    enemies.forEach(e => {
-                        if (this.getDist(target.gridIndex, e.gridIndex) <= 2) {
-                            e.currHp -= dmg;
-                            this.logs.push({
-                                tick: this.tick, type: 'damage', target: e.gridIndex, source: sourceIdx,
-                                dmg: Math.round(dmg), dmgType: 'true', isCrit: false, fxType: 'aug_heal_bomb',
-                                currHp: e.currHp, maxHp: e.stats.maxHp, currShield: e.currShield
-                            });
-                            // 여기서 handleDeath를 바로 부르기엔 구조상 activeUnits 필요하므로 간략화
-                            if (e.currHp <= 0) e.isDead = true; 
-                        }
-                    });
-                }
-            }
         }
-        else if (stat === 'shield') target.currShield += val * this.shieldEfficiency; // 연장전 쉴드 효율
+        else if (stat === 'shield') {
+            const amount = val * this.shieldEfficiency;
+            target.currShield += amount;
+            this.logs.push({ tick: this.tick, type: 'shield', source: sourceIdx, target: target.gridIndex, amount: Math.round(amount), currShield: target.currShield });
+        }
         else if (stat && target.stats[stat] !== undefined) {
             target.stats[stat] += val; // ad, ap, as, armor, mr, range 등 즉시 반영
         }
@@ -1039,9 +1195,10 @@ export class BattleEngine {
         
         if (attacker && attacker.combat && attacker.combat.executionPct && target.currHp > 0 && target.team !== attacker.team) {
             if (ratio <= attacker.combat.executionPct) {
+                const executionDamage = target.currHp;
                 target.currHp = 0;
                 this.logs.push({ tick: this.tick, type: 'vfx', fxType: 'aug_heal_bomb', target: target.gridIndex });
-                this.logs.push({ tick: this.tick, type: 'damage', target: target.gridIndex, source: attacker.gridIndex, dmg: 9999, dmgType: 'true', isCrit: false, currHp: 0, maxHp: maxHp, currShield: 0 });
+                this.logs.push({ tick: this.tick, type: 'damage', target: target.gridIndex, source: attacker.gridIndex, dmg: Math.round(executionDamage), dmgType: 'true', isCrit: false, isExecute: true, currHp: 0, maxHp: maxHp, currShield: 0 });
             }
         }
 
@@ -1082,8 +1239,10 @@ export class BattleEngine {
         if (target.currHp > 0 || target.isDead) return;
 
         // [창체 2시너지] 심폐소생술 교육: 아군 최초 2명 사망 면역 (1HP 생존 + 2초 무적 + 30% 회복)
-        if (target.team === 'player' && this.playerCprCharges > 0) {
-            this.playerCprCharges--;
+        const cprCharges = target.team === 'player' ? this.playerCprCharges : this.enemyCprCharges;
+        if (cprCharges > 0) {
+            if (target.team === 'player') this.playerCprCharges--;
+            else this.enemyCprCharges--;
             target.currHp = 1;
             target.isDead = false;
             // 2초(20틱) 무적 (타겟팅 불가)
@@ -1137,8 +1296,8 @@ export class BattleEngine {
 
             // 본인 방어력/마저 버프
             if (reviveSelfDefBuff > 0) {
-                this.addBuff(target, 'buff', 'armor', Math.round(target.stats.armor * reviveSelfDefBuff), 50);
-                this.addBuff(target, 'buff', 'mr', Math.round(target.stats.mr * reviveSelfDefBuff), 50);
+                this.addBuff(target, 'buff', 'armor', Math.round(this.getUnbuffedStat(target, 'armor') * reviveSelfDefBuff), 50);
+                this.addBuff(target, 'buff', 'mr', Math.round(this.getUnbuffedStat(target, 'mr') * reviveSelfDefBuff), 50);
             }
 
             // 부활 시 주변 적 기절
@@ -1219,6 +1378,8 @@ export class BattleEngine {
                 }
                 if (spawnIdx !== -1) {
                     const dog = {
+                        id: 'zzrot-dog', instanceId: `${target.instanceId || target.gridIndex}:zzrot:${this.tick}:${c}`,
+                        ownerInstanceId: target.instanceId || null,
                         name: '차원문 강아지', icon: '🐶', team: target.team, tier: 1, star: 3, gridIndex: spawnIdx, currHp: 1000, currMana: 0,
                         isZzrotDog: true,
                         stats: { maxHp: 1000, hp: 1000, ad: 50, ap: 0, armor: 30, mr: 30, as: 0.65, range: 1, maxMana: 0, mana: 0 },

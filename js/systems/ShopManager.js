@@ -1,5 +1,6 @@
 import { UNIT_POOL, EXP_TABLE } from '../data.js';
 import { SHOP_PROBABILITIES } from '../core/constants.js';
+import { createUnitInstance } from '../battle/combatPreparation.js';
 
 export class ShopManager {
     constructor(gameApp) {
@@ -23,7 +24,7 @@ export class ShopManager {
                 this.app.state.exp -= req;
                 this.app.state.level++;
                 if (this.app.state.level === 7 && this.app.state.globalBuffs && this.app.state.globalBuffs.cramming) {
-                    this.app.state.gold += 40;
+                    this.app.state.gold += this.app.state.globalBuffs.crammingGold ?? 40;
                     this.app.state.globalBuffs.cramming = false;
                 }
             } else {
@@ -48,7 +49,10 @@ export class ShopManager {
     refreshShop(isFree = false) {
         const cost = (this.app.state.globalBuffs && this.app.state.globalBuffs.rerollDiscountEndWorld >= this.app.state.stage[0]) ? 1 : 2;
         if (!isFree) {
-            if (this.app.state.freeRerolls > 0) {
+            if (this.app.state.roundFreeRerolls > 0) {
+                this.app.state.roundFreeRerolls--;
+                isFree = true;
+            } else if (this.app.state.freeRerolls > 0) {
                 this.app.state.freeRerolls--;
                 isFree = true;
             } else if (this.app.state.gold >= cost) {
@@ -112,6 +116,22 @@ export class ShopManager {
 
         this.app.updateHeader();
         this.renderShop();
+    }
+
+    buyUnit(index) {
+        const unit = this.app.state.shop[index];
+        const benchIndex = this.app.state.bench.findIndex(candidate => candidate === null);
+        if (!unit || benchIndex === -1 || this.app.state.gold < unit.tier) return false;
+
+        this.app.state.gold -= unit.tier;
+        this.app.state.shop[index] = null;
+        const purchased = createUnitInstance(unit, { teamRole: 'player' });
+        this.app.state.bench[benchIndex] = purchased;
+        this.app.updateHeader();
+        this.app.renderUnits();
+        this.app.soundManager.playSFX('shop_buy');
+        this.app.checkForUpgrade(purchased.id);
+        return true;
     }
 
     renderShop() {
@@ -180,32 +200,10 @@ export class ShopManager {
             };
 
             card.onclick = () => {
-                if (!this.app.state.shop[i]) return;
-
-                const emptyIdx = this.app.state.bench.findIndex(u => u === null);
-                if (emptyIdx === -1) {
-                    console.log("대기석이 꽉 찼습니다.");
-                    return;
-                }
-
-                if (this.app.state.gold >= randomUnit.tier) {
-                    this.app.state.gold -= randomUnit.tier;
-                    this.app.state.shop[i] = null;
+                if (this.buyUnit(i)) {
                     card.style.visibility = 'hidden';
-
-                    const newUnit = JSON.parse(JSON.stringify(randomUnit));
-                    newUnit.star = 1;
-                    newUnit.items = [];
-
-                    this.app.state.bench[emptyIdx] = newUnit;
-                    this.app.updateHeader();
-                    this.app.renderUnits();
-                    console.log(`${randomUnit.name} 구매함 (대기석 ${emptyIdx}번)`);
-
-                    this.app.soundManager.playSFX('shop_buy');
-                    this.app.checkForUpgrade(newUnit.id);
                 } else {
-                    console.log("골드가 부족합니다.");
+                    console.log("구매할 수 없습니다. 골드 또는 대기석을 확인하세요.");
                 }
             };
             shopEl.appendChild(card);

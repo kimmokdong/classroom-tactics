@@ -23,6 +23,7 @@
                     <option value="theme-wood">🎨 나무 책상</option>
                     <option value="theme-floor">🎨 교실 마루</option>
                 </select>
+                <button id="btn-save-game" class="stat btn" style="background:#16a085; border:1px solid #117864; cursor:pointer; white-space:nowrap;">💾 저장</button>
                 <button id="btn-toggle-sound" class="stat btn" style="background:#2ecc71; border:1px solid #27ae60; color: white; cursor:pointer; font-weight: bold; width: 38px; height: 38px; border-radius: 12px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; padding: 0; white-space: nowrap; transition: background 0.2s;" title="사운드 켜기/끄기">🔊</button>
             </div>
             <div class="hud-center" style="display: flex; flex-direction: row; align-items: center; gap: 15px;">
@@ -35,7 +36,7 @@
                 <div id="stage-timeline" style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
                     <!-- 렌더링될 라운드 아이콘들 -->
                 </div>
-                <div id="enemy-info" class="enemy-info"></div>
+            <div id="enemy-info" class="enemy-info" aria-live="polite"></div>
             </div>
             <div class="hud-right">
                 <!-- 기존의 HP 표시는 하단으로 이동됨 -->
@@ -168,7 +169,7 @@
     <div id="tooltip" class="glass-tooltip" style="display: none; position: absolute; z-index: 9999; pointer-events: none;"></div>
     
     <!-- Result Modal -->
-    <div id="result-modal" class="modal-overlay" style="display: none; z-index: 4000;">
+    <div id="result-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" style="display: none; z-index: 4000;">
         <div class="modal-content" style="max-width: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); text-align: center; border: 2px solid rgba(255,255,255,0.8); border-radius: 16px; padding: 30px;">
             <div id="result-icon" style="font-size: 5rem; margin-bottom: 15px; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">🏆</div>
             <h2 id="result-title" style="margin-bottom: 15px; font-size: 2rem; font-weight: 800;">전투 결과</h2>
@@ -178,7 +179,7 @@
     </div>
 
     <!-- Augment Selection Modal -->
-    <div id="augment-modal" class="modal-overlay" style="display: none; z-index: 3000;">
+    <div id="augment-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="augment-title" style="display: none; z-index: 3000;">
         <div class="modal-content" style="max-width: 900px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.5);">
             <div class="modal-header" style="justify-content: center; border-bottom: none;">
                 <h2 id="augment-title" style="color: #2c3e50; font-size: 2rem;">생기부 특기사항 기록</h2>
@@ -191,10 +192,10 @@
     </div>
     
     <!-- Unit Dictionary Modal -->
-    <div id="dict-modal" class="modal-overlay" style="display: none; z-index: 5000;">
+    <div id="dict-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dict-title" style="display: none; z-index: 5000;">
         <div class="modal-content" style="max-width: 1000px; width: 90%; height: 80vh;">
             <div class="modal-header">
-                <h2 style="color: #2c3e50;">📖 유닛 도감</h2>
+                <h2 id="dict-title" style="color: #2c3e50;">📖 유닛 도감</h2>
                 <div style="display: flex; gap: 15px; align-items: center;">
                     <div id="dict-cost-filters" style="display: flex; gap: 6px;">
                         <button class="dict-cost-btn" data-cost="0" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #cbd5e1; background: #334155; color: white; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: all 0.2s;">ALL</button>
@@ -216,7 +217,7 @@
     </div>
     
     <!-- Unit Detail Modal (스킬 프리뷰 및 상세 스탯) -->
-    <div id="unit-detail-modal" class="modal-overlay" style="display: none; z-index: 6000;">
+    <div id="unit-detail-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="detail-unit-name" style="display: none; z-index: 6000;">
         <div class="modal-content" style="max-width: 680px; width: 95%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border: 2px solid rgba(255, 255, 255, 0.6); padding: 0; overflow: hidden; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
             <div class="modal-header" style="background: rgba(248, 250, 252, 0.8); border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding: 15px 25px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -274,10 +275,10 @@
     </div>
 
     <!-- Guide Modal (교무수첩) -->
-    <div id="guide-modal" class="modal-overlay" style="display: none; z-index: 5000;">
+    <div id="guide-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="guide-title" style="display: none; z-index: 5000;">
         <div class="modal-content" style="max-width: 1100px; width: 95%; height: 80vh; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border: 2px solid rgba(255,255,255,0.8); padding: 0; overflow: hidden;">
             <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 25px;">
-                <h2 style="color: #2c3e50; font-weight: 800; font-size: 1.8rem; margin: 0;">📖 교무수첩 (게임 가이드)</h2>
+                <h2 id="guide-title" style="color: #2c3e50; font-weight: 800; font-size: 1.8rem; margin: 0;">📖 교무수첩 (게임 가이드)</h2>
                 <button id="btn-close-guide" class="close-btn" style="font-size: 2rem;">&times;</button>
             </div>
             

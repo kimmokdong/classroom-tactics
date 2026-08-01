@@ -97,7 +97,7 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_as_as", name: "로켓 실내화", type: "combined", recipe: ["base_as", "base_as"],
-        stats: { as: 0.20 }, effect: "rfc",
+        stats: { as: 0.40, range: 1 }, effect: "rfc",
         desc: "기본 공격 사거리가 1칸 증가하며 공격 속도가 40% 증가합니다."
     },
     {
@@ -108,7 +108,7 @@ const itemsData = [
     {
         id: "comb_as_mana", name: "정전기 책받침", type: "combined", recipe: ["base_as", "base_mana"],
         stats: { as: 0.10, mana: 15 }, effect: "statikk",
-        desc: "매 3번째 공격마다 다수의 적에게 100의 마법 피해를 입히고 마법 저항력을 30% 감소시킵니다."
+        desc: "매 3번째 공격마다 다수의 적에게 60의 마법 피해를 입히고 마법 저항력을 30% 감소시킵니다."
     },
     {
         id: "comb_as_armor", name: "선도부 완장", type: "combined", recipe: ["base_as", "base_armor"],
@@ -136,7 +136,7 @@ const itemsData = [
     // ==========================================
     {
         id: "comb_ap_ap", name: "교장선생님의 마이크", type: "combined", recipe: ["base_ap", "base_ap"],
-        stats: { ap: 20 }, effect: "rabadon",
+        stats: { ap: 50, apPct: 0.20 }, effect: "rabadon",
         desc: "주문력이 50 증가하며, 최종 주문력이 추가로 20% 증폭됩니다."
     },
     {

@@ -7,7 +7,10 @@ export class EventBus {
         if (!this.listeners[event]) {
             this.listeners[event] = [];
         }
-        this.listeners[event].push(callback);
+        if (!this.listeners[event].includes(callback)) {
+            this.listeners[event].push(callback);
+        }
+        return () => this.off(event, callback);
     }
 
     off(event, callback) {
@@ -17,7 +20,7 @@ export class EventBus {
 
     emit(event, ...args) {
         if (!this.listeners[event]) return;
-        this.listeners[event].forEach(cb => cb(...args));
+        [...this.listeners[event]].forEach(cb => cb(...args));
     }
 }
 

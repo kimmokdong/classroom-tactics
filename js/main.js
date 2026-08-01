@@ -11,7 +11,7 @@ import { ITEMS } from './items.js';
 import { generateEnemyBoard } from './enemyAi.js';
 import { BattleEngine } from './battleEngine.js';
 import { BattleRenderer } from './battleRenderer.js';
-import { eventBus } from './core/EventBus.js';
+import { EventBus } from './core/EventBus.js';
 import { STAT_NAMES_KO, SHOP_PROBABILITIES, formatStat, POOL_SIZES } from './core/constants.js';
 import { createInitialState } from './core/GameState.js';
 import { ShopManager } from './systems/ShopManager.js';
@@ -20,10 +20,14 @@ import { ItemManager } from './systems/ItemManager.js';
 import { AugmentManager } from './systems/AugmentManager.js';
 import { UnitManager } from './systems/UnitManager.js';
 import SoundManager from './systems/SoundManager.js';
+import { SaveManager, SAVE_PHASES } from './systems/SaveManager.js';
 
 class GameApp {
     constructor() {
+        this.eventBus = new EventBus();
         this.state = createInitialState();
+        this.saveManager = new SaveManager(this);
+        this.wasRestored = Boolean(this.saveManager.load());
         this.EXP_TABLE = EXP_TABLE; // ShopManager needs this
         this.ITEMS = ITEMS;         // SynergyManager needs this
         this.AUGMENTS = AUGMENTS;   // AugmentManager needs this
@@ -32,7 +36,7 @@ class GameApp {
         
         // 공용 풀 초기화
         for (let u of UNIT_POOL) {
-            this.state.sharedPool[u.id] = POOL_SIZES[u.tier] || 10;
+            if (!Number.isFinite(this.state.sharedPool[u.id])) this.state.sharedPool[u.id] = POOL_SIZES[u.tier] || 10;
         }
         
         this.soundManager = new SoundManager(this);
@@ -51,19 +55,29 @@ class GameApp {
     }
 
     init() {
-        // 게임 시작 시 무작위 기본 아이템 3개 지급
-        this.giveRandomBaseItem();
-        this.giveRandomBaseItem();
-        this.giveRandomBaseItem();
+        if (!this.wasRestored) {
+            // 새 게임에서만 시작 아이템 지급
+            this.giveRandomBaseItem();
+            this.giveRandomBaseItem();
+            this.giveRandomBaseItem();
+        }
 
-        this.spawnEnemyBoard();
+        if (!this.state.enemyBoard.some(Boolean)) this.spawnEnemyBoard();
         this.renderBoard();
         this.renderUnits();
-        this.refreshShop(true);
+        if (!this.state.shop.some(Boolean)) this.refreshShop(true);
         this.renderShop();
         this.renderInventory();
         this.updateHeader();
         this.bindEvents();
+        this.saveManager.save(this.saveManager.metadata.currentPhase || SAVE_PHASES.NEXT_ROUND_READY);
+        this.saveManager.startAutoSave();
+        if (this.state.hp <= 0) {
+            this.showResultModal('게임 오버', '저장된 게임의 체력이 0입니다. 새 게임을 시작해 주세요.', 'gameover', () => {
+                this.saveManager.clear();
+                location.reload();
+            });
+        }
         
         if (this.soundManager) {
             this.soundManager.playBgmSequence('prep');
@@ -95,6 +109,8 @@ class GameApp {
     hideCustomTooltip() { return this.tooltipManager.hideCustomTooltip(); }
     showResultModal(title, msg, type, onConfirm) { return this.modalManager.showResultModal(title, msg, type, onConfirm); }
 
+    saveGame() { return this.saveManager.save(); }
+
     bindEvents() {
         document.addEventListener('click', () => {
             if (window.isContextMenuOpen) {
@@ -118,6 +134,14 @@ class GameApp {
                 if (enabled) {
                     this.soundManager.playSFX('ui_click');
                 }
+            });
+        }
+
+        const saveBtn = document.getElementById('btn-save-game');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                saveBtn.innerText = this.saveGame() ? '✅ 저장됨' : '⚠️ 저장 실패';
+                setTimeout(() => { saveBtn.innerText = '💾 저장'; }, 1200);
             });
         }
 
@@ -168,7 +192,7 @@ class GameApp {
 
     renderActiveAugments() { return this.augmentManager.renderActiveAugments(); }
 
-    applySynergyStats(originalBoard, activeSynergies, isEnemy = false) { return this.synergyManager.applySynergyStats(originalBoard, activeSynergies, isEnemy); }
+    applySynergyStats(originalBoard, activeSynergies, isEnemy = false, random = Math.random, context = {}) { return this.synergyManager.applySynergyStats(originalBoard, activeSynergies, isEnemy, random, context); }
 
     getSynergyTierAndSteps(count, synData) { return this.synergyManager.getSynergyTierAndSteps(count, synData); }
     getSynergyStyleByRank(rank) { return this.synergyManager.getSynergyStyleByRank(rank); }

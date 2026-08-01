@@ -1,9 +1,27 @@
-import { BattleEngine } from '../battleEngine.js';
+import { BattleEngine, createSeededRandom } from '../battleEngine.js';
 import { BattleRenderer } from '../battleRenderer.js';
-import { UNIT_POOL } from '../data.js';
 import { ITEMS } from '../items.js';
 import { generateEnemyBoard } from '../enemyAi.js';
 import { SYNERGIES } from '../data.js';
+import { AUGMENT_EVENTS } from './AugmentManager.js';
+import { SAVE_PHASES } from './SaveManager.js';
+import { prepareBattle, rollThievesItems } from '../battle/combatPreparation.js';
+
+export function resolveBattleGold(gold) {
+    return gold ?? 50;
+}
+
+export function applyLateGameEnemyModifier(board, world) {
+    if (world < 5) return board;
+    board.forEach(unit => {
+        if (!unit) return;
+        unit.stats.maxHp = Math.round(unit.stats.maxHp * 1.15);
+        unit.stats.hp = Math.round(unit.stats.hp * 1.15);
+        unit.stats.armor += 15;
+        unit.stats.mr += 15;
+    });
+    return board;
+}
 
 export class StageManager {
     constructor(gameApp) {
@@ -22,10 +40,15 @@ export class StageManager {
             const lvl = this.app.getActiveSynergyLevel(count, Object.keys(SYNERGIES.subjects[subj].levels), SYNERGIES.subjects[subj].exactMatch);
             if (lvl > 0) activeTraits.push(`${subj}(${lvl})`);
         }
-        document.getElementById('enemy-info').innerText = activeTraits.length > 0 ? `🚨 적군 시너지: ${activeTraits.join(', ')}` : `🚨 적군 시너지: 없음`;
+        const lobby = this.app.state.opponentLobby;
+        const opponent = lobby?.opponents?.find(candidate => candidate.id === lobby.currentOpponentId);
+        const strategyNames = { reroll: '리롤형', tempo: '템포형', standard: '표준형', fastLevel: '빠른 레벨업형' };
+        const opponentInfo = opponent ? `${opponent.profile.name} · Lv.${opponent.level} ${strategyNames[opponent.profile.strategy]}` : '가상 상대';
+        document.getElementById('enemy-info').innerText = `🚨 ${opponentInfo} | 시너지: ${activeTraits.length > 0 ? activeTraits.join(', ') : '없음'}`;
     }
 
     handleBattleStart() {
+        if (this.app.isBattlePhase) return false;
         const app = this.app;
         let playerUnitsCount = app.state.board.filter(u => u !== null).length;
         const maxCapacity = app.state.level;
@@ -48,6 +71,7 @@ export class StageManager {
             app.updateHeader();
             app.calculateSynergy();
         }
+        app.saveManager?.save(SAVE_PHASES.NEXT_ROUND_READY);
 
         // (증강체 타이밍 검사 로직은 라운드 전환 시점(전투 종료 후)으로 이동됨)
 
@@ -58,6 +82,7 @@ export class StageManager {
 
         this.app.isBattlePhase = true; // 전투 상태 플래그 활성화
         window.isBattlePhase = true; // 글로벌 상태 플래그 동기화(렌더러에서 우선 방어)
+        this.app.eventBus?.emit(AUGMENT_EVENTS.BATTLE_STARTED, { stage: [...this.app.state.stage] });
         
         if (this.app.soundManager) {
             this.app.soundManager.playBgmSequence('battle');
@@ -67,113 +92,23 @@ export class StageManager {
         document.querySelectorAll('.board-cell .unit-character').forEach(u => u.draggable = false);
 
         // 적은 init() 및 다음 라운드에서 이미 state.enemyBoard에 스폰되어 있음
-        const playerSynergies = this.app.getSynergyData(this.app.state.board);
-        const enemySynergies = this.app.getSynergyData(this.app.state.enemyBoard);
-
-        // [기부 천사] 패시브 로직: 전투 시작 시 무작위 아군에게 완성 아이템 부여
-        this.app.state.board.forEach(u => { if (u) u.donationItems = null; });
-        const donationAngels = this.app.state.board.filter(u => u && u.id === 'u5_5');
-        let totalDonations = 0;
-        donationAngels.forEach(angel => {
-            const star = angel.star || 1;
-            totalDonations += (star === 1 ? 1 : star === 2 ? 2 : 5);
+        const battleSeed = `${app.state.runSeed}:${app.state.stage.join('-')}`;
+        const battleRandom = createSeededRandom(battleSeed);
+        const {
+            playerBoard: buffedPlayerBoard,
+            enemyBoard: buffedEnemyBoard,
+            playerSynergies,
+            enemySynergies
+        } = prepareBattle({
+            player: { board: this.app.state.board, teamRole: 'player', applyPlayerOnlyBonuses: true },
+            opponent: { board: this.app.state.enemyBoard, teamRole: 'opponent', applyPlayerOnlyBonuses: false },
+            getSynergies: board => this.app.getSynergyData(board),
+            applySynergyStats: (...args) => this.app.applySynergyStats(...args),
+            random: battleRandom
         });
 
-        if (totalDonations > 0) {
-            const completedItems = ITEMS.filter(i => i.isCombined);
-            let eligibleUnits = this.app.state.board.filter(u => u && (!u.items || u.items.length < 3) && u.id !== 'u5_5');
-            eligibleUnits = eligibleUnits.sort(() => 0.5 - Math.random());
-            let donationsGiven = 0;
-            for (const u of eligibleUnits) {
-                if (donationsGiven >= totalDonations) break;
-                const randomItem = completedItems[Math.floor(Math.random() * completedItems.length)];
-                u.donationItems = u.donationItems || [];
-                u.donationItems.push(randomItem.id);
-                donationsGiven++;
-            }
-            if (donationsGiven > 0) {
-                if (battleLogEl) {
-                    const li = document.createElement('li');
-                    li.style.color = '#e67e22';
-                    li.style.fontSize = '0.85rem';
-                    li.style.borderBottom = '1px dashed #eee';
-                    li.style.paddingBottom = '3px';
-                    li.innerHTML = `🎁 <strong>기부 천사</strong>가 아군 ${donationsGiven}명에게 무작위 완성 아이템을 기부했습니다! (유닛을 클릭해 확인하세요)`;
-                    battleLogEl.appendChild(li);
-                }
-                
-                // 보드판의 미니 아이템 UI 강제 업데이트
-                eligibleUnits.forEach((u) => {
-                    if (u && u.donationItems && u.donationItems.length > 0) {
-                        // 전투 시작 직후 FxSystem 렌더링을 위해 플래그 설정 (엔진에 복사됨)
-                        u.triggerDonationFX = true;
-                        
-                        const boardIdx = this.app.state.board.indexOf(u);
-                        if (boardIdx !== -1) {
-                            const cell = document.querySelectorAll('.board-cell')[boardIdx + 24];
-                            if (cell) {
-                                const uDiv = cell.querySelector('.unit-character');
-                                if (uDiv) {
-                                    // 기존 보드 아이템 컨테이너 지우기
-                                    const oldContainer = uDiv.querySelector('.unit-item-overlay');
-                                    if (oldContainer) oldContainer.remove();
-                                    
-                                    let actualItems = [...(u.items || [])];
-                                    if (u.donationItems) actualItems.push(...u.donationItems);
-                                    
-                                    if (actualItems.length > 0) {
-                                        const itemContainer = document.createElement('div');
-                                        itemContainer.className = 'unit-item-overlay';
-                                        itemContainer.style.position = 'absolute';
-                                        itemContainer.style.top = '-8px';
-                                        itemContainer.style.right = '-8px';
-                                        itemContainer.style.display = 'flex';
-                                        itemContainer.style.gap = '2px';
-                                        
-                                        actualItems.slice(0, 3).forEach(itemId => {
-                                            const itemEl = document.createElement('div');
-                                            const iconStr = this.app.itemManager.getIconForItem(itemId);
-                                            itemEl.innerHTML = iconStr;
-                                            itemEl.style.width = '16px';
-                                            itemEl.style.height = '16px';
-                                            itemEl.style.fontSize = '0.7rem';
-                                            itemEl.style.background = '#fef08a';
-                                            itemEl.style.border = '1px solid #eab308';
-                                            itemEl.style.borderRadius = '3px';
-                                            itemEl.style.display = 'flex';
-                                            itemEl.style.alignItems = 'center';
-                                            itemEl.style.justifyContent = 'center';
-                                            itemContainer.appendChild(itemEl);
-                                        });
-                                        uDiv.appendChild(itemContainer);
-                                    }
-                                    
-                                    // 현재 상세 정보창을 보고 있는 유닛이면 상세 정보창도 리렌더링
-                                    if (uDiv.dataset.viewing === 'true') {
-                                        this.app.showUnitInfo(u, uDiv);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        const buffedPlayerBoard = this.app.applySynergyStats(this.app.state.board, playerSynergies, false);
-        const buffedEnemyBoard = this.app.applySynergyStats(this.app.state.enemyBoard, enemySynergies, true);
-
-        // 극후반 아이템 격차 보정 (적 스탯 버프)
-        if (app.state.stage[0] >= 5) {
-            buffedEnemyBoard.forEach(u => {
-                if (u) {
-                    u.stats.maxHp = Math.round(u.stats.maxHp * 1.15);
-                    u.stats.hp = Math.round(u.stats.hp * 1.15);
-                    u.stats.armor += 15;
-                    u.stats.mr += 15;
-                }
-            });
-        }
+        // 극후반 아이템 격차 보정은 시너지 준비가 끝난 뒤에만 적용한다.
+        applyLateGameEnemyModifier(buffedEnemyBoard, app.state.stage[0]);
 
         // --- 학사일정(증강체) 전투 시작 연출 ---
         const g = app.state.globalBuffs;
@@ -185,7 +120,7 @@ export class StageManager {
                 li.style.fontSize = '0.9rem';
                 li.style.borderBottom = '1px dashed #eee';
                 li.style.paddingBottom = '4px';
-                li.innerHTML = `🌟 <strong style="color:#d32f2f;">[선도부의 위압감]</strong> 적 전체 최대 체력 15% 감소!`;
+                li.innerHTML = `🌟 <strong style="color:#d32f2f;">[선도부의 위압감]</strong> 적 전체 최대 체력 ${Math.round(g.enforcerAura * 100)}% 감소!`;
                 if (battleLogEl) battleLogEl.appendChild(li);
 
                 // 적 전체 흑백/보라색 번개 이펙트
@@ -237,7 +172,7 @@ export class StageManager {
         // 2. 엔진 계산 (백그라운드 틱 시뮬레이션)
         const preBattlePlayerBoard = JSON.parse(JSON.stringify(buffedPlayerBoard));
         const playerAugments = this.app.state.augments.map(a => a.id);
-        const engine = new BattleEngine(buffedPlayerBoard, buffedEnemyBoard, playerAugments, this.app.state.gold || 50);
+        const engine = new BattleEngine(buffedPlayerBoard, buffedEnemyBoard, playerAugments, resolveBattleGold(this.app.state.gold), battleSeed);
         app.engine = engine; // 실시간 정보 조회용 참조 저장
         const logs = engine.run();
 
@@ -245,38 +180,14 @@ export class StageManager {
         const fxCanvas = document.getElementById('fx-canvas');
         const renderer = new BattleRenderer(logs, document.getElementById('battle-board'), fxCanvas);
         this.app.renderer = renderer; // 통계창에서 접근할 수 있도록 저장
-        
-        // 전투 시작 전 셋업(패시브) 이펙트 트리거 (기부천사)
-        setTimeout(() => {
-            const canvasEl = document.getElementById('fx-canvas');
-            if (!canvasEl) return;
-            
-            this.app.state.board.forEach((u, i) => {
-                if (u && u.triggerDonationFX) {
-                    u.triggerDonationFX = false;
-                    // 본 게임의 board-cell은 0~23이 대기석, 24~47이 아군 필드입니다.
-                    const cell = document.querySelectorAll('.board-cell')[i + 24];
-                    if (cell) {
-                        const uDiv = cell.querySelector('.unit-character');
-                        if (uDiv) {
-                            const cRect = uDiv.getBoundingClientRect();
-                            const bRect = canvasEl.getBoundingClientRect();
-                            const cx = cRect.left - bRect.left + cRect.width / 2;
-                            const cy = cRect.top - bRect.top + cRect.height / 2;
-                            
-                            renderer.spawnFx('donation_item_projectile', cx, cy - 150, { 
-                                tx: cx, 
-                                ty: cy, 
-                                icon: 'gift' 
-                            });
-                        }
-                    }
-                }
-            });
-        }, 150); // 렌더러와 DOM이 완벽히 자리잡을 때까지 약간 더 여유 확보
+        const battleTransactionId = `battle:${app.state.runId}:${app.state.stage.join('-')}`;
         
         renderer.play((winner, endLog) => {
             const st = this.app.state;
+            if (this.app.saveManager && !this.app.saveManager.beginTransaction(battleTransactionId)) return;
+            this.app.eventBus?.emit(AUGMENT_EVENTS.BATTLE_ENDED, { winner, endLog, stage: [...st.stage] });
+            const completedRound = (st.stage[0] - 1) * 5 + st.stage[1];
+            st.recentBattleResults = [...(st.recentBattleResults || []), { round: completedRound, result: winner }].slice(-8);
 
             // [패치] 승리 시 즉시 +1 골드 지급 (이자 계산에 포함하기 위함)
             let winBonus = 0;
@@ -335,11 +246,6 @@ export class StageManager {
                 let totalGold = baseGold + interest + streakBonus; // 승리 +1골드는 이미 지급됨
                 if (st.honorStudent) { totalGold += 1; this.app.addExp(1); }
                 if (st.snackShop) { totalGold += 1; }
-                if (st.lostAndFound && Math.random() < 0.3) {
-                    const pool = UNIT_POOL.filter(u => u.tier === 1);
-                    this.app.addToBench({ ...pool[Math.floor(Math.random() * pool.length)] });
-                }
-
                 st.gold += totalGold;
                 title = '승리!';
                 
@@ -385,7 +291,10 @@ export class StageManager {
                         title = '게임 오버';
                         type = 'gameover';
                         msg = `<span style="color:#d63031; font-weight:800; font-size:1.3rem;">💀 체력이 0이 되었습니다.</span>`;
-                        onConfirm = () => location.reload();
+                        onConfirm = () => {
+                            this.app.saveManager?.clear();
+                            location.reload();
+                        };
                     } else {
                         title = '패배...';
                         type = 'loss';
@@ -433,7 +342,10 @@ export class StageManager {
 
             this.app.showResultModal(title, msg, type, onConfirm);
 
-            if (type === 'gameover') return;
+            if (type === 'gameover') {
+                this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
+                return;
+            }
 
             // 기본 경험치 +2 자동 지급
             this.app.addExp(2);
@@ -444,15 +356,12 @@ export class StageManager {
                 this.app.state.stage[0]++;
                 this.app.state.stage[1] = 1;
             }
+            this.app.eventBus?.emit(AUGMENT_EVENTS.ROUND_STARTED, { stage: [...this.app.state.stage] });
 
             // 전투 종료 시 도적의 장갑 아이템 리롤
             this.app.state.board.forEach(u => {
                 if (u && u.items && u.items.includes('comb_crit_crit')) {
-                    const combinedItems = ITEMS.filter(i => i.type === 'combined' && i.id !== 'comb_crit_crit');
-                    u.thievesItems = [
-                        combinedItems[Math.floor(Math.random() * combinedItems.length)].id,
-                        combinedItems[Math.floor(Math.random() * combinedItems.length)].id
-                    ];
+                    u.thievesItems = rollThievesItems(battleRandom, ITEMS);
                 }
             });
 
@@ -533,6 +442,7 @@ export class StageManager {
             if (st.stage[1] === 3) {
                 this.app.showStoreTimeSelection();
             }
+            this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.NEXT_ROUND_READY);
         });
     }
 }

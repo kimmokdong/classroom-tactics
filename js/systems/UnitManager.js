@@ -1,4 +1,5 @@
 import { formatStat } from '../core/constants.js';
+import { createUnitInstance, promoteUnitToStar } from '../battle/combatPreparation.js';
 
 export class UnitManager {
     constructor(gameApp) {
@@ -137,6 +138,7 @@ export class UnitManager {
 
         // 대기석 유닛만 판매
         this.app.state.bench[sourceIdx] = null;
+        this.flushPendingUnitRewards();
         this.app.soundManager.playSFX('shop_sell');
 
         // 환불 로직: 유닛 티어만큼 골드 환불 + 장착 아이템 모두 반환
@@ -190,6 +192,7 @@ export class UnitManager {
         const temp = targetArr[adjustedTargetIdx];
         targetArr[adjustedTargetIdx] = sourceArr[sourceIdx];
         sourceArr[sourceIdx] = temp;
+        this.flushPendingUnitRewards();
 
         this.renderUnits();
         this.app.calculateSynergy();
@@ -203,14 +206,14 @@ export class UnitManager {
 
     checkForUpgrade(unitId) {
         // 1성과 2성에 대해 3마리 모였는지 순차적 체크 (연쇄 진화 대비)
-        [1, 2].forEach(starLevel => {
+        [1, 2].forEach(currentStar => {
             let foundSlots = [];
 
             this.app.state.board.forEach((u, i) => {
-                if (u && u.id === unitId && (u.star || 1) === starLevel) foundSlots.push({ type: 'board', index: i, unit: u });
+                if (u && u.id === unitId && (u.star || 1) === currentStar) foundSlots.push({ type: 'board', index: i, unit: u });
             });
             this.app.state.bench.forEach((u, i) => {
-                if (u && u.id === unitId && (u.star || 1) === starLevel) foundSlots.push({ type: 'bench', index: i, unit: u });
+                if (u && u.id === unitId && (u.star || 1) === currentStar) foundSlots.push({ type: 'bench', index: i, unit: u });
             });
 
             if (foundSlots.length >= 3) {
@@ -223,8 +226,7 @@ export class UnitManager {
                 });
 
                 // 새 업그레이드 유닛 생성 (첫 번째 유닛 스탯 기준)
-                const newUnit = JSON.parse(JSON.stringify(toMerge[0].unit));
-                newUnit.star = starLevel + 1;
+                const newUnit = promoteUnitToStar(toMerge[0].unit, currentStar + 1);
                 // 영구 성장치 합산 (3마리의 permGrowth 모두 합침)
                 const summedPermGrowth = { ad: 0, as: 0, ap: 0, hp: 0 };
                 toMerge.forEach(slot => {
@@ -235,11 +237,6 @@ export class UnitManager {
                         summedPermGrowth.hp += slot.unit.permGrowth.hp || 0;
                     }
                 });
-                // 순수 기본 스탯에만 별 배율 적용 (permGrowth 제외)
-                newUnit.stats.hp = Math.round(newUnit.stats.hp * 1.8);
-                newUnit.stats.ad = Math.round(newUnit.stats.ad * 1.5);
-                // AP는 진화 시 오르지 않음 (스킬 고유 계수로만 성장)
-
                 newUnit.permGrowth = summedPermGrowth;
                 newUnit.justUpgraded = true;
 
@@ -262,18 +259,37 @@ export class UnitManager {
             }
         });
 
+        this.flushPendingUnitRewards();
         this.renderUnits();
         this.app.calculateSynergy();
     }
 
     addToBench(unit) {
+        const created = createUnitInstance(unit, {
+            itemIds: unit.items || [],
+            teamRole: 'player'
+        });
         const emptyIdx = this.app.state.bench.findIndex(u => u === null);
         if (emptyIdx !== -1) {
-            unit.star = 1;
-            unit.stats.maxHp = unit.stats.hp;
-            unit.items = unit.items || [];
-            this.app.state.bench[emptyIdx] = unit;
+            this.app.state.bench[emptyIdx] = created;
             this.renderUnits();
+            return true;
+        }
+        this.app.state.pendingRewards.push({ type: 'unit', unit: created });
+        return false;
+    }
+
+    flushPendingUnitRewards() {
+        const pending = this.app.state.pendingRewards || [];
+        while (true) {
+            const rewardIndex = pending.findIndex(reward => reward.type === 'unit');
+            const benchIndex = this.app.state.bench.findIndex(unit => unit === null);
+            if (rewardIndex === -1 || benchIndex === -1) break;
+            const [reward] = pending.splice(rewardIndex, 1);
+            reward.unit.star = reward.unit.star || 1;
+            reward.unit.stats.maxHp = reward.unit.stats.hp;
+            reward.unit.items = reward.unit.items || [];
+            this.app.state.bench[benchIndex] = reward.unit;
         }
     }
 

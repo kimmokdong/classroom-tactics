@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "metrics": {
+    "scoreRate": {
+      "targetMin": 0.45,
+      "targetMax": 0.55,
+      "warningMin": 0.4,
+      "warningMax": 0.6
+    },
+    "simultaneousDrawRate": {
+      "max": 0.05
+    },
+    "maxTimeRate": {
+      "max": 0.05
+    },
+    "failureRate": {
+      "max": 0
+    }
+  }
+}
