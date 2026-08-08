@@ -251,32 +251,26 @@ class GameApp {
                 previewer.stop();
             }
         });
-        const demoDescriptions = {
-            collection: '01 · 과목 10종과 동아리 7종 전체 카드 사이에서 세 스킬 전투 재생',
-            battle: '02 · 전체 시너지 카드 구성에서 세 스킬 프리뷰를 더 선명하게 강조',
-            command: '03 · 실제 인게임 화면으로 미리 보는 작전 교실'
-        };
-        const demoButtons = document.querySelectorAll('[data-title-demo]');
-        demoButtons.forEach(button => button.addEventListener('click', () => {
-            const scene = button.dataset.titleDemo;
+        const titleScenes = ['collection', 'battle', 'command'];
+        let titleSceneIndex = Math.max(0, titleScenes.indexOf(titleScreen?.dataset.scene));
+        const setTitleScene = scene => {
             if (titleScreen) titleScreen.dataset.scene = scene;
             document.body.dataset.titleScene = scene;
-            demoButtons.forEach(candidate => {
-                const active = candidate === button;
-                candidate.classList.toggle('active', active);
-                candidate.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
             syncTitlePreviews(scene);
-            multiButton?.classList.remove('is-notice');
-            if (titleStatus) titleStatus.textContent = demoDescriptions[scene];
-        }));
-        syncTitlePreviews(titleScreen?.dataset.scene);
+        };
+        const rotateTitleScene = () => {
+            titleSceneIndex = (titleSceneIndex + 1) % titleScenes.length;
+            setTitleScene(titleScenes[titleSceneIndex]);
+        };
+        setTitleScene(titleScenes[titleSceneIndex]);
+        const titleSceneTimer = setInterval(rotateTitleScene, 5000);
         if (this.wasRestored) {
             const caption = document.getElementById('title-single-caption');
             if (caption) caption.textContent = '저장된 교실에서 이어하기';
         }
         const enterGame = () => {
             if (titleScreen?.classList.contains('is-leaving')) return;
+            clearInterval(titleSceneTimer);
             singleButton.disabled = true;
             if (multiButton) multiButton.disabled = true;
             titlePreviews.forEach(({ previewer }) => previewer.stop());

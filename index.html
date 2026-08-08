@@ -9,12 +9,6 @@
   </head>
   <body class="title-screen-open" data-title-scene="collection">
     <section id="title-screen" class="title-screen" data-scene="collection" role="dialog" aria-modal="true" aria-labelledby="game-title">
-        <nav class="title-demo-switcher" aria-label="시작 화면 데모 선택">
-            <span>START SCREEN DEMO</span>
-            <button class="active" data-title-demo="collection" type="button" aria-pressed="true"><b>01</b> 카드 중심</button>
-            <button data-title-demo="battle" type="button" aria-pressed="false"><b>02</b> 전투 중심</button>
-            <button data-title-demo="command" type="button" aria-pressed="false"><b>03</b> 작전 교실</button>
-        </nav>
         <div class="title-screen__spotlight" aria-hidden="true"></div>
         <div class="title-screen__grid" aria-hidden="true"></div>
         <div class="title-scene title-screen__cards" aria-hidden="true">
@@ -53,7 +47,10 @@
         </div>
 
         <div class="title-scene title-command-demo" aria-hidden="true">
+            <img class="title-command-demo__image" src="/images/title-command-gameplay.jpg" alt="">
             <span class="title-command-note title-command-note--left">시너지 패널</span>
+            <span class="title-command-note title-command-note--augment">생기부 특기사항</span>
+            <span class="title-command-note title-command-note--inventory">아이템 인벤토리</span>
             <span class="title-command-note title-command-note--board">6 × 8 실전 보드</span>
             <span class="title-command-note title-command-note--right">유닛 정보 · 전투 로그</span>
             <span class="title-command-note title-command-note--shop">대기석 · 상점 · 전투 시작</span>
