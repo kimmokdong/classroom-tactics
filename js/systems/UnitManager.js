@@ -50,6 +50,9 @@ export class UnitManager {
         const uDiv = document.createElement('div');
         uDiv.className = `unit-character tier-${unit.tier} star-${unit.star || 1}`;
         uDiv.draggable = true;
+        uDiv.tabIndex = 0;
+        uDiv.setAttribute('role', 'button');
+        uDiv.setAttribute('aria-label', `${unit.name} 선택`);
 
         if (unit.justUpgraded) {
             uDiv.classList.add('star-up-anim');
@@ -106,7 +109,33 @@ export class UnitManager {
 
         uDiv.onclick = (e) => {
             e.stopPropagation();
+            const isEnemy = unit.isEnemy || unit.team === 'enemy' || unit.teamRole === 'opponent';
+            if (!isEnemy && !window.isBattlePhase && this.app.selectedInventoryItem !== null) {
+                if (this.app.giveItemToUnit(this.app.selectedInventoryItem, unit)) {
+                    this.app.clearInteractionSelection();
+                }
+                return;
+            }
+
+            if (!isEnemy && !window.isBattlePhase) {
+                const selected = this.app.selectedUnit;
+                if (selected && (selected.type !== type || selected.index !== idx)) {
+                    const targetIdx = type === 'board' ? idx + 24 : idx;
+                    if (this.moveUnit(selected.type, selected.index, type, targetIdx)) {
+                        this.app.clearInteractionSelection();
+                        this.app.updateOnboarding?.();
+                    }
+                    return;
+                }
+                this.app.selectUnit(type, idx, uDiv);
+            }
             this.showUnitInfo(unit, uDiv);
+        };
+        uDiv.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                uDiv.click();
+            }
         };
 
         // 우클릭 판매 기능
@@ -118,8 +147,13 @@ export class UnitManager {
         return uDiv;
     }
 
+    getSellRefund(unit) {
+        const copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
+        return unit.tier * copies - (unit.star >= 2 && unit.tier > 1 ? 1 : 0);
+    }
+
     sellUnit(sourceType, sourceIdx, unit) {
-        if (window.isBattlePhase && sourceType === 'board') return;
+        if (window.isBattlePhase && sourceType === 'board') return false;
 
         if (sourceType === 'board') {
             // 보드에 있는 유닛은 판매되지 않고 대기석으로 이동
@@ -130,10 +164,14 @@ export class UnitManager {
                 this.renderUnits();
                 this.app.calculateSynergy();
                 this.app.soundManager.playSFX('unit_drop');
+                this.app.clearInteractionSelection?.();
+                this.app.showFeedback?.(`${unit.name}을(를) 대기석으로 이동했습니다.`, 'success');
+                this.app.updateOnboarding?.();
             } else {
-                alert("대기석이 가득 찼습니다! (먼저 대기석 유닛을 판매하세요)");
+                this.app.showFeedback?.('대기석이 가득 찼습니다. 먼저 대기석 유닛을 판매하세요.', 'warning');
+                return false;
             }
-            return;
+            return true;
         }
 
         // 대기석 유닛만 판매
@@ -143,11 +181,8 @@ export class UnitManager {
 
         // 환불 로직: 유닛 티어만큼 골드 환불 + 장착 아이템 모두 반환
         // [패치] 2성/3성 판매 시 합체 가격에서 1골드 페널티
-        let copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
-        let refundGold = unit.tier * copies;
-        if (unit.star >= 2 && unit.tier > 1) {
-            refundGold -= 1;
-        }
+        const copies = unit.star === 3 ? 9 : (unit.star === 2 ? 3 : 1);
+        const refundGold = this.getSellRefund(unit);
         this.app.state.gold += refundGold; 
         this.app.state.sharedPool[unit.id] = (this.app.state.sharedPool[unit.id] || 0) + copies;
 
@@ -160,16 +195,19 @@ export class UnitManager {
         this.app.updateHeader();
         this.renderUnits();
         this.app.calculateSynergy();
-        console.log(`${unit.name} 판매 완료 (+${unit.tier}G), 아이템 환불됨`);
+        this.app.clearInteractionSelection?.();
+        this.app.showFeedback?.(`${unit.name} 판매 완료 (+${refundGold}G)`, 'success');
+        console.log(`${unit.name} 판매 완료 (+${refundGold}G), 아이템 환불됨`);
+        return true;
     }
 
     moveUnit(sourceType, sourceIdx, targetType, targetIdx) {
-        if (isNaN(sourceIdx) || isNaN(targetIdx)) return;
-        if (sourceType === targetType && sourceIdx === targetIdx) return;
+        if (isNaN(sourceIdx) || isNaN(targetIdx)) return false;
+        if (sourceType === targetType && sourceIdx === targetIdx) return false;
 
         if (targetType === 'board' && targetIdx < 24) {
-            console.log("적 영역에는 유닛을 배치할 수 없습니다.");
-            return;
+            this.app.showFeedback?.('적 영역에는 유닛을 배치할 수 없습니다.', 'warning');
+            return false;
         }
 
         const sourceArr = sourceType === 'board' ? this.app.state.board : this.app.state.bench;
@@ -182,8 +220,8 @@ export class UnitManager {
             if (!targetArr[adjustedTargetIdx]) {
                 const currentBoardCount = this.app.state.board.filter(u => u !== null).length;
                 if (currentBoardCount >= this.app.state.level) {
-                    alert(`현재 레벨(${this.app.state.level})이 낮아 더 이상 배치할 수 없습니다. 경험치를 구매하세요!`);
-                    return;
+                    this.app.showFeedback?.(`현재 레벨 ${this.app.state.level}에서는 더 배치할 수 없습니다.`, 'warning');
+                    return false;
                 }
             }
         }
@@ -198,10 +236,13 @@ export class UnitManager {
         this.app.calculateSynergy();
         this.app.updateHeader();
         this.app.soundManager.playSFX('unit_drop'); // 배치수 UI 업데이트
+        this.app.clearInteractionSelection?.();
 
         // 이동 시 혹시 모를 진화(대기석과 보드 분리 상태에서의 스왑 등) 체크
         if (sourceArr[sourceIdx]) this.checkForUpgrade(sourceArr[sourceIdx].id);
         if (targetArr[adjustedTargetIdx]) this.checkForUpgrade(targetArr[adjustedTargetIdx].id);
+        this.app.updateOnboarding?.();
+        return true;
     }
 
     checkForUpgrade(unitId) {
@@ -330,6 +371,8 @@ export class UnitManager {
             details.push(`${label}: ${formatArr(skill.hpRatio || skill.hpRatioDmg, true, '', COLORS.hp, '❤️')}`);
         }
         if (skill.hpRatioShield) details.push(`보호막: ${formatArr(skill.hpRatioShield, true, '', COLORS.hp, '❤️')}`);
+        if (skill.shieldBasePct) details.push(`기본 보호막: ${formatArr(skill.shieldBasePct, true, '', COLORS.hp, '❤️')}`);
+        if (skill.shieldPerTargetPct) details.push(`적중 대상당 추가 보호막: ${formatArr(skill.shieldPerTargetPct, true, '', COLORS.hp, '❤️')}`);
         if (skill.hpRatioSplash) details.push(`스플래시 피해: ${formatArr(skill.hpRatioSplash, true, '', COLORS.hp, '❤️')}`);
         if (skill.armorRatio) details.push(`감소량/피해량: ${formatArr(skill.armorRatio, true, '', COLORS.armor, '🛡️')}`);
         if (skill.mrRatio) details.push(`회복/보호막: ${formatArr(skill.mrRatio, true, '', COLORS.mr, '🌀')}`);
@@ -357,12 +400,15 @@ export class UnitManager {
         if (skill.shieldFlat || skill.teamShield) details.push(`보호막: ${formatArr(skill.shieldFlat || skill.teamShield, false, '', COLORS.ap, '🔮')}`);
 
         if (skill.stunDuration) details.push(`기절 지속시간: ${formatArr(skill.stunDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
+        if (skill.shieldDuration) details.push(`보호막 지속시간: ${formatArr(skill.shieldDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.tauntDuration) details.push(`도발 지속시간: ${formatArr(skill.tauntDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.afterTauntStun) details.push(`도발 종료 후 기절: ${formatArr(skill.afterTauntStun.map(t => (t * 0.1).toFixed(1)), false, '%', COLORS.ap, '🔮')}`);
         if (skill.buffDuration) details.push(`버프 지속시간: ${formatArr(skill.buffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.dotDuration) details.push(`지속시간: ${formatArr(skill.dotDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.debuffDuration) details.push(`디버프 지속: ${formatArr(skill.debuffDuration.map(t => (t * 0.1).toFixed(1)), false, '초', COLORS.def, '')}`);
         if (skill.charges) details.push(`적용 횟수: ${formatArr(skill.charges, false, '회', COLORS.def, '')}`);
+        if (skill.targetCount && !['portfolio_strike', 'action_star_dash'].includes(skill.type)) details.push(`최대 대상: ${skill.targetCount}명`);
+        if (skill.splashRatio && skill.type !== 'action_star_dash') details.push(`주변 피해: ${Math.round(skill.splashRatio * 100)}%`);
 
         if (skill.selfDefBuff) details.push(`방어력 증가: ${formatArr(skill.selfDefBuff, true, '', COLORS.armor, '🛡️')}`);
         if (skill.selfMrBuff) details.push(`마법저항력 증가: ${formatArr(skill.selfMrBuff, true, '', COLORS.mr, '🌀')}`);
@@ -543,10 +589,11 @@ export class UnitManager {
         }
 
         const unit = this.app.applySynergyStats([baseUnit], synergies, isEnemy)[0];
+        const displayedMana = Number(uDiv?.dataset.currMana);
 
         if (uDiv) {
             if (uDiv.dataset.currHp !== undefined) unit.currHp = parseFloat(uDiv.dataset.currHp);
-            if (uDiv.dataset.currMana !== undefined) unit.currMana = parseFloat(uDiv.dataset.currMana);
+            if (Number.isFinite(displayedMana)) unit.currMana = displayedMana;
             if (window.isBattlePhase && uDiv.dataset.type !== 'bench') {
                 if (uDiv.dataset.currAd !== undefined) unit.stats.ad = parseFloat(uDiv.dataset.currAd);
                 if (uDiv.dataset.currAp !== undefined) unit.stats.ap = parseFloat(uDiv.dataset.currAp);
@@ -594,7 +641,8 @@ export class UnitManager {
         }
 
         const currHp = uDiv && uDiv.dataset.currHp !== undefined ? Math.round(parseFloat(uDiv.dataset.currHp)) : Math.round(unit.currHp !== undefined ? unit.currHp : unit.stats.hp);
-        const currMana = uDiv && uDiv.dataset.currMana !== undefined ? Math.round(parseFloat(uDiv.dataset.currMana)) : Math.round(unit.currMana !== undefined ? unit.currMana : (unit.combat && unit.combat.startMana ? unit.combat.startMana : 0));
+        const fallbackMana = Number(unit.currMana ?? unit.combat?.startMana ?? 0);
+        const currMana = Math.round(Number.isFinite(displayedMana) ? displayedMana : (Number.isFinite(fallbackMana) ? fallbackMana : 0));
 
         let itemsHtml = '';
         const items = unit.items || [];
@@ -643,6 +691,38 @@ export class UnitManager {
             </div>
             ${skillHtml}
         `;
+
+        if (!isEnemy && !window.isBattlePhase && uDiv?.dataset.type) {
+            const sourceType = uDiv.dataset.type;
+            const sourceIdx = Number(uDiv.dataset.index);
+            const actions = document.createElement('div');
+            actions.className = 'unit-action-buttons';
+
+            const moveButton = document.createElement('button');
+            moveButton.type = 'button';
+            moveButton.textContent = '↔️ 위치 선택';
+            moveButton.onclick = (e) => {
+                e.stopPropagation();
+                this.app.selectUnit(sourceType, sourceIdx, uDiv);
+            };
+            actions.appendChild(moveButton);
+
+            const actionButton = document.createElement('button');
+            actionButton.type = 'button';
+            actionButton.className = sourceType === 'bench' ? 'sell-unit-btn' : '';
+            actionButton.textContent = sourceType === 'bench'
+                ? `💰 판매 (+${this.getSellRefund(baseUnit)}G)`
+                : '⬇️ 대기석으로';
+            actionButton.onclick = (e) => {
+                e.stopPropagation();
+                if (this.sellUnit(sourceType, sourceIdx, baseUnit)) {
+                    this.app.clearInteractionSelection();
+                    infoEl.textContent = '선택된 유닛 없음';
+                }
+            };
+            actions.appendChild(actionButton);
+            infoEl.appendChild(actions);
+        }
 
         const manaTag = infoEl.querySelector('.mana-type-tag');
         if (manaTag) {

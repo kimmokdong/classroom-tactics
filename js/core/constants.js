@@ -8,6 +8,7 @@ export const STAT_NAMES_KO = {
     allStats: "체력·공격력·주문력·방어력·마법저항력 전체 강화",
     skillDmgAmp: "스킬 피해량 증폭",
     skillCrit: "스킬 치명타",
+    critManaRestore: "치명타 마나 회복",
     manaReduc: "최대 마나 감소",
     teamHp: "팀 전체 최대 체력",
     selfHpMult: "본인 체력 배율",
@@ -65,7 +66,7 @@ export const SHOP_PROBABILITIES = {
 export const POOL_SIZES = {
     1: 22,
     2: 18,
-    3: 18,
-    4: 8,
-    5: 7
+    3: 16,
+    4: 9,
+    5: 8
 };

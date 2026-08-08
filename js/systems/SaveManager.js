@@ -93,6 +93,8 @@ export class SaveManager {
     }
 
     save(currentPhase = this.metadata.currentPhase) {
+        // 멀티플레이는 일회성 세션이므로 싱글플레이 저장 슬롯을 덮어쓰지 않는다.
+        if (this.app.multiplayerManager?.isActive) return true;
         if (!this.storage) return false;
         try {
             this.metadata = {
@@ -190,6 +192,17 @@ export class SaveManager {
             });
         }
 
+        for (const unit of [...state.board, ...state.bench]) {
+            if (!unit?.items.includes('comb_crit_crit') || unit.items.length === 1) continue;
+            const overflow = unit.items.filter(itemId => itemId !== 'comb_crit_crit');
+            unit.items = ['comb_crit_crit'];
+            for (const itemId of overflow) {
+                const emptySlot = state.inventory.indexOf(null);
+                if (emptySlot === -1) state.pendingRewards.push({ type: 'item', itemId });
+                else state.inventory[emptySlot] = itemId;
+            }
+        }
+
         if (isObject(raw.globalBuffs)) {
             state.globalBuffs = { ...base.globalBuffs };
             for (const [key, value] of Object.entries(raw.globalBuffs)) {
@@ -267,6 +280,7 @@ export class SaveManager {
     }
 
     clear() {
+        if (this.app.multiplayerManager?.isActive) return;
         this.storage?.removeItem(SAVE_KEY);
     }
 }

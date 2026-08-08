@@ -605,6 +605,52 @@ export class FxSystem {
             }
             this.particles.push({ type: 'school_math_aura', x, y, alpha: 1, r: 0, eyeGlow: 1, life: 5, maxLife: 5 });
             return;
+        } else if (type === 'school_portfolio') {
+            if (this.renderer) this.renderer.screenFlash = 0.35;
+            const points = (options.targets || []).map(idx => this.getCellCenter(idx)).filter(Boolean);
+            this.particles.push({ type: 'portfolio_network', x, y, points, life: 3.2, maxLife: 3.2 });
+            ['📈', '₩', 'ROI', '+', '%'].forEach((text, index) => {
+                this.particles.push({
+                    type: 'school_math_orbit', text, angle: (index / 5) * TAU,
+                    orbitR: R(48, 68), speed: R(0.01, 0.018), cx: x, cy: y,
+                    life: 3.2, maxLife: 3.2, size: R(10, 14), alpha: 0
+                });
+            });
+            points.forEach((point, index) => {
+                setTimeout(() => {
+                    this.particles.push({ type: 'low_projectile', x, y, tx: point.x, ty: point.y, t: 0, life: 1.0, maxLife: 1.0, color: '#67e8f9', size: 9, hitType: 'low_hit' });
+                    this.particles.push({ type: 'low_aoe_ring', x: point.x, y: point.y, r: 0, maxR: 58, life: 0.9, maxLife: 0.9, color: '#fbbf24' });
+                    this.particles.push({ type: 'low_aoe_ring', x: point.x, y: point.y, r: 0, maxR: 38, life: 0.65, maxLife: 0.65, color: '#22d3ee' });
+                    this.particles.push({ type: 'low_hit', x: point.x, y: point.y, life: 0.8, maxLife: 0.8, color: '#ffffff' });
+                }, 110 + index * 130);
+            });
+            this.particles.push({ type: 'school_shield_hex', x, y, r: 0, maxR: 34, life: 3.0, maxLife: 3.0, delay: 0.65, sparkles: [] });
+            return;
+        } else if (type === 'school_action_star') {
+            if (this.renderer) this.renderer.screenFlash = 0.75;
+            const points = (options.targets || []).map(idx => this.getCellCenter(idx)).filter(Boolean);
+            this.particles.push({ type: 'action_star_cinematic', points: [{ x, y }, ...points], life: 3.6, maxLife: 3.6 });
+            points.forEach((point, index) => {
+                setTimeout(() => {
+                    this.particles.push({ type: 'school_principal_shake', power: 8 + index * 2, life: 0.45, maxLife: 0.45 });
+                    this.particles.push({ type: 'low_aoe_ring', x: point.x, y: point.y, r: 0, maxR: 70, life: 0.9, maxLife: 0.9, color: index % 2 ? '#38bdf8' : '#fb923c' });
+                    this.particles.push({ type: 'low_hit', x: point.x, y: point.y, life: 1.0, maxLife: 1.0, color: '#fff7ed' });
+                    for (let i = 0; i < 14; i++) {
+                        const angle = R(0, TAU), speed = R(2, 8);
+                        this.particles.push({
+                            type: 'aug_heal_bomb_spark', x: point.x, y: point.y,
+                            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                            life: R(0.6, 1.2), maxLife: 1.2, size: R(3, 7), hue: index % 2 ? 195 : 28
+                        });
+                    }
+                }, 170 + index * 220);
+            });
+            const finish = points.at(-1) || { x, y };
+            setTimeout(() => {
+                this.particles.push({ type: 'school_shield_hex', x: finish.x, y: finish.y, r: 0, maxR: 38, life: 2.2, maxLife: 2.2, delay: 0, sparkles: [] });
+                this.particles.push({ type: 'low_aoe_ring', x: finish.x, y: finish.y, r: 0, maxR: 105, life: 1.2, maxLife: 1.2, color: '#fbbf24' });
+            }, 920);
+            return;
         } else if (type === 'school_principal') {
             const H = this.fxCanvas.height || 600, W = this.fxCanvas.width || 800;
             this.particles.push({ type: 'school_principal_text', x: W*0.5, y: -60, vy: 0, life: 3.5, maxLife: 3.5, landed: false });

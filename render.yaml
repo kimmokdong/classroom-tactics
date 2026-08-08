@@ -1,0 +1,26 @@
+# 처음 연결할 때는 무료 검증 환경으로 생성됩니다.
+# 무료 Web Service는 유휴 시 중지되고 무료 Postgres는 30일 뒤 만료되므로 공개 운영 전 업그레이드가 필요합니다.
+services:
+  - type: web
+    name: classroom-tactics
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: classroom-tactics-db
+          property: connectionString
+
+databases:
+  - name: classroom-tactics-db
+    plan: free
+    region: singapore
+    databaseName: classroom_tactics
+    user: classroom_tactics

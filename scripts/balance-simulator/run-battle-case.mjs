@@ -152,7 +152,12 @@ function prepareSymmetricBoards(left, right, suppressedSynergyByDeckId, playerAu
     // 기부 패시브는 양쪽에 적용하되 저장 상태의 플레이어 전용 전역 보너스는 배제한다.
     const prepared = prepareBattle({
         player: { board: left.board, teamRole: 'player', applyPlayerOnlyBonuses: true },
-        opponent: { board: right.board, teamRole: 'player', applyPlayerOnlyBonuses: false },
+        opponent: {
+            board: right.board,
+            teamRole: 'player',
+            applyPlayerOnlyBonuses: false,
+            applyDonationBonuses: true
+        },
         applySynergyStats,
         random: () => 0.5
     });

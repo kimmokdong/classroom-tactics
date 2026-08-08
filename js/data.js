@@ -3,7 +3,7 @@ export const EXP_TABLE = { 1: 2, 2: 2, 3: 6, 4: 10, 5: 20, 6: 34, 7: 50, 8: 68, 
 export const SYNERGIES = {
   subjects: {
     '국어': { name: '국어', desc: '[아군 전체] 주문력 버프', levels: { 2: { teamAp: 30, selfAp: 42, desc: '아군 전체 주문력 +30 (국어 유닛은 추가 +42)' }, 4: { teamAp: 70, selfAp: 120, desc: '아군 전체 주문력 +70 (국어 유닛은 추가 +120)' } } },
-    '수학': { name: '수학', desc: '치명타 및 방어력 관통', levels: { 2: { critChance: 0.12, critDmg: 0.18, armorPen: 0.12, desc: '치명타 확률 +12%, 치명타 피해 +18%, 방어력 관통 +12%' }, 4: { critChance: 0.43, critDmg: 0.86, armorPen: 0.72, desc: '치명타 확률 +43%, 치명타 피해 +86%, 방어력 관통 +72%' } } },
+    '수학': { name: '수학', desc: '치명타 및 방어력 관통', levels: { 2: { critChance: 0.20, critDmg: 0.30, armorPen: 0.20, desc: '치명타 확률 +20%, 치명타 피해 +30%, 방어력 관통 +20%' }, 4: { critChance: 0.40, critDmg: 0.60, armorPen: 0.40, desc: '치명타 확률 +40%, 치명타 피해 +60%, 방어력 관통 +40%' }, 6: { critChance: 0.60, critDmg: 0.80, armorPen: 0.60, skillCrit: true, critManaRestore: 5, desc: '치명타 확률 +60%, 치명타 피해 +80%, 방어력 관통 +60%. 수학 유닛의 스킬이 치명타로 적중할 수 있으며, 치명타 발생 시 마나를 5 회복' } } },
     '사회': { name: '사회', desc: '단일(1) 또는 완전체(4) 시 발동', exactMatch: true, levels: { 1: { executionPct: 0.20, desc: '체력이 20% 이하인 적을 즉시 처형 (강제 집행)' }, 4: { executionPct: 0.20, whistleHpPct: 0.60, whistleInvincibility: 10, whistleAsBuff: 0.15, allStatsBuff: 0.20, desc: '모든 사회 유닛이 20% 처형 획득 및 올스탯 20% 증가. 추가로 체력이 60% 이하가 되면 1초간 무적 및 남은 전투 동안 공속 15% 증가' } } },
     '과학': { name: '과학', desc: '피해 증폭 및 스킬 치명타', levels: { 2: { dmgAmp: 0.40, skillCrit: true, critChance: 0.20, desc: '스킬 치명타 가능, 치명타 확률 +20%, 가하는 피해량 +40% 증폭' }, 4: { dmgAmp: 0.80, skillCrit: true, critChance: 0.40, startMana: 40, desc: '시작 마나 +40, 스킬 치명타 가능, 치명타 확률 +40%, 가하는 피해량 +80% 증폭' } } },
     '영어': { name: '영어', desc: '마나통 감소 및 마나 스틸', levels: { 2: { manaReduc: 0.20, manaBurnFlat: 5, burnToMana: true, desc: '적 전체 최대 마나 -20%. 스킬 사용 시 타겟(가장 가까운 적) 반경 1칸 내 모든 적의 마나를 각각 5씩 강탈하여 아군 전체에게 균등 분배' }, 4: { manaReduc: 0.50, manaBurnFlat: 15, burnToMana: true, bonusMagicDmg: 0.20, desc: '적 전체 최대 마나 -50%. 스킬 사용 시 타겟 반경 1칸 내 모든 적의 마나를 각각 15씩 강탈하여 분배. 기본공격 및 스킬 적중 시 (주문력 20%+공속비례) 추가 마법 피해' } } },
@@ -11,7 +11,7 @@ export const SYNERGIES = {
     '음악': { name: '음악', desc: '초당 마나 재생', levels: { 2: { teamManaRegen: 1, artManaRegen: 2, desc: '아군 전체 초당 마나 재생 +1 (음악 유닛은 추가 +2)' }, 4: { teamManaRegen: 4, artManaRegen: 7, desc: '아군 전체 초당 마나 재생 +4 (음악 유닛은 추가 +7)' } } },
     '미술': { name: '미술', desc: '색채의 캔버스 (장판 효과)', levels: { 2: { canvasDuration: 50, canvasRadius: 1, allyDmgReduc: 0.20, enemyDmgAmp: 0.20, canvasManaRegen: 3, desc: '스킬 사용 시 반경 1칸 미술 장판 5초 생성 (장판 내 아군 피해 20% 감소, 적 피해 20% 증폭, 초당 마나 +3)' }, 4: { canvasDuration: 50, canvasRadius: 2, allyDmgReduc: 0.50, enemyDmgAmp: 0.50, canvasManaRegen: 5, desc: '스킬 사용 시 반경 2칸 미술 장판 5초 생성 (장판 내 아군 피해 50% 감소, 적 피해 50% 증폭, 초당 마나 +5)' } } },
     '도덕': { name: '도덕', desc: '[아군 전체] 방어/마저 버프', levels: { 2: { teamDef: 10, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +10 (도덕 유닛은 기본 방/마저 2배 적용)' }, 4: { teamDef: 20, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +20 (도덕 유닛은 기본 방/마저 2배 적용)' }, 6: { teamDef: 40, selfDefMult: 2.0, desc: '아군 전체 방어력 및 마법저항력 +40 (도덕 유닛은 기본 방/마저 2배 적용)' } } },
-    '창체': { name: '창체', desc: '다양한 특별 교육 누적', levels: { 1: { desc: '[학교폭력 예방] 전투 시작 시 가장 공격력이 높은 적 2명 4초간 무장해제 및 침묵' }, 2: { desc: '[심폐소생술 교육] (1) 효과 + 전투 중 아군 최초 2명 사망 면역(1 HP) 및 2초 무적, 30% 회복' }, 3: { desc: '[맞춤형 진로 교육] (1,2) 효과 + 전투 시작 시 아군 전원 역할군 맞춤 영구 버프 부여 (딜러: 공/주문 25% 증폭, 탱커: 체력 25% 및 방마저 30 증가, 서포터: 스킬 마나 15% 감소 및 초당 마나 2 회복)' } } }
+    '창체': { name: '창체', desc: '다양한 특별 교육 누적', levels: { 1: { desc: '[학교폭력 예방] 전투 시작 시 가장 공격력이 높은 적 2명 4초간 무장해제 및 침묵' }, 2: { desc: '[심폐소생술 교육] (1) 효과 + 전투 중 아군 최초 2명 사망 면역(1 HP) 및 2초 무적, 30% 회복' }, 3: { desc: '[맞춤형 진로 교육] (1,2) 효과 + 전투 시작 시 아군 전원 역할군 맞춤 영구 버프 부여 (딜러: 공/주문 20% 증폭, 탱커: 체력 20% 및 방마저 20 증가, 서포터: 스킬 마나 10% 감소 및 초당 마나 2 회복)' } } }
   },
   clubs: {
     '선도부': { name: '선도부', desc: '시작 보호막 및 피해 증폭', levels: { 2: { startShieldPct: 0.05, dmgAmp: 0.03, desc: '전투 시작 시 최대 체력의 5% 보호막 획득, 가하는 피해량 3% 증폭' }, 4: { startShieldPct: 0.15, dmgAmp: 0.10, desc: '전투 시작 시 최대 체력의 15% 보호막 획득, 가하는 피해량 10% 증폭' }, 6: { startShieldPct: 0.20, dmgAmp: 0.15, desc: '전투 시작 시 최대 체력의 20% 보호막 획득, 가하는 피해량 15% 증폭' } } },
@@ -307,7 +307,7 @@ export const UNIT_POOL = [
     skill: { name: '관세 폭탄', desc: '현재 체력이 가장 적은 적을 우선 지정하여 마법 피해를 줍니다. 이 스킬로 대상을 처치하면 50% 확률로 1골드를 획득합니다.', type: 'lowest_hp_magic_gold', vfx: 'magic_purple', apRatio: [4.0, 5.0, 8.0] }
   },
 
-  // 4-Cost (7 units)
+  // 4-Cost (10 units)
   {
     id: 'u4_1', name: '전교 체육부장', position: '공격형 탱커', archetype: '브루저', role: ['tank', 'dealer'], subject: '체육', club: '선도부', tier: 4, icon: '🦍', manaType: '근성', stats: { hp: 1350, mana: 0, maxMana: 100, ad: 90, ap: 100, armor: 50, mr: 50, as: 0.7, range: 1 },
     skill: { name: '전력 태클', desc: '주변(3x3 반경 1칸) 적에게 피해 + 기절 + 본인에게 보호막 부여', type: 'aoe_damage_cc_shield', vfx: 'slam_yellow', aoeRange: 1, hpRatioDmg: [0.20, 0.35, 0.60], stunDuration: [20, 30, 40], hpRatioShield: [0.15, 0.25, 0.50] }
@@ -344,8 +344,12 @@ export const UNIT_POOL = [
     id: 'u4_9', name: '공익광고 모델', position: '퓨어 탱커', archetype: '퓨어 탱커', role: ['tank'], subject: '도덕', club: '방송부', tier: 4, icon: '📢', manaType: '근성', stats: { hp: 1400, mana: 50, maxMana: 120, ad: 60, ap: 100, armor: 70, mr: 70, as: 0.65, range: 1 },
     skill: { name: '대국민 호소', desc: '주변 2칸 내의 적을 도발하고 5초간 받는 피해가 30% 감소합니다. 도발이 끝난 후 적들을 기절시킵니다.', type: 'taunt', vfx: 'school_appeal', tauntDuration: [50, 70, 100], dmgReduc: [0.3, 0.4, 0.6], afterTauntStun: [15, 20, 30] }
   },
+  {
+    id: 'u4_10', name: '모의투자 우승자', position: '공격형 탱커', archetype: '브루저', role: ['tank','dealer'], subject: '수학', club: '경제부', tier: 4, icon: '🧮', manaType: '근성', stats: { hp: 1300, mana: 20, maxMana: 90, ad: 100, ap: 100, armor: 50, mr: 50, as: 0.75, range: 1 },
+    skill: { name: '분산 투자', desc: '가까운 적 최대 3명에게 각각 물리 피해를 입히고, 적중한 적 수에 비례해 5초간 보호막을 얻습니다.', type: 'portfolio_strike', vfx: 'school_portfolio', targetCount: 3, adRatio: [2.3, 3.4, 6.5], shieldBasePct: [0.10, 0.15, 0.35], shieldPerTargetPct: [0.04, 0.05, 0.12], shieldDuration: [50, 50, 50] }
+  },
 
-  // 5-Cost (4 units)
+  // 5-Cost (6 units)
   {
     id: 'u5_1', name: '외고 전학생', position: '하이브리드 원딜', archetype: 'AS 캐리', role: ['dealer'], subject: ['영어', '음악'], club: '육상부', tier: 5, icon: '✈️', manaType: '전투', stats: { hp: 1250, mana: 0, maxMana: 100, ad: 140, ap: 100, armor: 35, mr: 35, as: 0.95, range: 2 },
     skill: { name: '글로벌 스트라이크', desc: '공격 속도 증가 + 사거리 증가 + 추가 고정 피해', type: 'self_buff_hyper', vfx: 'buff_green', asBuff: [0.7, 3.0, 99.0], rangeBuff: [2, 3, 20], bonusTrueDmg: [40, 500, 9999], asRatio: [50, 100, 9999], buffDuration: [30, 100, 999] }
@@ -365,6 +369,10 @@ export const UNIT_POOL = [
   {
     id: 'u5_5', name: '기부 천사', position: '서포터', archetype: '인챈터 서폿', role: ['support'], subject: '창체', club: '경제부', tier: 5, icon: '🎁', manaType: '집중', stats: { hp: 1300, mana: 50, maxMana: 140, ad: 100, ap: 100, armor: 45, mr: 45, as: 0.8, range: 3 },
     skill: { name: '사랑의 바자회', desc: '패시브: 전투 시작 시 자신과 상하좌우로 인접한 아군에게 완성 아이템 수개 임시 부여. 액티브: 맵 전체 아군의 공격 속도 버프를 주고 스킬 시전 시 골드를 드랍합니다.', type: 'global_gold_drop_buff', vfx: 'heal_white', adjPassiveItems: [1, 2, 4], asBuff: [0.3, 0.5, 9.9], goldDrop: [2, 4, 99] }
+  },
+  {
+    id: 'u5_6', name: '전교 액션스타', position: '물리 전사', archetype: '브루저', role: ['tank','dealer'], subject: '창체', club: ['장난꾸러기', '육상부'], tier: 5, icon: '🎬', manaType: '근성', stats: { hp: 1450, mana: 40, maxMana: 120, ad: 120, ap: 100, armor: 55, mr: 55, as: 0.85, range: 1 },
+    skill: { name: '원테이크 액션', desc: '가장 먼 적부터 최대 3명에게 차례로 돌진해 물리 피해와 기절을 주고, 주변 적에게 50% 스플래시 피해를 입힙니다. 마지막 착지 후 4초간 보호막을 얻습니다.', type: 'action_star_dash', vfx: 'school_action_star', targetCount: 3, adRatio: [2.2, 3.6, 22.0], stunDuration: [10, 15, 80], splashRatio: 0.5, hpRatioShield: [0.25, 0.40, 2.00], shieldDuration: [40, 40, 40] }
   }
 ];
 

@@ -4,7 +4,7 @@ import { HudRenderer } from './ui/HudRenderer.js';
 import { ModalManager } from './ui/ModalManager.js';
 import { BoardRenderer } from './ui/BoardRenderer.js';
 import { GuideRenderer } from './ui/GuideRenderer.js';
-import { skillPreviewer } from './ui/SkillPreviewer.js';
+import { SkillPreviewer, skillPreviewer } from './ui/SkillPreviewer.js';
 
 import { UNIT_POOL, SYNERGIES, EXP_TABLE, AUGMENTS } from './data.js';
 import { ITEMS } from './items.js';
@@ -21,11 +21,15 @@ import { AugmentManager } from './systems/AugmentManager.js';
 import { UnitManager } from './systems/UnitManager.js';
 import SoundManager from './systems/SoundManager.js';
 import { SaveManager, SAVE_PHASES } from './systems/SaveManager.js';
+import { MultiplayerManager } from './multiplayer/MultiplayerManager.js';
 
 class GameApp {
     constructor() {
         this.eventBus = new EventBus();
         this.state = createInitialState();
+        this.selectedUnit = null;
+        this.selectedInventoryItem = null;
+        this.feedbackTimer = null;
         this.saveManager = new SaveManager(this);
         this.wasRestored = Boolean(this.saveManager.load());
         this.EXP_TABLE = EXP_TABLE; // ShopManager needs this
@@ -51,6 +55,7 @@ class GameApp {
         this.modalManager = new ModalManager(this);
         this.boardRenderer = new BoardRenderer(this);
         this.guideRenderer = new GuideRenderer(this);
+        this.multiplayerManager = new MultiplayerManager(this);
         this.init();
     }
 
@@ -70,6 +75,7 @@ class GameApp {
         this.renderInventory();
         this.updateHeader();
         this.bindEvents();
+        this.updateOnboarding();
         this.saveManager.save(this.saveManager.metadata.currentPhase || SAVE_PHASES.NEXT_ROUND_READY);
         this.saveManager.startAutoSave();
         if (this.state.hp <= 0) {
@@ -79,11 +85,32 @@ class GameApp {
             });
         }
         
-        if (this.soundManager) {
-            this.soundManager.playBgmSequence('prep');
-        }
-        
         console.log("게임 초기화 완료. 준비상태 돌입.");
+    }
+
+    resetForMultiplayer({ room, playerId }) {
+        this.isBattlePhase = false;
+        window.isBattlePhase = false;
+        this.state = createInitialState();
+        this.state.runId = `${room.id}:${playerId}`;
+        this.state.runSeed = `${room.seed}:${playerId}`;
+        this.state.multiplayer = { roomId: room.id, roomCode: room.code, playerId };
+        for (const unit of UNIT_POOL) {
+            this.state.sharedPool[unit.id] = POOL_SIZES[unit.tier] || 10;
+        }
+        this.saveManager.metadata = this.saveManager.createMetadata(this.state);
+        this.clearInteractionSelection();
+        this.giveRandomBaseItem();
+        this.giveRandomBaseItem();
+        this.giveRandomBaseItem();
+        this.spawnEnemyBoard();
+        this.renderBoard();
+        this.renderUnits();
+        this.refreshShop(true);
+        this.renderShop();
+        this.renderInventory();
+        this.calculateSynergy();
+        this.updateHeader();
     }
 
     spawnEnemyBoard() { return this.stageManager.spawnEnemyBoard(); }
@@ -111,11 +138,172 @@ class GameApp {
 
     saveGame() { return this.saveManager.save(); }
 
+    showFeedback(message, type = 'info') {
+        const feedback = document.getElementById('game-feedback');
+        if (!feedback) return;
+        clearTimeout(this.feedbackTimer);
+        feedback.textContent = message;
+        feedback.dataset.type = type;
+        feedback.classList.add('show');
+        this.feedbackTimer = setTimeout(() => feedback.classList.remove('show'), 1800);
+    }
+
+    clearInteractionSelection() {
+        this.selectedUnit = null;
+        this.selectedInventoryItem = null;
+        this.hideCustomTooltip();
+        document.querySelectorAll('.tap-selected, .tap-target, .item-target').forEach(el => {
+            el.classList.remove('tap-selected', 'tap-target', 'item-target');
+            if (el.classList.contains('cell') || el.classList.contains('item-slot')) {
+                el.tabIndex = -1;
+                el.removeAttribute('role');
+                el.removeAttribute('aria-label');
+            }
+        });
+    }
+
+    selectUnit(type, index, element) {
+        if (window.isBattlePhase) return;
+        this.clearInteractionSelection();
+        this.selectedUnit = { type, index };
+        element?.classList.add('tap-selected');
+        document.querySelectorAll('.board-cell').forEach((cell, cellIndex) => {
+            if (cellIndex < 24) return;
+            cell.classList.add('tap-target');
+            if (cell.querySelector('.unit-character')) return;
+            cell.tabIndex = 0;
+            cell.setAttribute('role', 'button');
+            cell.setAttribute('aria-label', `전장 ${cellIndex - 23}번 칸`);
+        });
+        document.querySelectorAll('.bench-cell').forEach((cell, cellIndex) => {
+            cell.classList.add('tap-target');
+            if (cell.querySelector('.unit-character')) return;
+            cell.tabIndex = 0;
+            cell.setAttribute('role', 'button');
+            cell.setAttribute('aria-label', `대기석 ${cellIndex + 1}번 칸`);
+        });
+        this.showFeedback('이동할 칸이나 교환할 유닛을 선택하세요.');
+    }
+
+    selectInventoryItem(index, element) {
+        if (window.isBattlePhase) return false;
+        if (this.selectedInventoryItem === index) {
+            this.clearInteractionSelection();
+            return false;
+        }
+        this.clearInteractionSelection();
+        this.selectedInventoryItem = index;
+        element?.classList.add('tap-selected');
+        document.querySelectorAll('.unit-character:not(.is-enemy)').forEach(unit => unit.classList.add('item-target'));
+        document.querySelectorAll('.item-slot').forEach((slot, slotIndex) => {
+            slot.classList.add('tap-target');
+            if (slot.querySelector('.item-icon')) return;
+            slot.tabIndex = 0;
+            slot.setAttribute('role', 'button');
+            slot.setAttribute('aria-label', `아이템 ${slotIndex + 1}번 칸`);
+        });
+        this.showFeedback('장착할 유닛이나 조합할 아이템을 선택하세요.');
+        return true;
+    }
+
+    updateOnboarding() {
+        const tip = document.getElementById('onboarding-tip');
+        const text = document.getElementById('onboarding-tip-text');
+        if (!tip || !text) return;
+        const storage = globalThis.localStorage;
+        const isFirstRound = this.state.stage[0] === 1 && this.state.stage[1] === 1;
+        if (storage?.getItem('classroom-tactics-onboarding') === 'done' || !isFirstRound) {
+            tip.classList.remove('show');
+            return;
+        }
+        const hasBoardUnit = this.state.board.some(Boolean);
+        const hasBenchUnit = this.state.bench.some(Boolean);
+        text.textContent = !hasBoardUnit && !hasBenchUnit
+            ? '① 상점의 학생을 눌러 구매하세요.'
+            : !hasBoardUnit
+                ? '② 대기석 학생을 누른 뒤 전장의 빈칸을 누르세요.'
+                : '③ 준비가 끝났다면 전투 시작을 누르세요.';
+        tip.classList.add('show');
+    }
+
+    completeOnboarding() {
+        globalThis.localStorage?.setItem('classroom-tactics-onboarding', 'done');
+        document.getElementById('onboarding-tip')?.classList.remove('show');
+    }
+
     bindEvents() {
-        document.addEventListener('click', () => {
+        const titleScreen = document.getElementById('title-screen');
+        const singleButton = document.getElementById('btn-title-single');
+        const multiButton = document.getElementById('btn-title-multi');
+        const titleStatus = document.getElementById('title-screen-status');
+        const titlePreviews = [...document.querySelectorAll('[data-title-preview]')].map(canvas => ({
+            canvas,
+            unit: UNIT_POOL.find(unit => unit.id === canvas.dataset.titlePreview) || UNIT_POOL[0],
+            previewer: new SkillPreviewer()
+        }));
+        const syncTitlePreviews = scene => titlePreviews.forEach(({ canvas, unit, previewer }) => {
+            const shouldPlay = scene === 'collection' || scene === 'battle';
+            if (shouldPlay && previewer.canvas !== canvas) {
+                const caption = canvas.nextElementSibling;
+                if (caption) caption.textContent = `${unit.icon} ${unit.name} · ${unit.skill?.name || '스킬 시연'}`;
+                previewer.start(canvas, unit);
+            } else if (!shouldPlay && previewer.canvas === canvas) {
+                previewer.stop();
+            }
+        });
+        const demoDescriptions = {
+            collection: '01 · 과목 10종과 동아리 7종 전체 카드 사이에서 세 스킬 전투 재생',
+            battle: '02 · 전체 시너지 카드 구성에서 세 스킬 프리뷰를 더 선명하게 강조',
+            command: '03 · 실제 인게임 화면으로 미리 보는 작전 교실'
+        };
+        const demoButtons = document.querySelectorAll('[data-title-demo]');
+        demoButtons.forEach(button => button.addEventListener('click', () => {
+            const scene = button.dataset.titleDemo;
+            if (titleScreen) titleScreen.dataset.scene = scene;
+            document.body.dataset.titleScene = scene;
+            demoButtons.forEach(candidate => {
+                const active = candidate === button;
+                candidate.classList.toggle('active', active);
+                candidate.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            syncTitlePreviews(scene);
+            multiButton?.classList.remove('is-notice');
+            if (titleStatus) titleStatus.textContent = demoDescriptions[scene];
+        }));
+        syncTitlePreviews(titleScreen?.dataset.scene);
+        if (this.wasRestored) {
+            const caption = document.getElementById('title-single-caption');
+            if (caption) caption.textContent = '저장된 교실에서 이어하기';
+        }
+        const enterGame = () => {
+            if (titleScreen?.classList.contains('is-leaving')) return;
+            singleButton.disabled = true;
+            if (multiButton) multiButton.disabled = true;
+            titlePreviews.forEach(({ previewer }) => previewer.stop());
+            this.soundManager?.playBgmSequence('prep');
+            titleScreen?.classList.add('is-leaving');
+            setTimeout(() => {
+                if (titleScreen) titleScreen.hidden = true;
+                document.body.classList.remove('title-screen-open');
+                document.body.removeAttribute('data-title-scene');
+                document.getElementById('btn-start-battle')?.focus();
+            }, 650);
+        };
+        singleButton?.addEventListener('click', enterGame);
+        this.multiplayerManager.bindTitle({
+            multiButton,
+            enterGame,
+            setTitleStatus: message => { if (titleStatus) titleStatus.textContent = message; }
+        });
+        requestAnimationFrame(() => singleButton?.focus());
+
+        document.addEventListener('click', (e) => {
             if (window.isContextMenuOpen) {
                 window.isContextMenuOpen = false;
                 this.hideCustomTooltip();
+            }
+            if (!e.target.closest('.unit-character, .cell, .item-icon, .item-slot')) {
+                this.clearInteractionSelection();
             }
         });
 
@@ -144,6 +332,46 @@ class GameApp {
                 setTimeout(() => { saveBtn.innerText = '💾 저장'; }, 1200);
             });
         }
+
+        document.getElementById('btn-skip-onboarding')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.completeOnboarding();
+        });
+
+        const shortcutTitles = {
+            'btn-reroll': '상점 리롤 (R)',
+            'btn-buy-exp': '경험치 구매 (E)',
+            'btn-lock-shop': '상점 잠금 (L)',
+            'btn-start-battle': '전투 시작 (Space)'
+        };
+        Object.entries(shortcutTitles).forEach(([id, title]) => {
+            const button = document.getElementById(id);
+            if (button) button.title = title;
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat || window.isBattlePhase || e.target.closest?.('button, [role="button"], a, input, textarea, select, [contenteditable="true"]')) return;
+            const modalOpen = [...document.querySelectorAll('.modal-overlay')].some(modal => modal.style.display !== 'none');
+            if (modalOpen) return;
+
+            const shopIndex = /^Digit[1-5]$/.test(e.code) ? Number(e.code.at(-1)) - 1 : -1;
+            if (shopIndex >= 0) {
+                e.preventDefault();
+                document.querySelectorAll('#shop-slots .shop-card')[shopIndex]?.click();
+                return;
+            }
+
+            const shortcutButton = {
+                KeyR: 'btn-reroll',
+                KeyE: 'btn-buy-exp',
+                KeyL: 'btn-lock-shop',
+                Space: 'btn-start-battle'
+            }[e.code];
+            if (shortcutButton) {
+                e.preventDefault();
+                document.getElementById(shortcutButton)?.click();
+            }
+        });
 
         // 전역 클릭 시 일반 UI 클릭음 재생
         document.addEventListener('click', (e) => {
@@ -512,9 +740,11 @@ window.addEventListener('DOMContentLoaded', () => {
         if (st.shopLocked) {
             btn.innerText = "🔒 상점 잠김";
             btn.style.background = "#d32f2f"; // 빨간색으로 변경
+            window.gameApp.showFeedback('상점을 잠갔습니다. 다음 라운드까지 유지됩니다.');
         } else {
             btn.innerText = "🔓 상점 열림";
             btn.style.background = "#607d8b"; // 기본색으로 복구
+            window.gameApp.showFeedback('상점 잠금을 해제했습니다.');
         }
     };
 
@@ -524,7 +754,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const floatingBtn = document.getElementById('floating-store-btn');
         
         if ((storeModal && storeModal.style.display === 'flex') || (floatingBtn && floatingBtn.style.display === 'flex')) {
-            alert('먼저 매점 아이템이나 특기사항을 선택해 주세요!');
+            window.gameApp.showFeedback('먼저 매점 아이템이나 특기사항을 선택해 주세요.', 'warning');
             
             // 만약 플로팅 버튼 모드라면 살짝 흔들리게(강조) 연출
             if (floatingBtn && floatingBtn.style.display === 'flex') {

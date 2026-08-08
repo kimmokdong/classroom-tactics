@@ -12,6 +12,8 @@ export class BattleRenderer {
         this.animId = null;
         this.endTimeout = null;
         this.fxCleanupTimeout = null;
+        this.playbackSpeed = Number(globalThis.localStorage?.getItem('classroom-tactics-battle-speed')) === 2 ? 2 : 1;
+        this.isSkipping = false;
         this.cells = Array.from(boardEl.children);
         
         this.fxCanvas = fxCanvas;
@@ -73,8 +75,43 @@ export class BattleRenderer {
         if (this.ctx && this.fxCanvas) this.ctx.clearRect(0, 0, this.fxCanvas.width, this.fxCanvas.height);
         const timerContainer = document.getElementById('battle-timer-container');
         if (timerContainer) timerContainer.style.display = 'none';
+        const controls = document.getElementById('battle-controls');
+        if (controls) controls.style.display = 'none';
     }
-    
+
+    updatePlaybackControls() {
+        const doc = globalThis.document;
+        doc?.querySelectorAll?.('.battle-speed-btn').forEach(button => {
+            const active = Number(button.dataset.speed) === this.playbackSpeed && !this.isSkipping;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
+    setPlaybackSpeed(speed) {
+        this.playbackSpeed = Number(speed) === 2 ? 2 : 1;
+        this.isSkipping = false;
+        globalThis.localStorage?.setItem('classroom-tactics-battle-speed', String(this.playbackSpeed));
+        const skipButton = globalThis.document?.getElementById('btn-skip-battle');
+        if (skipButton) {
+            skipButton.disabled = false;
+            skipButton.textContent = '⏭ 건너뛰기';
+        }
+        this.updatePlaybackControls();
+        return this.playbackSpeed;
+    }
+
+    skipToEnd() {
+        this.isSkipping = true;
+        this.hitStopUntil = 0;
+        const skipButton = globalThis.document?.getElementById('btn-skip-battle');
+        if (skipButton) {
+            skipButton.disabled = true;
+            skipButton.textContent = '⏭ 빠르게 종료 중';
+        }
+        this.updatePlaybackControls();
+    }
+
     play(onEnd) {
         if(this.logs.length === 0) {
             onEnd('player');
@@ -96,6 +133,18 @@ export class BattleRenderer {
             timerContainer.style.borderColor = '#3498db';
             if (timerText) timerText.style.color = '#fff';
         }
+        const controls = document.getElementById('battle-controls');
+        if (controls) controls.style.display = 'flex';
+        document.querySelectorAll('.battle-speed-btn').forEach(button => {
+            button.onclick = () => this.setPlaybackSpeed(button.dataset.speed);
+        });
+        const skipButton = document.getElementById('btn-skip-battle');
+        if (skipButton) {
+            skipButton.disabled = false;
+            skipButton.textContent = '⏭ 건너뛰기';
+            skipButton.onclick = () => this.skipToEnd();
+        }
+        this.updatePlaybackControls();
 
         this.currentTick = this.logs[0].tick;
         this.resizeCanvas();
@@ -108,10 +157,15 @@ export class BattleRenderer {
         this.timer = setInterval(() => {
             if (performance.now() < this.hitStopUntil) return; // Hit-stop
 
-            while (logIndex < this.logs.length && this.logs[logIndex].tick <= this.currentTick) {
-                const action = this.logs[logIndex];
-                this.executeAction(action);
-                logIndex++;
+            const ticksPerFrame = this.isSkipping ? 50 : this.playbackSpeed;
+            for (let replayTick = 0; replayTick < ticksPerFrame; replayTick++) {
+                while (logIndex < this.logs.length && this.logs[logIndex].tick <= this.currentTick) {
+                    const action = this.logs[logIndex];
+                    this.executeAction(action);
+                    logIndex++;
+                }
+                if (logIndex >= this.logs.length) break;
+                this.currentTick++;
             }
             
             // Update DPS UI occasionally (every 5 ticks to save performance)
@@ -160,10 +214,9 @@ export class BattleRenderer {
                     this.stop();
                     onEnd(lastLog.winner, lastLog);
                     if (soundManager && window.gameApp?.state?.hp <= 25) soundManager.playSFX('low_hp');
-                }, 1500);
+                }, this.isSkipping ? 200 : 1500);
             }
             
-            this.currentTick++;
         }, 150); // 100ms -> 150ms로 늦춰 전체 전투 템포 조절
     }
 
@@ -382,6 +435,11 @@ export class BattleRenderer {
             
             if (!toCell) return;
 
+            if (action.isCrit) {
+                toCell.classList.add('critical-hit');
+                setTimeout(() => toCell.classList.remove('critical-hit'), 260);
+            }
+
             // --- 전투 효과음 재생 ---
             if (window.gameApp && window.gameApp.soundManager) {
                 if (action.type === 'damage') {
@@ -430,7 +488,7 @@ export class BattleRenderer {
             }
 
             const targetManaFill = toCell.querySelector('.mana-fill');
-            if(targetManaFill && action.targetMaxMana > 0) {
+            if(targetManaFill && action.targetMaxMana > 0 && Number.isFinite(action.targetMana)) {
                 const pct = Math.max(0, Math.min(100, (action.targetMana / action.targetMaxMana) * 100));
                 targetManaFill.style.width = `${pct}%`;
             }
@@ -438,7 +496,7 @@ export class BattleRenderer {
             let uDiv = null;
             if (fromCell) {
                 const attackerManaFill = fromCell.querySelector('.mana-fill');
-                if(attackerManaFill && action.attackerMaxMana > 0) {
+                if(attackerManaFill && action.attackerMaxMana > 0 && Number.isFinite(action.attackerMana)) {
                     const pct = Math.max(0, Math.min(100, (action.attackerMana / action.attackerMaxMana) * 100));
                     attackerManaFill.style.width = `${pct}%`;
                 }
@@ -491,7 +549,7 @@ export class BattleRenderer {
             // -----------------------------------------------------
             if (targetDiv) {
                 targetDiv.dataset.currHp = action.currHp;
-                targetDiv.dataset.currMana = action.targetMana;
+                if (Number.isFinite(action.targetMana)) targetDiv.dataset.currMana = action.targetMana;
                 if (action.targetStats) {
                     targetDiv.dataset.currAd = action.targetStats.ad;
                     targetDiv.dataset.currAp = action.targetStats.ap;
@@ -503,7 +561,7 @@ export class BattleRenderer {
                     const hpEl = document.getElementById('info-hp');
                     if (hpEl) hpEl.innerText = Math.max(0, Math.round(action.currHp));
                     const manaEl = document.getElementById('info-mana');
-                    if (manaEl) manaEl.innerText = Math.max(0, Math.round(action.targetMana));
+                    if (manaEl && Number.isFinite(action.targetMana)) manaEl.innerText = Math.max(0, Math.round(action.targetMana));
                     
                     if (action.targetStats) {
                         const adEl = document.getElementById('info-ad'); if(adEl) adEl.innerText = Math.round(action.targetStats.ad);
@@ -523,7 +581,7 @@ export class BattleRenderer {
                 }
             }
             if (uDiv) {
-                uDiv.dataset.currMana = action.attackerMana;
+                if (Number.isFinite(action.attackerMana)) uDiv.dataset.currMana = action.attackerMana;
                 if (action.attackerStats) {
                     uDiv.dataset.currAd = action.attackerStats.ad;
                     uDiv.dataset.currAp = action.attackerStats.ap;
@@ -533,7 +591,7 @@ export class BattleRenderer {
                 }
                 if (uDiv.dataset.viewing === 'true') {
                     const manaEl = document.getElementById('info-mana');
-                    if (manaEl) manaEl.innerText = Math.max(0, Math.round(action.attackerMana));
+                    if (manaEl && Number.isFinite(action.attackerMana)) manaEl.innerText = Math.max(0, Math.round(action.attackerMana));
                     
                     if (action.attackerStats) {
                         const adEl = document.getElementById('info-ad'); if(adEl) adEl.innerText = Math.round(action.attackerStats.ad);
@@ -561,9 +619,8 @@ export class BattleRenderer {
             const cell = this.cells[action.target];
             const uDiv = cell.querySelector('.unit-character');
             if(uDiv) {
-                uDiv.style.transition = 'opacity 0.2s';
-                uDiv.style.opacity = '0';
-                setTimeout(() => { if(uDiv.parentNode) uDiv.parentNode.removeChild(uDiv); }, 200);
+                uDiv.classList.add('unit-defeated');
+                setTimeout(() => { if(uDiv.parentNode) uDiv.parentNode.removeChild(uDiv); }, 320);
             }
             if (this.unitTransforms[action.target]) {
                 this.unitTransforms[action.target].buffs = [];
@@ -710,17 +767,17 @@ export class BattleRenderer {
             if (!cell) return;
             const targetDiv = cell.querySelector('.unit-character');
             const manaFill = cell.querySelector('.mana-fill');
-            if (manaFill && action.maxMana > 0) {
+            if (manaFill && action.maxMana > 0 && Number.isFinite(action.currMana)) {
                 const pct = Math.max(0, Math.min(100, (action.currMana / action.maxMana) * 100));
                 manaFill.style.width = `${pct}%`;
             }
             if (targetDiv) {
-                targetDiv.dataset.currMana = action.currMana;
+                if (Number.isFinite(action.currMana)) targetDiv.dataset.currMana = action.currMana;
                 if (action.maxMana !== undefined) targetDiv.dataset.maxMana = action.maxMana;
                 
                 if (targetDiv.dataset.viewing === 'true') {
                     const manaEl = document.getElementById('info-mana');
-                    if (manaEl) manaEl.innerText = Math.max(0, Math.round(action.currMana));
+                    if (manaEl && Number.isFinite(action.currMana)) manaEl.innerText = Math.max(0, Math.round(action.currMana));
                     if (action.maxMana !== undefined) {
                         const maxManaEl = document.getElementById('info-max-mana');
                         if (maxManaEl) maxManaEl.innerText = Math.max(0, Math.round(action.maxMana));
@@ -786,7 +843,7 @@ export class BattleRenderer {
                 if (action.vfx && action.vfx.includes('slam')) color = '#ffd700';
 
                 let prevCenter = casterCenter;
-                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole', 'school_donation', 'school_quant', 'school_appeal'];
+                const schoolGlobalFx = ['school_slam', 'school_shield', 'school_heal', 'school_piano', 'school_math', 'school_principal', 'school_picasso', 'school_foreign', 'school_blackhole', 'school_donation', 'school_quant', 'school_appeal', 'school_portfolio', 'school_action_star'];
                 const lowTierIds = [
                     'u1_1','u1_2','u1_3','u1_4','u1_5','u1_6','u1_7','u1_8','u1_9','u1_10',
                     'u2_1','u2_2','u2_3','u2_4','u2_5','u2_6','u2_7','u2_8','u2_9','u2_10','u2_11','u2_12',
@@ -803,6 +860,30 @@ export class BattleRenderer {
                             this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, { targets: action.targets, life: 2.0 });
                         } else {
                             this.spawnFx(action.fxType, casterCenter.x, casterCenter.y, { targets: action.targets });
+                            if (action.fxType === 'school_action_star') {
+                                const transform = this.unitTransforms[action.caster];
+                                if (transform) {
+                                    uDiv?.style.setProperty('filter', 'brightness(1.35) drop-shadow(0 0 12px #fb923c)');
+                                    action.targets.slice(0, 3).forEach((targetIndex, index) => {
+                                        setTimeout(() => {
+                                            const targetCenter = this.getCellCenter(targetIndex);
+                                            if (!targetCenter) return;
+                                            const dx = targetCenter.x - casterCenter.x;
+                                            const dy = targetCenter.y - casterCenter.y;
+                                            const length = Math.hypot(dx, dy) || 1;
+                                            transform.x = dx - (dx / length) * 28;
+                                            transform.y = dy - (dy / length) * 28 - 18;
+                                            transform.vx = (dx / length) * 5;
+                                            transform.vy = -7;
+                                        }, 140 + index * 220);
+                                    });
+                                    setTimeout(() => {
+                                        if (uDiv) uDiv.style.filter = '';
+                                        transform.vx *= -0.35;
+                                        transform.vy = -5;
+                                    }, 900);
+                                }
+                            }
                         }
                     } else if (action.fxType === 'school_beaker' && action.targets.length > 0) {
                         const tCenter = this.getCellCenter(action.targets[0]);
@@ -874,17 +955,17 @@ export class BattleRenderer {
                 }
             }
             
-            if (action.castTime && this.fxCanvas) {
-                this.hitStopUntil = performance.now() + action.castTime;
-            } else if (action.type === 'broadcast_silence' && this.fxCanvas) {
-                this.hitStopUntil = performance.now() + 1500;
+            if (!this.isSkipping && action.castTime && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + action.castTime / this.playbackSpeed;
+            } else if (!this.isSkipping && action.type === 'broadcast_silence' && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 1500 / this.playbackSpeed;
                 if (window.gameApp && window.gameApp.soundManager) {
                     window.gameApp.soundManager.playSFX('broadcast_howling');
                 }
-            } else if (action.type === 'spirit_transfer' && this.fxCanvas) {
-                this.hitStopUntil = performance.now() + 800;
-            } else if (action.hitStop && this.fxCanvas) {
-                this.hitStopUntil = performance.now() + 150;
+            } else if (!this.isSkipping && action.type === 'spirit_transfer' && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 800 / this.playbackSpeed;
+            } else if (!this.isSkipping && action.hitStop && this.fxCanvas) {
+                this.hitStopUntil = performance.now() + 150 / this.playbackSpeed;
             }
             if (action.screenFlash && this.fxCanvas) this.screenFlash = 0.5;
 
@@ -1026,9 +1107,9 @@ export class BattleRenderer {
                 logEl.scrollTop = logEl.scrollHeight;
             }
             // 화면 플래시 효과
-            if (this.fxCanvas) {
+            if (!this.isSkipping && this.fxCanvas) {
                 this.screenFlash = 0.6;
-                this.hitStopUntil = performance.now() + 800;
+                this.hitStopUntil = performance.now() + 800 / this.playbackSpeed;
             }
         } else if (action.type === 'changche_lv1' && this.fxCanvas) {
             if (action.targets) {

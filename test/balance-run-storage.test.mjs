@@ -34,6 +34,32 @@ function createRun(winnerDeckId, scoreRate) {
     };
 }
 
+test('Windows에서 결과 폴더 rename이 잠기면 복사 방식으로 저장을 완료한다', { skip: process.platform !== 'win32' }, () => {
+    const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'balance-run-windows-fallback-'));
+    const renameSync = fs.renameSync;
+    try {
+        let blocked = false;
+        fs.renameSync = (source, target) => {
+            if (!blocked && path.basename(source).includes('.tmp-')) {
+                blocked = true;
+                throw Object.assign(new Error('locked'), { code: 'EPERM' });
+            }
+            return renameSync(source, target);
+        };
+        const storage = writeBalanceRun({
+            run: createRun('deck-a', 0.75), data, profiles: { smoke: {} }, targetBands: {}, outputRoot, runId: 'fallback',
+            profileSchemaVersion: 2,
+            manifestContext: { ...fingerprint, createdAt: '2026-08-08T00:00:00.000Z' }
+        });
+        assert.equal(blocked, true);
+        assert.equal(fs.existsSync(path.join(storage.runDirectory, 'report.md')), true);
+        assert.equal(fs.readdirSync(path.join(outputRoot, 'runs')).some(name => name.includes('.tmp-')), false);
+    } finally {
+        fs.renameSync = renameSync;
+        fs.rmSync(outputRoot, { recursive: true, force: true });
+    }
+});
+
 test('실행 결과는 고유 run에 보존되고 baseline·paired 비교·보수적 캐시 판정을 지원한다', () => {
     const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'balance-run-storage-'));
     try {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "rulesVersion": "standard-decks-v1",
-  "deckSetVersion": "2026-07-17",
+  "deckSetVersion": "2026-08-08",
   "primaryCheckpoint": "humanities-standard-final9",
   "checkpoints": [
     {
@@ -348,7 +348,7 @@
         "legacy-001"
       ],
       "migrationStatus": "new-design",
-      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 나이팅게일을 추가했다.",
+      "changeReason": "core7 핵심 3코스트 3성 쌍을 유지하고 천재 퀀트 2성으로 수학 2와 보조 화력을 확보했다.",
       "units": [
         {
           "unitId": "u1_1",
@@ -404,28 +404,33 @@
           "unitId": "u4_1",
           "star": 2,
           "items": [],
-          "position": 18,
-          "positionGroup": "back-side"
-        },
-        {
-          "unitId": "u4_6",
-          "star": 2,
-          "items": [],
           "position": 12,
           "positionGroup": "mid-side"
+        },
+        {
+          "unitId": "u4_8",
+          "star": 2,
+          "items": [],
+          "position": 18,
+          "positionGroup": "back-side"
         }
       ],
       "fixedItems": true,
       "roles": {
         "mainTank": "u3_2",
         "mainDealer": "u3_1",
-        "subDealer": "u4_1"
+        "subDealer": "u4_8"
       },
       "expectedSynergies": [
         {
           "type": "subjects",
           "name": "도덕",
           "level": 4
+        },
+        {
+          "type": "subjects",
+          "name": "수학",
+          "level": 2
         },
         {
           "type": "subjects",
@@ -1676,7 +1681,7 @@
         "legacy-002"
       ],
       "migrationStatus": "new-design",
-      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 교장 선생님 1성을 추가했다.",
+      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 공익광고 모델 2성과 교장 선생님 1성으로 전열을 보강했다.",
       "units": [
         {
           "unitId": "u1_1",
@@ -1737,7 +1742,7 @@
         },
         {
           "unitId": "u4_9",
-          "star": 1,
+          "star": 2,
           "items": [],
           "position": 12,
           "positionGroup": "mid-side"
@@ -2043,8 +2048,8 @@
       "sourceLegacyIds": [
         "legacy-029"
       ],
-      "migrationStatus": "reclassified",
-      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "migrationStatus": "new-design",
+      "changeReason": "모의투자 우승자를 전방 탱커로 투입해 수학 4와 경제부 2를 함께 평가한다.",
       "units": [
         {
           "unitId": "u4_3",
@@ -2065,7 +2070,7 @@
           "positionGroup": "front-side"
         },
         {
-          "unitId": "u4_9",
+          "unitId": "u4_10",
           "star": 2,
           "items": [
             "comb_hp_hp",
@@ -2113,7 +2118,7 @@
       ],
       "fixedItems": true,
       "roles": {
-        "mainTank": "u4_9",
+        "mainTank": "u4_10",
         "mainDealer": "u4_3",
         "subDealer": "u4_2"
       },
@@ -2140,8 +2145,8 @@
         },
         {
           "type": "clubs",
-          "name": "방송부",
-          "level": 3
+          "name": "경제부",
+          "level": 2
         }
       ],
       "defaultItemSet": "baseline6",
@@ -2161,7 +2166,7 @@
         "legacy-029"
       ],
       "migrationStatus": "new-design",
-      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 수석 연구원 1성을 추가했다.",
+      "changeReason": "모의투자 우승자 2성과 수석 연구원 1성을 포함해 수학·과학 운영의 최종 구성을 평가한다.",
       "units": [
         {
           "unitId": "u4_3",
@@ -2182,7 +2187,7 @@
           "positionGroup": "front-side"
         },
         {
-          "unitId": "u4_9",
+          "unitId": "u4_10",
           "star": 2,
           "items": [
             "comb_hp_hp",
@@ -2237,7 +2242,7 @@
       ],
       "fixedItems": true,
       "roles": {
-        "mainTank": "u4_9",
+        "mainTank": "u4_10",
         "mainDealer": "u4_3",
         "subDealer": "u4_2"
       },
@@ -2264,8 +2269,8 @@
         },
         {
           "type": "clubs",
-          "name": "방송부",
-          "level": 3
+          "name": "경제부",
+          "level": 2
         }
       ],
       "defaultItemSet": "baseline6",
@@ -2646,14 +2651,14 @@
         "legacy-043"
       ],
       "migrationStatus": "new-design",
-      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 수석 연구원 1성을 추가했다.",
+      "changeReason": "core8의 7방송부를 유지하고 교장 선생님 1성으로 도덕 2와 전열 제어를 보강했다.",
       "units": [
         {
           "unitId": "u1_4",
           "star": 2,
           "items": [],
-          "position": 4,
-          "positionGroup": "front-side"
+          "position": 16,
+          "positionGroup": "back-side"
         },
         {
           "unitId": "u4_7",
@@ -2713,11 +2718,11 @@
           "positionGroup": "front-center"
         },
         {
-          "unitId": "u5_2",
+          "unitId": "u5_4",
           "star": 1,
           "items": [],
-          "position": 16,
-          "positionGroup": "back-side"
+          "position": 4,
+          "positionGroup": "front-side"
         }
       ],
       "fixedItems": true,
@@ -2734,13 +2739,13 @@
         },
         {
           "type": "subjects",
-          "name": "과학",
-          "level": 2
+          "name": "사회",
+          "level": 1
         },
         {
           "type": "subjects",
-          "name": "사회",
-          "level": 1
+          "name": "도덕",
+          "level": 2
         },
         {
           "type": "clubs",
@@ -2764,7 +2769,7 @@
         "legacy-062"
       ],
       "migrationStatus": "reclassified",
-      "changeReason": "5코스트가 없고 4코스트 탱커·딜러가 분리되어 standard_core8로 재분류했다.",
+      "changeReason": "나이팅게일 2성과 핵심 4코스트 탱커·딜러를 갖춘 6보건부 운영 덱으로 재분류했다.",
       "units": [
         {
           "unitId": "u2_6",
@@ -2789,7 +2794,7 @@
         },
         {
           "unitId": "u4_6",
-          "star": 1,
+          "star": 2,
           "items": [],
           "position": 6,
           "positionGroup": "front-side"
@@ -2876,7 +2881,7 @@
         "legacy-062"
       ],
       "migrationStatus": "new-design",
-      "changeReason": "core8 핵심 4코스트 2성 쌍을 유지하고 외고 전학생 1성을 추가했다.",
+      "changeReason": "나이팅게일 2성을 포함한 core8을 유지하고 외고 전학생 1성을 추가했다.",
       "units": [
         {
           "unitId": "u2_6",
@@ -2901,7 +2906,7 @@
         },
         {
           "unitId": "u4_6",
-          "star": 1,
+          "star": 2,
           "items": [],
           "position": 6,
           "positionGroup": "front-side"
@@ -3004,7 +3009,7 @@
         "legacy-003"
       ],
       "migrationStatus": "reclassified",
-      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "changeReason": "전교 액션스타를 투입해 장난꾸러기 4와 육상부 2를 유지하면서 신규 5코스트의 전투 기여도를 평가한다.",
       "units": [
         {
           "unitId": "u4_8",
@@ -3278,14 +3283,18 @@
         "legacy-010"
       ],
       "migrationStatus": "reclassified",
-      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "changeReason": "전교 액션스타 2성에 공격 아이템을 투자해 육상부 4와 창체 2의 주력 기여도를 평가한다.",
       "units": [
         {
-          "unitId": "u4_4",
-          "star": 1,
-          "items": [],
-          "position": 4,
-          "positionGroup": "front-side"
+          "unitId": "u5_6",
+          "star": 2,
+          "items": [
+            "comb_ad_ad",
+            "comb_ad_as",
+            "comb_ad_crit"
+          ],
+          "position": 18,
+          "positionGroup": "back-side"
         },
         {
           "unitId": "u5_5",
@@ -3329,13 +3338,9 @@
         {
           "unitId": "u4_8",
           "star": 2,
-          "items": [
-            "comb_ad_ad",
-            "comb_ad_as",
-            "comb_ad_crit"
-          ],
-          "position": 18,
-          "positionGroup": "back-side"
+          "items": [],
+          "position": 4,
+          "positionGroup": "front-side"
         },
         {
           "unitId": "u2_4",
@@ -3360,18 +3365,13 @@
       "roles": {
         "mainTank": "u4_5",
         "mainDealer": "u5_2",
-        "subDealer": "u4_8"
+        "subDealer": "u5_6"
       },
       "expectedSynergies": [
         {
           "type": "subjects",
-          "name": "국어",
-          "level": 2
-        },
-        {
-          "type": "subjects",
           "name": "창체",
-          "level": 1
+          "level": 2
         },
         {
           "type": "subjects",
@@ -3586,7 +3586,7 @@
           "positionGroup": "front-center"
         },
         {
-          "unitId": "u4_4",
+          "unitId": "u5_6",
           "star": 1,
           "items": [],
           "position": 4,
@@ -3664,8 +3664,8 @@
         },
         {
           "type": "subjects",
-          "name": "국어",
-          "level": 2
+          "name": "창체",
+          "level": 1
         },
         {
           "type": "subjects",
@@ -4272,10 +4272,10 @@
         "legacy-040"
       ],
       "migrationStatus": "reclassified",
-      "changeReason": "메인 5코스트 2성과 4·5코스트 2성 3명 조건을 명시해 highvalue_final9로 재분류했다.",
+      "changeReason": "전교 액션스타를 투입해 창체 3을 완성하고 역할군 맞춤 버프를 평가한다.",
       "units": [
         {
-          "unitId": "u4_4",
+          "unitId": "u5_6",
           "star": 1,
           "items": [],
           "position": 4,
@@ -4359,13 +4359,8 @@
       "expectedSynergies": [
         {
           "type": "subjects",
-          "name": "국어",
-          "level": 2
-        },
-        {
-          "type": "subjects",
           "name": "창체",
-          "level": 2
+          "level": 3
         },
         {
           "type": "subjects",

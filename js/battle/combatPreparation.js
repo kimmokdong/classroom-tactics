@@ -16,6 +16,9 @@ export function validateItemIds(itemIds = [], catalog = ITEMS) {
     if (itemIds.length > 3) throw new RangeError('유닛은 아이템을 최대 3개까지 장착할 수 있습니다.');
     const invalid = itemIds.find(itemId => !isValidItemId(itemId, catalog));
     if (invalid) throw new RangeError(`등록되지 않은 아이템 ID: ${invalid}`);
+    if (itemIds.includes('comb_crit_crit') && itemIds.length > 1) {
+        throw new RangeError('분실물 보관함은 임시 아이템 2개를 포함해 3칸을 모두 사용합니다.');
+    }
     return [...itemIds];
 }
 
@@ -100,14 +103,21 @@ export function prepareBattle({
         const {
             board,
             teamRole = defaultRole,
-            applyPlayerOnlyBonuses = teamRole === 'player'
+            applyPlayerOnlyBonuses = teamRole === 'player',
+            applyDonationBonuses = applyPlayerOnlyBonuses,
+            context = {}
         } = team || {};
         if (!Array.isArray(board) || board.length !== 24) throw new RangeError('전투 보드는 정확히 24칸이어야 합니다.');
         assertTeamRole(teamRole);
         const synergies = getSynergies(board);
         const isEnemy = teamRole === 'opponent';
         return {
-            board: applySynergyStats(board, synergies, isEnemy, random, { teamRole, applyPlayerOnlyBonuses }),
+            board: applySynergyStats(board, synergies, isEnemy, random, {
+                ...context,
+                teamRole,
+                applyPlayerOnlyBonuses,
+                applyDonationBonuses
+            }),
             synergies
         };
     };

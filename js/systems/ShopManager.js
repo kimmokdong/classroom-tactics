@@ -39,14 +39,18 @@ export class ShopManager {
             this.app.state.gold -= 4;
             this.addExp(4);
             this.app.soundManager.playSFX('buy_exp');
+            this.app.showFeedback?.('경험치 4를 구매했습니다.', 'success');
+            return true;
         } else if (this.app.state.level >= 10) {
-            alert("최대 레벨입니다.");
+            this.app.showFeedback?.('이미 최대 레벨입니다.', 'warning');
         } else {
-            alert("골드가 부족합니다.");
+            this.app.showFeedback?.('경험치 구매에 필요한 골드가 부족합니다.', 'warning');
         }
+        return false;
     }
 
     refreshShop(isFree = false) {
+        const manualRefresh = !isFree;
         const cost = (this.app.state.globalBuffs && this.app.state.globalBuffs.rerollDiscountEndWorld >= this.app.state.stage[0]) ? 1 : 2;
         if (!isFree) {
             if (this.app.state.roundFreeRerolls > 0) {
@@ -58,8 +62,8 @@ export class ShopManager {
             } else if (this.app.state.gold >= cost) {
                 this.app.state.gold -= cost;
             } else {
-                alert("골드가 부족합니다.");
-                return;
+                this.app.showFeedback?.('리롤에 필요한 골드가 부족합니다.', 'warning');
+                return false;
             }
             this.app.soundManager.playSFX('shop_reroll');
         }
@@ -116,12 +120,22 @@ export class ShopManager {
 
         this.app.updateHeader();
         this.renderShop();
+        if (manualRefresh) this.app.showFeedback?.('상점을 새로고침했습니다.', 'success');
+        return true;
     }
 
     buyUnit(index) {
         const unit = this.app.state.shop[index];
         const benchIndex = this.app.state.bench.findIndex(candidate => candidate === null);
-        if (!unit || benchIndex === -1 || this.app.state.gold < unit.tier) return false;
+        if (!unit) return false;
+        if (benchIndex === -1) {
+            this.app.showFeedback?.('대기석이 가득 찼습니다.', 'warning');
+            return false;
+        }
+        if (this.app.state.gold < unit.tier) {
+            this.app.showFeedback?.(`${unit.name} 구매에 필요한 골드가 부족합니다.`, 'warning');
+            return false;
+        }
 
         this.app.state.gold -= unit.tier;
         this.app.state.shop[index] = null;
@@ -131,6 +145,8 @@ export class ShopManager {
         this.app.renderUnits();
         this.app.soundManager.playSFX('shop_buy');
         this.app.checkForUpgrade(purchased.id);
+        this.app.showFeedback?.(`${purchased.name} 구매 완료`, 'success');
+        this.app.updateOnboarding?.();
         return true;
     }
 
@@ -155,6 +171,9 @@ export class ShopManager {
             }
 
             card.className = 'shop-card tier-' + randomUnit.tier;
+            card.tabIndex = 0;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `${randomUnit.name} 구매, ${randomUnit.tier}골드`);
             card.innerHTML = `
                 <div style="font-size: 2rem; margin-bottom: 5px;">${randomUnit.icon || '🧑‍🎓'}</div>
                 <h4 style="margin-bottom: 3px;">${randomUnit.name}</h4>
@@ -202,8 +221,12 @@ export class ShopManager {
             card.onclick = () => {
                 if (this.buyUnit(i)) {
                     card.style.visibility = 'hidden';
-                } else {
-                    console.log("구매할 수 없습니다. 골드 또는 대기석을 확인하세요.");
+                }
+            };
+            card.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
                 }
             };
             shopEl.appendChild(card);

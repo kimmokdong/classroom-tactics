@@ -89,6 +89,17 @@ test('기부 천사는 완성 아이템만 최대 3칸까지 임시 지급한다
     assert.ok(board[1].items.length + board[1].donationItems.length <= 3);
 });
 
+test('분실물 보관함 유닛은 기부 천사의 임시 아이템도 받지 않는다', () => {
+    const board = Array(24).fill(null);
+    board[0] = unit('u5_5');
+    board[1] = unit('u1_1');
+    board[1].items = ['comb_crit_crit'];
+
+    applyDonationItems(board, ITEMS, createSeededRandom('lost-and-found-donation'));
+
+    assert.deepEqual(board[1].donationItems, []);
+});
+
 test('같은 시드와 같은 입력은 같은 전투 로그를 만든다', () => {
     const makeEngine = () => {
         const player = Array(24).fill(null);
@@ -131,6 +142,32 @@ test('창체 교육과 CPR은 플레이어·적 양쪽에 같은 규칙으로 �
     assert.equal(enemyTarget.currHp, 1);
     assert.equal(engine.playerCprCharges, 1);
     assert.equal(engine.enemyCprCharges, 1);
+});
+
+test('창체 3단계 역할군 버프는 20·10·2 단위의 조정값을 적용한다', () => {
+    const player = Array(24).fill(null);
+    const enemy = Array(24).fill(null);
+    ['u2_11', 'u3_11', 'u5_5', 'u1_3', 'u4_9', 'u2_9'].forEach((id, index) => {
+        player[index] = unit(id);
+    });
+    enemy[0] = unit('u1_1');
+
+    const dealerAd = player[3].stats.ad;
+    const tankHp = player[4].stats.maxHp;
+    const tankArmor = player[4].stats.armor;
+    const supportMana = player[5].stats.maxMana;
+    const engine = new BattleEngine(player, enemy, [], 50, 'changche-level3-values');
+    engine.maxTicks = 1;
+    engine.run();
+
+    const dealer = engine.board[27];
+    const tank = engine.board[28];
+    const support = engine.board[29];
+    assert.equal(dealer.stats.ad, Math.round(dealerAd * 1.20));
+    assert.equal(tank.stats.maxHp, Math.round(tankHp * 1.20));
+    assert.equal(tank.stats.armor, tankArmor + 20);
+    assert.equal(support.stats.maxMana, Math.floor(supportMana * 0.90));
+    assert.equal(support.combat.teamManaRegen, 2);
 });
 
 test('경제부 4 시너지는 플레이어·적 양쪽의 진영별 골드 배율을 적용한다', () => {
@@ -195,5 +232,81 @@ test('렌더러 stop은 인터벌·프레임·종료 타이머를 모두 정리�
         globalThis.cancelAnimationFrame = oldCancelAnimationFrame;
         globalThis.window = oldWindow;
         globalThis.document = oldDocument;
+    }
+});
+
+test('렌더러 재생 속도는 1배속과 2배속만 허용한다', () => {
+    const oldDocument = globalThis.document;
+    const oldLocalStorage = globalThis.localStorage;
+    const saved = [];
+    const skipButton = {};
+    globalThis.document = { querySelectorAll: () => [], getElementById: () => skipButton };
+    globalThis.localStorage = { setItem: (...args) => saved.push(args) };
+    const renderer = { playbackSpeed: 1, isSkipping: true, updatePlaybackControls() {} };
+
+    try {
+        assert.equal(BattleRenderer.prototype.setPlaybackSpeed.call(renderer, 2), 2);
+        assert.equal(renderer.isSkipping, false);
+        assert.equal(BattleRenderer.prototype.setPlaybackSpeed.call(renderer, 99), 1);
+        assert.deepEqual(saved.at(-1), ['classroom-tactics-battle-speed', '1']);
+        renderer.hitStopUntil = 1000;
+        BattleRenderer.prototype.skipToEnd.call(renderer);
+        assert.equal(renderer.isSkipping, true);
+        assert.equal(renderer.hitStopUntil, 0);
+        assert.equal(skipButton.disabled, true);
+    } finally {
+        globalThis.document = oldDocument;
+        globalThis.localStorage = oldLocalStorage;
+    }
+});
+
+test('마나 정보가 없는 피해 로그는 기존 마나 표시를 덮어쓰지 않는다', () => {
+    const oldDocument = globalThis.document;
+    const oldWindow = globalThis.window;
+    const oldSetTimeout = globalThis.setTimeout;
+    const targetDiv = { dataset: { currMana: '40', viewing: 'false' } };
+    const hpFill = { style: {} };
+    const manaFill = { style: {} };
+    const damageText = { style: {}, parentNode: null };
+    const cell = {
+        querySelector(selector) {
+            return {
+                '.unit-character': targetDiv,
+                '.hp-fill': hpFill,
+                '.mana-fill': manaFill
+            }[selector] || null;
+        },
+        appendChild(node) { node.parentNode = this; },
+        removeChild(node) { node.parentNode = null; }
+    };
+
+    globalThis.document = {
+        createElement: () => damageText,
+        getElementById: () => null
+    };
+    globalThis.window = { gameApp: null };
+    globalThis.setTimeout = callback => callback();
+
+    try {
+        BattleRenderer.prototype.executeAction.call({
+            cells: [cell],
+            dpsStats: {},
+            dpsTracker: { stats: { 0: { damage: 0, tank: 0 } } },
+            fxCanvas: null,
+            unitTransforms: []
+        }, {
+            type: 'damage',
+            target: 0,
+            dmg: 10,
+            currHp: 90,
+            maxHp: 100
+        });
+
+        assert.equal(targetDiv.dataset.currMana, '40');
+        assert.equal(manaFill.style.width, undefined);
+    } finally {
+        globalThis.document = oldDocument;
+        globalThis.window = oldWindow;
+        globalThis.setTimeout = oldSetTimeout;
     }
 });

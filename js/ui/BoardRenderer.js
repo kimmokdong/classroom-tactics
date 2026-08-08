@@ -33,6 +33,37 @@ export class BoardRenderer {
     }
 
     setupDropZone(cell, targetType) {
+        cell.tabIndex = -1;
+        cell.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                cell.click();
+            }
+        };
+        cell.onclick = (e) => {
+            if (e.target.closest('.unit-character') || window.isBattlePhase) return;
+            const targetIdx = parseInt(cell.dataset.index);
+            const adjustedIdx = targetType === 'board' ? targetIdx - 24 : targetIdx;
+            const targetArray = targetType === 'board' ? this.app.state.board : this.app.state.bench;
+
+            if (this.app.selectedInventoryItem !== null) {
+                const unit = targetArray[adjustedIdx];
+                if (!unit) {
+                    this.app.showFeedback?.('아이템은 유닛이 있는 칸에 장착할 수 있습니다.', 'warning');
+                    return;
+                }
+                if (this.app.giveItemToUnit(this.app.selectedInventoryItem, unit)) {
+                    this.app.clearInteractionSelection();
+                }
+                return;
+            }
+
+            const selected = this.app.selectedUnit;
+            if (selected && this.app.moveUnit(selected.type, selected.index, targetType, targetIdx)) {
+                this.app.clearInteractionSelection();
+                this.app.updateOnboarding?.();
+            }
+        };
         cell.ondragover = (e) => e.preventDefault();
         cell.ondrop = (e) => {
             e.preventDefault();

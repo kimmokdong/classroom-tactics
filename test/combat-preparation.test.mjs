@@ -76,6 +76,10 @@ test('공용 아이템 계약은 0·1·3개와 잘못된 ID를 구분하고 같�
     });
     assert.deepEqual(first.thievesItems, second.thievesItems);
     assert.equal(first.thievesItems.length, 2);
+    assert.throws(
+        () => createUnitInstance(source, { itemIds: ['comb_crit_crit', baseItems[0]] }),
+        /3칸을 모두 사용/
+    );
     first.thievesItems.forEach(itemId => {
         const item = ITEMS.find(candidate => candidate.id === itemId);
         assert.equal(item.type, 'combined');
@@ -85,14 +89,11 @@ test('공용 아이템 계약은 0·1·3개와 잘못된 ID를 구분하고 같�
 
 test('아이템 매니저도 공용 장착 계약을 사용해 조합·가득 찬 슬롯·잘못된 ID를 안전하게 처리한다', () => {
     const previousDocument = globalThis.document;
-    const previousAlert = globalThis.alert;
-    let alerts = 0;
+    const feedback = [];
     globalThis.document = {
         querySelector() { return null; },
         getElementById() { return { innerHTML: '' }; }
     };
-    globalThis.alert = () => { alerts++; };
-
     try {
         const state = createInitialState();
         const app = {
@@ -102,6 +103,7 @@ test('아이템 매니저도 공용 장착 계약을 사용해 조합·가득 �
             renderUnits() {},
             calculateSynergy() {},
             showUnitInfo() {},
+            showFeedback(...args) { feedback.push(args); },
             soundManager: { playSFX() {} }
         };
         const manager = new ItemManager(app);
@@ -113,6 +115,11 @@ test('아이템 매니저도 공용 장착 계약을 사용해 조합·가득 �
         assert.deepEqual(unit.items, ['comb_crit_crit']);
         assert.equal(unit.thievesItems.length, 2);
 
+        state.inventory[0] = 'comb_ad_ad';
+        assert.equal(manager.giveItemToUnit(0, unit), false);
+        assert.deepEqual(unit.items, ['comb_crit_crit']);
+        assert.equal(state.inventory[0], 'comb_ad_ad');
+
         state.inventory[0] = 'not-an-item';
         assert.equal(manager.giveItemToUnit(0, unit), false);
         assert.equal(state.inventory[0], 'not-an-item');
@@ -123,10 +130,9 @@ test('아이템 매니저도 공용 장착 계약을 사용해 조합·가득 �
         state.inventory[0] = 'comb_ad_ad';
         assert.equal(manager.giveItemToUnit(0, full), false);
         assert.equal(state.inventory[0], 'comb_ad_ad');
-        assert.equal(alerts, 1);
+        assert.equal(feedback.filter(([, type]) => type === 'warning').length, 2);
     } finally {
         globalThis.document = previousDocument;
-        globalThis.alert = previousAlert;
     }
 });
 
@@ -266,9 +272,14 @@ test('저장 복구는 잘못된 아이템 ID만 제거하고 나머지 진행 �
     const manager = new SaveManager(app, null);
     const savedUnit = createUnitInstance(template('u1_1'), { itemIds: ['base_ad'] });
     savedUnit.items.push('not-an-item');
+    const savedLostAndFound = createUnitInstance(template('u1_2'), {
+        itemIds: ['comb_crit_crit'],
+        random: () => 0
+    });
+    savedLostAndFound.items.push('comb_ad_ad');
     const normalized = manager.normalizeState({
         gold: 37,
-        board: [savedUnit],
+        board: [savedUnit, savedLostAndFound],
         inventory: ['not-an-item', 'base_as'],
         pendingRewards: [
             { type: 'item', itemId: 'not-an-item' },
@@ -279,7 +290,8 @@ test('저장 복구는 잘못된 아이템 ID만 제거하고 나머지 진행 �
 
     assert.equal(normalized.gold, 37);
     assert.deepEqual(normalized.board[0].items, ['base_ad']);
-    assert.deepEqual(normalized.inventory.slice(0, 2), [null, 'base_as']);
+    assert.deepEqual(normalized.board[1].items, ['comb_crit_crit']);
+    assert.deepEqual(normalized.inventory.slice(0, 2), ['comb_ad_ad', 'base_as']);
     assert.deepEqual(normalized.pendingRewards.map(reward => reward.type), ['item', 'unit']);
     assert.deepEqual(normalized.pendingRewards[1].unit.items, ['base_ap']);
 });

@@ -32,7 +32,11 @@ export class SkillPreviewer {
             'u5_3': 'school_picasso',
             'u5_4': 'school_principal',
             'u4_8': 'school_quant',
-            'u4_9': 'school_appeal'
+            'u4_9': 'school_appeal',
+            'u4_10': 'school_portfolio',
+            'u5_6': 'school_action_star',
+            'demo_u4_10': 'school_portfolio',
+            'demo_u5_6': 'school_action_star'
         };
     }
 
@@ -134,6 +138,10 @@ export class SkillPreviewer {
         if (unit.id === 'u5_5') {
             casterX = 220;
             casterY = 170;
+        } else if (unit.id === 'demo_u4_10' || unit.id === 'u4_10') {
+            casterX = 150;
+        } else if (unit.id === 'demo_u5_6' || unit.id === 'u5_6') {
+            casterX = 85;
         } else if (skillType.includes('taunt') || skillType.includes('aoe_damage_buff') || skillType === 'aoe_debuff') {
             // 시전자 주변 범위기이므로 시전자를 중앙에 배치
             casterX = 260;
@@ -167,6 +175,16 @@ export class SkillPreviewer {
             
             this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 A', x: 450, y: 110, hp: 1000, maxHp: 1000, idx: 5, shakeTime: 0 });
             this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '허수아비 B', x: 450, y: 230, hp: 1000, maxHp: 1000, idx: 6, shakeTime: 0 });
+        }
+        else if (skillType === 'portfolio_strike') {
+            this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '분산 대상 A', x: 350, y: 105, hp: 1000, maxHp: 1000, idx: 1, shakeTime: 0 });
+            this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '분산 대상 B', x: 450, y: 225, hp: 1000, maxHp: 1000, idx: 2, shakeTime: 0 });
+            this.entities.push({ id: 'dummy_3', isCaster: false, isEnemy: true, icon: '🎯', name: '분산 대상 C', x: 555, y: 125, hp: 1000, maxHp: 1000, idx: 3, shakeTime: 0 });
+        }
+        else if (skillType === 'action_star_dash') {
+            this.entities.push({ id: 'dummy_1', isCaster: false, isEnemy: true, icon: '🎯', name: '액션 타겟 A', x: 305, y: 235, hp: 1200, maxHp: 1200, idx: 1, shakeTime: 0 });
+            this.entities.push({ id: 'dummy_2', isCaster: false, isEnemy: true, icon: '🎯', name: '액션 타겟 B', x: 430, y: 95, hp: 1200, maxHp: 1200, idx: 2, shakeTime: 0 });
+            this.entities.push({ id: 'dummy_3', isCaster: false, isEnemy: true, icon: '🎯', name: '액션 타겟 C', x: 565, y: 215, hp: 1200, maxHp: 1200, idx: 3, shakeTime: 0 });
         }
         else if (skillType === 'passive') {
             // 수학 짝꿍 패시브: 단일 허수아비 1마리
@@ -264,7 +282,7 @@ export class SkillPreviewer {
         }
 
         // 시전자가 근접(사거리 1)인 경우 적들을 당겨서 근접전 연출 (돌진기/십자열/도발 등 제외)
-        if (this.unit.stats.range === 1 && !skillType.includes('dash') && skillType !== 'cross_magic' && !skillType.includes('taunt')) {
+        if (this.unit.stats.range === 1 && !skillType.includes('dash') && skillType !== 'cross_magic' && skillType !== 'portfolio_strike' && !skillType.includes('taunt')) {
             this.entities.filter(e => e.isEnemy).forEach((e, idx) => {
                 e.x = casterX + 50 + (idx * 40); // 시전자 바로 앞에 일렬로 바짝 붙여 배치
             });
@@ -391,7 +409,7 @@ export class SkillPreviewer {
         // 시전자 가벼운 돌진/시전 애니메이션 흔들림 효과
         caster.shakeTime = 0.2;
 
-        if (this.unit.id === 'u5_2' || this.unit.id === 'u5_4' || this.unit.id === 'u5_5') {
+        if (this.unit.id === 'u5_2' || this.unit.id === 'u5_4' || this.unit.id === 'u5_5' || this.unit.id === 'demo_u5_6' || this.unit.id === 'u5_6') {
             this.screenFlash = 0.6; 
         }
 
@@ -403,7 +421,7 @@ export class SkillPreviewer {
             life: 1.5,
             maxLife: 1.5,
             text: `✨ ${this.unit.skill.name}!`,
-            color: '#3b82f6'
+            color: this.unit.id === 'demo_u5_6' || this.unit.id === 'u5_6' ? '#fb923c' : '#67e8f9'
         });
 
         // 2. 대상 목록 필터링
@@ -452,7 +470,16 @@ export class SkillPreviewer {
         } 
         else {
             // 적 대상 공격 스킬
-            if (skillType === 'single_damage' || skillType === 'single_damage_cc' || skillType === 'single_dot' || skillType === 'true_damage' || skillType === 'mana_burn' || skillType === 'single_damage_buff') {
+            if (skillType === 'portfolio_strike') {
+                dmgTargets = enemies.slice(0, 3).map(e => e.idx);
+            }
+            else if (skillType === 'action_star_dash') {
+                dmgTargets = [...enemies]
+                    .sort((a, b) => Math.abs(b.x - caster.x) - Math.abs(a.x - caster.x))
+                    .slice(0, 3)
+                    .map(e => e.idx);
+            }
+            else if (skillType === 'single_damage' || skillType === 'single_damage_cc' || skillType === 'single_dot' || skillType === 'true_damage' || skillType === 'mana_burn' || skillType === 'single_damage_buff') {
                 dmgTargets = enemies.length > 0 ? [enemies[0].idx] : [];
             } 
             else if (skillType === 'dash_damage') {
@@ -492,7 +519,21 @@ export class SkillPreviewer {
             healTargets.push(caster.idx);
         }
 
-        if (skillType.includes('dash')) {
+        if (skillType === 'action_star_dash') {
+            dmgTargets.forEach((tIdx, index) => {
+                const target = this.entities.find(e => e.idx === tIdx);
+                setTimeout(() => {
+                    if (!this.canvas || !target) return;
+                    caster.x = target.x > caster.x ? target.x - 42 : target.x + 42;
+                    caster.y = target.y;
+                    caster.shakeTime = 0.25;
+                    target.shakeTime = 0.35;
+                }, 220 + index * 360);
+            });
+            setTimeout(() => {
+                if (this.canvas) this.spawnFloatingText(caster.x, caster.y, 'SHIELD', '#fbbf24');
+            }, 1450);
+        } else if (skillType.includes('dash')) {
             // 현재 위치에서 가장 먼 적 찾기
             const activeEnemies = dmgTargets.map(tIdx => this.entities.find(e => e.idx === tIdx)).filter(e => e);
             if (activeEnemies.length > 0) {
@@ -555,7 +596,13 @@ export class SkillPreviewer {
             const targetEntity = this.entities.find(e => e.idx === tIdx);
             if (!targetEntity) return;
 
-            const delay = skillType.includes('dash') ? 500 : (skillType.includes('bounce') || skillType.includes('random') ? i * 400 + 400 : 400);
+            const delay = skillType === 'action_star_dash'
+                ? 400 + i * 360
+                : skillType === 'portfolio_strike'
+                    ? 400 + i * 160
+                    : skillType.includes('dash')
+                        ? 500
+                        : (skillType.includes('bounce') || skillType.includes('random') ? i * 400 + 400 : 400);
             
             if (skillType === 'single_dot') {
                 // 도트딜 연출: 1.5초 동안 여러 번 작은 데미지 텍스트 팝업
@@ -591,6 +638,9 @@ export class SkillPreviewer {
                 let isTrue = skillType === 'true_damage' || desc.includes('고정 피해');
                 let isMagic = desc.includes('마법 피해') || skillType.includes('magic') || (this.unit.skill.apRatio && !this.unit.skill.adRatio && !desc.includes('물리 피해'));
                 let dmgVal = isMagic ? Math.floor((this.unit.stats.ap||100) * 1.5) : Math.floor((this.unit.stats.ad||20) * 2.0);
+                if (skillType === 'portfolio_strike' || skillType === 'action_star_dash') {
+                    dmgVal = Math.floor((this.unit.stats.ad || 20) * (this.unit.skill.adRatio?.[0] || 2));
+                }
                 
                 let dmgColor = '#ef4444';
                 let label = `-${dmgVal}`;
@@ -641,6 +691,12 @@ export class SkillPreviewer {
 
         // Fx 이펙트 발동!
         this.fxSystem.spawnFx(fxType, caster.x, caster.y, optionParams);
+
+        if (skillType === 'portfolio_strike') {
+            setTimeout(() => {
+                if (this.canvas) this.spawnFloatingText(caster.x, caster.y, 'SHIELD', '#67e8f9');
+            }, 900);
+        }
 
         // 특별 처리: 기부천사(u5_5)는 스킬 시전 시 패시브 아이템 부여 이펙트도 함께 프리뷰에 보여줌
         if (this.unit.id === 'u5_5') {
@@ -891,7 +947,8 @@ export class SkillPreviewer {
                 const pct = p.life / p.maxLife;
                 ctx.save();
                 ctx.font = 'bold 16px sans-serif';
-                ctx.fillStyle = `rgba(251, 146, 60, ${pct})`; // 주황/황금빛 분필 질감 느낌
+                ctx.fillStyle = p.color || `rgba(251, 146, 60, ${pct})`; // 유닛별 대표색
+                ctx.globalAlpha = pct;
                 ctx.textAlign = 'center';
                 ctx.shadowColor = 'black';
                 ctx.shadowBlur = 6;

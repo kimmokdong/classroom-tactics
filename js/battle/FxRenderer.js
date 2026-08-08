@@ -645,6 +645,239 @@ export class FxRenderer {
                 p.life = 0;
                 this.fxSystem.spawnFx('donation_confetti_burst', p.tx, p.ty, { color: '#ffea00' });
             }
+        } else if (p.type === 'portfolio_network') {
+            const progress = 1 - p.life / p.maxLife;
+            const alpha = Math.min(1, progress * 5) * Math.min(1, p.life * 1.5);
+            const points = p.points || [];
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.lineCap = 'round';
+            ctx.setLineDash([8, 5]);
+            ctx.lineDashOffset = -progress * 150;
+            ctx.strokeStyle = 'rgba(34, 211, 238, 0.72)';
+            ctx.lineWidth = 5;
+            ctx.shadowColor = '#22d3ee';
+            ctx.shadowBlur = 18;
+            points.forEach(point => {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(point.x, point.y);
+                ctx.stroke();
+            });
+            ctx.strokeStyle = '#ecfeff';
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 0;
+            points.forEach(point => {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(point.x, point.y);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]);
+            if (points.length > 1) {
+                ctx.beginPath();
+                points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(14, 116, 144, 0.12)';
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 1.5;
+                ctx.fill();
+                ctx.stroke();
+            }
+            const returns = ['+7.2%', '+11.5%', '+4.8%'];
+            points.forEach((point, index) => {
+                const pulse = 14 + Math.sin(progress * 24 - index) * 5;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pulse, 0, TAU);
+                ctx.strokeStyle = index % 2 ? '#67e8f9' : '#fbbf24';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                for (let packet = 0; packet < 3; packet++) {
+                    const travel = (progress * 3.6 + index * 0.11 - packet * 0.16 + 1) % 1;
+                    const px = lerp(p.x, point.x, travel);
+                    const py = lerp(p.y, point.y, travel);
+                    const size = 7 - packet * 1.4;
+                    ctx.save();
+                    ctx.translate(px, py);
+                    ctx.rotate(Math.PI / 4);
+                    ctx.fillStyle = packet === 0 ? '#ffffff' : (index % 2 ? '#67e8f9' : '#fbbf24');
+                    ctx.shadowColor = index % 2 ? '#22d3ee' : '#f59e0b';
+                    ctx.shadowBlur = 20;
+                    ctx.fillRect(-size / 2, -size / 2, size, size);
+                    ctx.restore();
+                }
+                ctx.shadowBlur = 0;
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = 'rgba(6, 78, 59, 0.9)';
+                ctx.fillRect(point.x - 24, point.y - 28, 48, 16);
+                ctx.font = '800 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#dcfce7';
+                ctx.fillText(returns[index] || '+수익', point.x, point.y - 17);
+                ctx.restore();
+            });
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 36 + Math.sin(progress * 20) * 5, 0, TAU);
+            ctx.strokeStyle = '#fde68a';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 상승 차트와 전광판 배지로 주식 투자 콘셉트를 명확하게 보여준다.
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-over';
+            const chartX = Math.max(14, Math.min((fxCanvas.width || 640) - 104, p.x - 45));
+            const chartY = Math.max(54, Math.min((fxCanvas.height || 340) - 18, p.y + 58));
+            const chart = [12, 5, 9, -1, 4, -11];
+            ctx.beginPath();
+            chart.forEach((offset, index) => {
+                const x = chartX + index * 18;
+                const y = chartY + offset;
+                index ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+            });
+            ctx.strokeStyle = '#16a34a';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#22c55e';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(chartX + 90, chartY - 11);
+            ctx.lineTo(chartX + 80, chartY - 12);
+            ctx.lineTo(chartX + 88, chartY - 3);
+            ctx.closePath();
+            ctx.fillStyle = '#16a34a';
+            ctx.fill();
+
+            const badgeY = Math.max(22, p.y - 52);
+            ctx.shadowColor = 'rgba(15, 23, 42, 0.45)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+            ctx.fillRect(p.x - 58, badgeY - 15, 116, 28);
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(p.x - 58, badgeY - 15, 116, 28);
+            ctx.font = '900 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fef3c7';
+            ctx.fillText('📈 분산 투자', p.x, badgeY);
+            ctx.restore();
+            ctx.restore();
+        } else if (p.type === 'action_star_cinematic') {
+            const progress = 1 - p.life / p.maxLife;
+            const points = p.points || [];
+            const W = fxCanvas.width || 640;
+            const H = fxCanvas.height || 340;
+            const fade = Math.min(1, progress * 8) * Math.min(1, p.life * 2);
+            ctx.save();
+            ctx.globalAlpha = fade;
+            const barHeight = Math.min(34, progress * 150);
+            ctx.fillStyle = 'rgba(5, 8, 15, 0.82)';
+            ctx.fillRect(0, 0, W, barHeight);
+            ctx.fillRect(0, H - barHeight, W, barHeight);
+
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (points.length > 1) {
+                ctx.beginPath();
+                points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+                ctx.lineWidth = 11;
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 22;
+                ctx.stroke();
+                ctx.strokeStyle = '#fff7ed';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 0;
+                ctx.stroke();
+
+                const segmentCount = points.length - 1;
+                // 세 대상을 약 1초 안에 훑어 '팍팍팍' 리듬이 나도록 이동 속도를 높인다.
+                const travel = Math.min(0.999, progress * 3.6) * segmentCount;
+                const segment = Math.min(segmentCount - 1, Math.floor(travel));
+                const local = travel - segment;
+                const from = points[segment];
+                const to = points[segment + 1];
+                const px = lerp(from.x, to.x, local);
+                const py = lerp(from.y, to.y, local);
+                const angle = Math.atan2(to.y - from.y, to.x - from.x);
+                for (let i = 4; i >= 0; i--) {
+                    const trailT = Math.max(0, local - i * 0.045);
+                    const kickX = lerp(from.x, to.x, trailT);
+                    const kickY = lerp(from.y, to.y, trailT) - Math.sin(trailT * Math.PI) * 18;
+                    ctx.save();
+                    ctx.translate(kickX, kickY);
+                    ctx.rotate(angle);
+                    ctx.globalAlpha = fade * (1 - i * 0.16);
+                    ctx.strokeStyle = i === 0 ? '#fff7ed' : (i % 2 ? '#38bdf8' : '#fb923c');
+                    ctx.lineWidth = i === 0 ? 6 : 3;
+                    ctx.shadowColor = i % 2 ? '#38bdf8' : '#fb923c';
+                    ctx.shadowBlur = i === 0 ? 24 : 12;
+                    ctx.beginPath();
+                    ctx.arc(-8, -10, 5, 0, TAU);
+                    ctx.moveTo(-5, -5);
+                    ctx.lineTo(2, 5);
+                    ctx.lineTo(25, 0);
+                    ctx.moveTo(2, 5);
+                    ctx.lineTo(-7, 17);
+                    ctx.moveTo(-3, -1);
+                    ctx.lineTo(-17, 3);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(angle);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#fb923c';
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.moveTo(-36, -13);
+                ctx.quadraticCurveTo(-4, 0, 28, 5);
+                ctx.moveTo(-32, 14);
+                ctx.quadraticCurveTo(-2, 5, 22, 1);
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx.lineWidth = 2;
+            const inset = 18;
+            const corner = 22;
+            [[inset,inset,1,1],[W-inset,inset,-1,1],[inset,H-inset,1,-1],[W-inset,H-inset,-1,-1]].forEach(([x,y,dx,dy]) => {
+                ctx.beginPath();
+                ctx.moveTo(x + dx * corner, y);
+                ctx.lineTo(x, y);
+                ctx.lineTo(x, y + dy * corner);
+                ctx.stroke();
+            });
+            if (progress < 0.52) {
+                const titleIn = Math.min(1, progress / 0.06);
+                const titleOut = progress < 0.4 ? 1 : Math.max(0, 1 - (progress - 0.4) / 0.12);
+                ctx.globalAlpha = fade * titleIn * titleOut;
+                ctx.font = '900 54px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.strokeStyle = '#fdba74';
+                ctx.lineWidth = 7;
+                ctx.shadowColor = 'rgba(67, 20, 7, 0.9)';
+                ctx.shadowBlur = 12;
+                ctx.strokeText('ACTION!', W / 2, H / 2);
+                ctx.fillStyle = '#431407';
+                ctx.shadowBlur = 0;
+                ctx.fillText('ACTION!', W / 2, H / 2);
+            }
+            ctx.globalAlpha = fade;
+            ctx.font = '800 11px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#fdba74';
+            ctx.fillText('ONE TAKE · 03 TARGETS', W - 22, 24);
+            ctx.restore();
         } else if (p.type === 'donation_confetti') {
             // 생일 폭죽 효과: 다채로운 컨페티(종이가루) 흩날림 렌더링
             p.parts.forEach(pt => {

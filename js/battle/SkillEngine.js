@@ -23,7 +23,7 @@ export class SkillEngine {
                     tick: engine.tick, type: 'damage',
                     target: unit.gridIndex, source: e.gridIndex,
                     dmg: Math.round(actualDmg), dmgType: 'magic', isCrit: false,
-                    currHp: unit.currHp, targetMana: unit.mana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
+                    currHp: unit.currHp, targetMana: unit.currMana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
                 });
                 engine.checkHpThresholds(unit, activeUnits, e);
                 if (unit.currHp <= 0) engine.handleDeath(unit, activeUnits);
@@ -69,6 +69,7 @@ export class SkillEngine {
                     isCrit = true;
                 }
             }
+            if (isCrit && unit.combat.critManaRestore) unit.currMana += unit.combat.critManaRestore;
 
             // [誘몄닠 ?쒕꼫吏�] ?ν뙋 ?④낵 ?곸슜 (?ㅽ궗)
             let dmgAmpFromCanvas = 0;
@@ -156,7 +157,7 @@ export class SkillEngine {
             target.currMana = Math.max(target.currMana, Math.min(target.stats.maxMana, (target.currMana || 0) + (baseTargetGainMana * targetManaGainMult)));
 
             // [p15] 諛붾Ⅸ ?앺솢??遺꾨끂 (?됲? ?쇨꺽 ??諛섏궗)
-            if (engine.playerAugments.includes('p15') && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('?꾨뜒') : target.subject === '?꾨뜒') && unit.team === 'enemy' && finalDmg > 0) {
+            if (engine.teamTraitAugments?.[target.team]?.p15 && (Array.isArray(target.subject) ? target.subject.includes('?꾨뜒') : target.subject === '?꾨뜒') && unit.team !== target.team && finalDmg > 0) {
                 const reflectDmg = (target.stats.armor + target.stats.mr) * 0.15;
                 let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                 unit.currHp -= actualReflect;
@@ -324,6 +325,56 @@ export class SkillEngine {
                     }
                 }
                 break;
+
+            case 'portfolio_strike': {
+                const selected = enemies.slice(0, s.targetCount || 3);
+                selected.forEach(target => {
+                    targets.push(target);
+                    applyDmg(target, ad * s.adRatio[starIdx], 'physical');
+                });
+                const shieldRatio = s.shieldBasePct[starIdx] + selected.length * s.shieldPerTargetPct[starIdx];
+                addBuff(unit, 'shield', 'shield', maxHp * shieldRatio, s.shieldDuration[starIdx]);
+                break;
+            }
+
+            case 'action_star_dash': {
+                const selected = [...enemies]
+                    .sort((a, b) => engine.getDist(unit.gridIndex, b.gridIndex) - engine.getDist(unit.gridIndex, a.gridIndex))
+                    .slice(0, s.targetCount || 3);
+                const dirs = [-1, 1, -8, 8, -9, -7, 7, 9];
+
+                selected.forEach(target => {
+                    if (target.currHp <= 0 || target.isDead) return;
+                    const oldIndex = unit.gridIndex;
+                    const destination = dirs
+                        .map(offset => target.gridIndex + offset)
+                        .filter(index => index >= 0 && index < 48)
+                        .filter(index => engine.getDist(index, target.gridIndex) === 1)
+                        .filter(index => !activeUnits.some(other => other !== unit && other.currHp > 0 && other.gridIndex === index))
+                        .sort((a, b) => engine.getDist(oldIndex, a) - engine.getDist(oldIndex, b) || a - b)[0];
+
+                    if (destination !== undefined && destination !== oldIndex) {
+                        unit.gridIndex = destination;
+                        const steps = engine.getDist(oldIndex, destination);
+                        if (typeof engine.addRunnerStacks === 'function') engine.addRunnerStacks(unit, steps);
+                        engine.logs.push({ tick: engine.tick, type: 'move', unit: oldIndex, to: destination, isRunner: !!unit.combat.isRunner, isDash: true, steps });
+                    }
+
+                    const primaryDmg = ad * s.adRatio[starIdx];
+                    targets.push(target);
+                    applyDmg(target, primaryDmg, 'physical');
+                    enemies.forEach(other => {
+                        if (other === target || other.currHp <= 0 || other.isDead) return;
+                        if (engine.getDist(target.gridIndex, other.gridIndex) <= 1) {
+                            applyDmg(other, primaryDmg * s.splashRatio, 'physical');
+                        }
+                    });
+                    if (target.currHp > 0) addBuff(target, 'stun', null, 0, s.stunDuration[starIdx]);
+                });
+
+                addBuff(unit, 'shield', 'shield', maxHp * s.hpRatioShield[starIdx], s.shieldDuration[starIdx]);
+                break;
+            }
 
             case 'random_aoe':
             case 'random_aoe_debuff':
@@ -675,11 +726,13 @@ export class SkillEngine {
         else if (unit.id === 'u4_7') { fxType = 'school_piano'; castTime = 1600; }
         else if (unit.id === 'u4_8') { fxType = 'school_quant'; castTime = 1000; }
         else if (unit.id === 'u4_9') { fxType = 'school_appeal'; castTime = 1200; }
+        else if (unit.id === 'u4_10') { fxType = 'school_portfolio'; castTime = 1400; }
         else if (unit.id === 'u5_1') { fxType = 'school_foreign'; castTime = 1200; }
         else if (unit.id === 'u5_2') { fxType = 'school_blackhole'; castTime = 2400; screenFlash = true; }
         else if (unit.id === 'u5_3') { fxType = 'school_picasso'; castTime = 2000; }
         else if (unit.id === 'u5_4') { fxType = 'school_principal'; castTime = 2200; screenFlash = true; }
         else if (unit.id === 'u5_5') { fxType = 'school_donation'; castTime = 2000; screenFlash = true; }
+        else if (unit.id === 'u5_6') { fxType = 'school_action_star'; castTime = 2000; screenFlash = true; }
         else if (unit.tier <= 3) {
             fxType = unit.id;
             castTime = 500;

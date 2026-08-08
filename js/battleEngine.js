@@ -103,9 +103,10 @@ export function updateGargoyleDefense(unit, targetingCount, itemCount) {
 }
 
 export class BattleEngine {
-    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50, seed = null, enemyGold = playerGold) {
+    constructor(playerBoard, enemyBoard, playerAugments = [], playerGold = 50, seed = null, enemyGold = playerGold, enemyAugments = []) {
         this.board = Array(48).fill(null);
         this.playerAugments = playerAugments;
+        this.enemyAugments = enemyAugments;
         this.playerGold = playerGold;
         this.enemyGold = enemyGold;
         this.random = seed === null ? Math.random : createSeededRandom(seed);
@@ -178,6 +179,10 @@ export class BattleEngine {
         this.enemyCprCharges = 0;
     }
 
+    hasTeamAugment(team, augmentId) {
+        return (team === 'player' ? this.playerAugments : this.enemyAugments).includes(augmentId);
+    }
+
     getDist(i1, i2) {
         const x1 = i1 % 8; const y1 = Math.floor(i1 / 8);
         const x2 = i2 % 8; const y2 = Math.floor(i2 / 8);
@@ -240,13 +245,23 @@ export class BattleEngine {
             return new Set(units.map(u => u.name)).size;
         };
 
-        this.hasP12 = this.playerAugments.includes('p12') && countUniqueTrait('보건부') >= 6;
-        this.hasP13 = this.playerAugments.includes('p13') && countUniqueTrait('방송부') >= 7;
-        this.hasP14 = this.playerAugments.includes('p14') && countUniqueTrait('육상부') >= 6;
-        this.hasP15 = this.playerAugments.includes('p15') && countUniqueTrait('도덕') >= 6;
-        this.hasP21 = this.playerAugments.includes('p21') && countUniqueTrait('선도부') >= 6;
-        this.hasP22 = this.playerAugments.includes('p22') && countUniqueTrait('급식부') >= 7;
-        this.hasP23 = this.playerAugments.includes('p23') && countUniqueTrait('장난꾸러기') >= 6;
+        this.teamTraitAugments = Object.fromEntries(['player', 'enemy'].map(team => [team, {
+            p12: this.hasTeamAugment(team, 'p12') && countUniqueTrait('보건부', team) >= 6,
+            p13: this.hasTeamAugment(team, 'p13') && countUniqueTrait('방송부', team) >= 7,
+            p14: this.hasTeamAugment(team, 'p14') && countUniqueTrait('육상부', team) >= 6,
+            p15: this.hasTeamAugment(team, 'p15') && countUniqueTrait('도덕', team) >= 6,
+            p21: this.hasTeamAugment(team, 'p21') && countUniqueTrait('선도부', team) >= 6,
+            p22: this.hasTeamAugment(team, 'p22') && countUniqueTrait('급식부', team) >= 7,
+            p23: this.hasTeamAugment(team, 'p23') && countUniqueTrait('장난꾸러기', team) >= 6
+        }]));
+        // 기존 단일 진영 테스트와 외부 참조를 유지한다.
+        this.hasP12 = this.teamTraitAugments.player.p12;
+        this.hasP13 = this.teamTraitAugments.player.p13;
+        this.hasP14 = this.teamTraitAugments.player.p14;
+        this.hasP15 = this.teamTraitAugments.player.p15;
+        this.hasP21 = this.teamTraitAugments.player.p21;
+        this.hasP22 = this.teamTraitAugments.player.p22;
+        this.hasP23 = this.teamTraitAugments.player.p23;
 
         this.tick = -20;
 
@@ -258,9 +273,10 @@ export class BattleEngine {
         }
         
         // [p13] 방송부 7 긴급 속보: 적 기절 3.5초(35틱), 무한 사거리(+99), 공속 30% 증가
-        if (this.hasP13) {
-            const broadcastUnits = activeUnits.filter(u => u.team === 'player' && (u.subject === '방송부' || (Array.isArray(u.club) ? u.club.includes('방송부') : u.club === '방송부')));
-            const enemies = activeUnits.filter(u => u.team === 'enemy');
+        for (const team of ['player', 'enemy']) {
+            if (!this.teamTraitAugments[team].p13) continue;
+            const broadcastUnits = activeUnits.filter(u => u.team === team && (Array.isArray(u.club) ? u.club.includes('방송부') : u.club === '방송부'));
+            const enemies = activeUnits.filter(u => u.team !== team);
             enemies.forEach(e => {
                 this.addBuff(e, 'stun', null, 0, 35);
             });
@@ -269,28 +285,24 @@ export class BattleEngine {
                 this.addBuff(u, 'buff', 'as', this.getUnbuffedStat(u, 'as') * 0.30, 9999);
             });
             this.logs.push({
-                tick: this.tick, type: 'broadcast_silence', fxType: 'aug_mass_silence', targets: enemies.map(e => e.gridIndex)
+                tick: this.tick, type: 'broadcast_silence', team, fxType: 'aug_mass_silence', targets: enemies.map(e => e.gridIndex)
             });
         }
         
         // [p14] 육상부 6 빛의 속도: 전투 시작 시 육상부 유닛에게 5중첩 즉시 부여
-        if (this.hasP14) {
-            activeUnits.forEach(u => {
-                if (u.team === 'player' && (u.club === '육상부' || (Array.isArray(u.club) && u.club.includes('육상부')))) {
-                    this.addRunnerStacks(u, 5);
-                }
-            });
-        }
+        activeUnits.forEach(u => {
+            if (this.teamTraitAugments[u.team].p14 && (u.club === '육상부' || (Array.isArray(u.club) && u.club.includes('육상부')))) {
+                this.addRunnerStacks(u, 5);
+            }
+        });
         
         // [p21] 선도부 6 철권 통치: 시작 보호막 80%, 피해 증폭 50%
-        if (this.hasP21) {
-            activeUnits.forEach(u => {
-                if (u.team === 'player' && (u.club === '선도부' || (Array.isArray(u.club) && u.club.includes('선도부')))) {
-                    u.currShield = u.stats.maxHp * 0.8;
-                    u.combat.dmgAmp = 0.50;
-                }
-            });
-        }
+        activeUnits.forEach(u => {
+            if (this.teamTraitAugments[u.team].p21 && (u.club === '선도부' || (Array.isArray(u.club) && u.club.includes('선도부')))) {
+                u.currShield = u.stats.maxHp * 0.8;
+                u.combat.dmgAmp = 0.50;
+            }
+        });
 
         // 장난꾸러기: 팀마다 전투 시작 시 장난 룰렛 1회
         for (const team of ['player', 'enemy']) {
@@ -298,7 +310,7 @@ export class BattleEngine {
             if (!source) continue;
 
             const enemies = activeUnits.filter(u => u.team !== team && u.currHp > 0 && !u.isDead);
-            const enhancedJackpot = team === 'player' && this.hasP23;
+            const enhancedJackpot = this.teamTraitAugments[team].p23;
             const roll = (source.combat.prankJackpot || enhancedJackpot) ? 1 : this.random();
             const result = (source.combat.prankJackpot || enhancedJackpot) ? 'jackpot'
                 : roll < source.combat.prankDudChance ? 'dud'
@@ -362,20 +374,20 @@ export class BattleEngine {
                     const roles = Array.isArray(u.role) ? u.role : [u.role];
                     const picked = roles[Math.floor(this.random() * roles.length)];
                     if (picked === 'dealer') {
-                        // 딜러: 공격력 25%, 주문력 25% 증폭
-                        u.stats.ad = Math.round(u.stats.ad * 1.25);
-                        u.stats.ap = Math.round(u.stats.ap * 1.25);
+                        // 딜러: 공격력 20%, 주문력 20% 증폭
+                        u.stats.ad = Math.round(u.stats.ad * 1.20);
+                        u.stats.ap = Math.round(u.stats.ap * 1.20);
                     } else if (picked === 'tank') {
-                        // 탱커: 최대 체력 25% 증가, 방어력/마법저항력 +30
-                        const bonus = Math.round((u.stats.maxHp || u.stats.hp) * 0.25);
+                        // 탱커: 최대 체력 20% 증가, 방어력/마법저항력 +20
+                        const bonus = Math.round((u.stats.maxHp || u.stats.hp) * 0.20);
                         u.stats.hp = (u.stats.hp || 0) + bonus;
                         u.stats.maxHp = (u.stats.maxHp || u.stats.hp) + bonus;
                         u.currHp = (u.currHp || u.stats.hp) + bonus;
-                        u.stats.armor += 30;
-                        u.stats.mr += 30;
+                        u.stats.armor += 20;
+                        u.stats.mr += 20;
                     } else if (picked === 'support') {
-                        // 서포터: 스킬 마나 소모 15% 감소, 초당 마나 회복 +2
-                        u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * 0.85));
+                        // 서포터: 스킬 마나 소모 10% 감소, 초당 마나 회복 +2
+                        u.stats.maxMana = Math.max(10, Math.floor(u.stats.maxMana * 0.90));
                         u.combat.teamManaRegen = (u.combat.teamManaRegen || 0) + 2;
                     }
                 });
@@ -409,7 +421,7 @@ export class BattleEngine {
         this.initItemEffects(activeUnits);
 
         activeUnits.forEach(u => {
-            if (u.combat.isCafeteria || (this.hasP22 && u.team === 'player')) u.combat.cafeteriaBaseHp = u.stats.maxHp;
+            if (u.combat.isCafeteria || this.teamTraitAugments[u.team].p22) u.combat.cafeteriaBaseHp = u.stats.maxHp;
         });
 
         this.tick = -5;
@@ -562,7 +574,7 @@ export class BattleEngine {
                                     tick: this.tick, type: 'damage',
                                     target: u.gridIndex, source: lastSourceIdx !== null ? lastSourceIdx : u.gridIndex,
                                     dmg: Math.round(actualDmg + trueDmg), dmgType: actualDmg > trueDmg ? 'magic' : 'true', isCrit: false,
-                                    currHp: u.currHp, targetMana: u.mana, targetStats: { ...u.stats }, targetCombat: { ...u.combat }
+                                    currHp: u.currHp, targetMana: u.currMana, targetStats: { ...u.stats }, targetCombat: { ...u.combat }
                                 });
                                 
                                 if (u.manaType === '근성') {
@@ -614,7 +626,7 @@ export class BattleEngine {
                     }
                     
                     // [p15] 도덕 6 절대 선: 매초 최대 체력의 1% 지속 회복
-                    if (this.hasP15 && u.team === 'player' && (u.subject === '도덕' || (Array.isArray(u.subject) && u.subject.includes('도덕')))) {
+                    if (this.teamTraitAugments[u.team].p15 && (u.subject === '도덕' || (Array.isArray(u.subject) && u.subject.includes('도덕')))) {
                         const heal = u.stats.maxHp * 0.01;
                         u.currHp = Math.min(u.stats.maxHp, u.currHp + heal);
                         this.logs.push({ tick: this.tick, type: 'heal', target: u.gridIndex, amount: Math.round(heal), currHp: u.currHp, maxHp: u.stats.maxHp });
@@ -624,11 +636,14 @@ export class BattleEngine {
 
             // 글로벌 틱 이벤트
             if (this.tick > 0) {
-                const specialMealSource = this.hasP22
-                    ? activeUnits.find(a => a.team === 'player' && a.currHp > 0 && a.combat.isCafeteria)
-                    : null;
+                const specialMealSources = Object.fromEntries(['player', 'enemy'].map(team => [team,
+                    this.teamTraitAugments[team].p22
+                        ? activeUnits.find(a => a.team === team && a.currHp > 0 && a.combat.isCafeteria)
+                        : null
+                ]));
                 activeUnits.forEach(u => {
                     if (u.currHp <= 0) return;
+                    const specialMealSource = specialMealSources[u.team];
                     
                     if (this.tick % 30 === 0 && u.combat.isFirelight) {
                         u.currHp = Math.min(u.stats.maxHp, u.currHp + (u.stats.maxHp * u.combat.tickHeal * this.healEfficiency));
@@ -636,7 +651,7 @@ export class BattleEngine {
                     }
                     
                     // [급식부 시너지 & p22 특급 만찬] 포만감(Satiety) 틱마다 체력/방마저 증가
-                    if (u.combat.isCafeteria && (!this.hasP22 || u.team !== 'player' || u === specialMealSource)) {
+                    if (u.combat.isCafeteria && (!this.teamTraitAugments[u.team].p22 || u === specialMealSource)) {
                         const baseSatietyTick = u.combat.satietyTick || 50; // 기본 50틱(5초)
                         const isSpecialMeal = u === specialMealSource;
                         const actualSatietyTick = isSpecialMeal ? 25 : baseSatietyTick; // p22 활성화 시 팀 전체가 2.5초마다 1회 중첩
@@ -646,7 +661,7 @@ export class BattleEngine {
                             
                             // [p22] 아군 전체에게 공유
                             if (isSpecialMeal) {
-                                const allies = activeUnits.filter(a => a.team === 'player' && a.currHp > 0);
+                                const allies = activeUnits.filter(a => a.team === u.team && a.currHp > 0);
                                 allies.forEach(a => {
                                     const bonusHp = a.combat.cafeteriaBaseHp * u.combat.stackHpPct;
                                     a.stats.maxHp += bonusHp;
@@ -887,7 +902,7 @@ export class BattleEngine {
                     target.currHp -= (totalDmg + trueDmg);
 
                     // [p15] 도덕 6 절대 선 (평타 피격 시 15% 반사)
-                    if (this.hasP15 && target.team === 'player' && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team === 'enemy') {
+                    if (this.teamTraitAugments[target.team].p15 && (Array.isArray(target.subject) ? target.subject.includes('도덕') : target.subject === '도덕') && unit.team !== target.team) {
                         const reflectDmg = (target.stats.armor + target.stats.mr) * 0.15;
                         let actualReflect = reflectDmg * (100 / (100 + unit.stats.mr));
                         unit.currHp -= actualReflect;
@@ -911,6 +926,7 @@ export class BattleEngine {
                     let baseGainMana = unit.manaType === '전투' ? 10 : unit.manaType === '집중' ? 5 : 0;
                     let manaGainMult = Math.max(0, 1 + (unit.combat.manaGain || 0)); // 디버프가 -1.1 이면 0으로 막음
                     let gainMana = baseGainMana * manaGainMult;
+                    if (isCrit) gainMana += unit.combat.critManaRestore || 0;
                     unit.currMana = Math.max(unit.currMana, Math.min(unit.stats.maxMana, unit.currMana + gainMana));
                     
                     let baseTargetGainMana = target.manaType === '근성' ? 10 : 0;
@@ -920,7 +936,7 @@ export class BattleEngine {
                     
                     // 흡혈 (과학탐구원 스킬 vampBuff, 아이템 vamp 등 combat.vamp > 0 이면 적용)
                     let currentVamp = unit.combat.vamp || 0;
-                    if (this.hasP14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10 && unit.team === 'player') {
+                    if (this.teamTraitAugments[unit.team].p14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10) {
                         currentVamp += 0.30; // [p14] 육상부 6 30% 흡혈
                     }
                     if (currentVamp > 0) {
@@ -961,7 +977,7 @@ export class BattleEngine {
                     });
                     
                     // [p14] 육상부 6 빛의 속도: 평타 관통
-                    if (this.hasP14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10 && unit.team === 'player') {
+                    if (this.teamTraitAugments[unit.team].p14 && unit.combat.isRunner && unit.combat.runnerStacks >= 10) {
                         const dx = (target.gridIndex % 8) - (unit.gridIndex % 8);
                         const dy = Math.floor(target.gridIndex / 8) - Math.floor(unit.gridIndex / 8);
                         const mag = Math.max(Math.abs(dx), Math.abs(dy));
@@ -1015,7 +1031,7 @@ export class BattleEngine {
                             this.logs.push({
                                 tick: this.tick, type: 'damage', target: rTar.gridIndex, source: unit.gridIndex,
                                 dmg: Math.round(rDmg), dmgType: 'physical', isCrit: false, fxType: 'projectile',
-                                currHp: rTar.currHp, targetMana: rTar.mana, targetStats: { ...rTar.stats }, targetCombat: { ...rTar.combat }
+                                currHp: rTar.currHp, targetMana: rTar.currMana, targetStats: { ...rTar.stats }, targetCombat: { ...rTar.combat }
                             });
                             this.checkHpThresholds(rTar, activeUnits, unit);
                             if (rTar.currHp <= 0) this.handleDeath(rTar, activeUnits);
@@ -1033,7 +1049,7 @@ export class BattleEngine {
                                 this.logs.push({
                                     tick: this.tick, type: 'damage', target: st.gridIndex, source: unit.gridIndex,
                                     dmg: Math.round(stDmg), dmgType: 'magic', isCrit: false, fxType: 'lightning',
-                                    currHp: st.currHp, targetMana: st.mana, targetStats: { ...st.stats }, targetCombat: { ...st.combat }
+                                    currHp: st.currHp, targetMana: st.currMana, targetStats: { ...st.stats }, targetCombat: { ...st.combat }
                                 });
                                 this.addBuff(st, 'mrShred', null, 0.3, 50);
                                 this.checkHpThresholds(st, activeUnits, unit);
@@ -1049,7 +1065,7 @@ export class BattleEngine {
                         this.logs.push({
                             tick: this.tick, type: 'damage', target: unit.gridIndex, source: target.gridIndex,
                             dmg: Math.round(actualBramble), dmgType: 'magic', isCrit: false, fxType: 'bramble',
-                            currHp: unit.currHp, targetMana: unit.mana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
+                            currHp: unit.currHp, targetMana: unit.currMana, targetStats: { ...unit.stats }, targetCombat: { ...unit.combat }
                         });
                         this.checkHpThresholds(unit, activeUnits, target);
                         if (unit.currHp <= 0) this.handleDeath(unit, activeUnits);
@@ -1342,7 +1358,7 @@ export class BattleEngine {
             }
             
             // [p12] 보건부 6 불로불사: 전체 100% 회복 및 부활자 피해 증폭 100%
-            if (this.hasP12 && target.team === 'player' && target.club === '보건부') {
+            if (this.teamTraitAugments[target.team].p12 && (target.club === '보건부' || (Array.isArray(target.club) && target.club.includes('보건부')))) {
                 const allAllies = activeUnits.filter(u => u.team === target.team && u.currHp > 0 && !u.isDead);
                 allAllies.forEach(a => {
                     const healVal = a.stats.maxHp;

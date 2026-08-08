@@ -18,7 +18,8 @@ export function applyDonationItems(board, items, random = Math.random) {
             if (distance > 1) return;
 
             unit.donationItems ||= [];
-            const slots = Math.min(giftCount, 3 - (unit.items || []).length - unit.donationItems.length);
+            const equippedSlots = unit.items?.includes('comb_crit_crit') ? 3 : (unit.items || []).length;
+            const slots = Math.min(giftCount, 3 - equippedSlots - unit.donationItems.length);
             for (let i = 0; i < slots; i++) {
                 unit.donationItems.push(combined[Math.floor(random() * combined.length)].id);
             }
@@ -126,6 +127,7 @@ export class SynergyManager {
     applySynergyStats(originalBoard, activeSynergies, isEnemy = false, random = Math.random, context = {}) {
         const teamRole = context.teamRole || (isEnemy ? 'opponent' : 'player');
         const applyPlayerOnlyBonuses = context.applyPlayerOnlyBonuses ?? !isEnemy;
+        const applyDonationBonuses = context.applyDonationBonuses ?? applyPlayerOnlyBonuses;
         const buffedBoard = originalBoard.map(u => {
             if (!u) return null;
             const newU = JSON.parse(JSON.stringify(u));
@@ -139,7 +141,7 @@ export class SynergyManager {
             return newU;
         });
 
-        if (teamRole === 'player' && this.app?.ITEMS) applyDonationItems(buffedBoard, this.app.ITEMS, random);
+        if (applyDonationBonuses && this.app?.ITEMS) applyDonationItems(buffedBoard, this.app.ITEMS, random);
 
         const getLevelData = (type, name, count) => {
             const synData = SYNERGIES[type][name];
@@ -168,8 +170,8 @@ export class SynergyManager {
             if (subj === '도덕') teamDef += eff.teamDef || 0;
         }
 
-        const g = this.app.state.globalBuffs;
-        const playerHp = this.app.state.hp;
+        const g = context.globalBuffs || this.app.state.globalBuffs;
+        const playerHp = context.playerHp ?? this.app.state.hp;
         const isSpartan = g.spartanTraining && playerHp <= 30 && applyPlayerOnlyBonuses;
         const isDuty = g.dutyResponsibility && originalBoard.filter(u => u).length <= 3 && applyPlayerOnlyBonuses;
 
@@ -210,9 +212,12 @@ export class SynergyManager {
 
                 if (isSpartan) { u.combat.dmgReduc += 0.3; u.combat.vamp += 0.3; }
                 if (isDuty) { u.combat.dmgReduc += 0.15; }
-            } else if (teamRole === 'opponent') {
-                if (g.enforcerAura) {
-                    u.stats.maxHp = Math.round(u.stats.maxHp * (1 - g.enforcerAura));
+            }
+
+            if (teamRole === 'opponent') {
+                const opposingGlobalBuffs = context.opposingGlobalBuffs || (applyPlayerOnlyBonuses ? {} : g);
+                if (opposingGlobalBuffs.enforcerAura) {
+                    u.stats.maxHp = Math.round(u.stats.maxHp * (1 - opposingGlobalBuffs.enforcerAura));
                     u.stats.hp = u.stats.maxHp;
                 }
             }
@@ -221,7 +226,13 @@ export class SynergyManager {
                 const subjEff = getLevelData('subjects', subj, activeSynergies.subjects[subj] || 0);
                 if (subjEff) {
                     if (subj === '국어') u.stats.ap += subjEff.selfAp || 0;
-                    if (subj === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; if (subjEff.armorPen) u.combat.armorPen = subjEff.armorPen; }
+                    if (subj === '수학') {
+                        u.combat.critChance += subjEff.critChance;
+                        u.combat.critDmg += subjEff.critDmg;
+                        if (subjEff.armorPen) u.combat.armorPen = subjEff.armorPen;
+                        if (subjEff.skillCrit) u.combat.skillCrit = true;
+                        if (subjEff.critManaRestore) u.combat.critManaRestore = subjEff.critManaRestore;
+                    }
                     if (subj === '과학') {
                         u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
                         if (subjEff.skillCrit) u.combat.skillCrit = true;

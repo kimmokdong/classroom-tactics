@@ -2,6 +2,7 @@ import fs from 'fs';
 import { UNIT_POOL, SYNERGIES } from './js/data.js';
 import { SynergyManager } from './js/systems/SynergyManager.js';
 import { BattleEngine } from './js/battleEngine.js';
+import { POOL_SIZES } from './js/core/constants.js';
 
 // --- MOCK APP ENVIRONMENT ---
 class DummyApp {
@@ -39,7 +40,7 @@ const LEVEL_UP_COST = { 6: 30, 7: 50, 8: 68 };
 const BASE_LEVEL_COST = { '6L': 38, '7L': 68, '8L': 118, '9L': 186 };
 
 // 1인용 솔로플레이 환경에 맞게 기물 풀 대폭 축소 (기물 독점 난이도 증가)
-const TIER_COPIES = { 1: 22, 2: 18, 3: 18, 4: 8, 5: 7 };
+const TIER_COPIES = POOL_SIZES;
 const SHOP_ODDS = {
     6: [35, 35, 25, 5, 0],
     7: [19, 25, 40, 15, 1],

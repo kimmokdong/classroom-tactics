@@ -50,6 +50,7 @@ export class StageManager {
     handleBattleStart() {
         if (this.app.isBattlePhase) return false;
         const app = this.app;
+        app.clearInteractionSelection?.();
         let playerUnitsCount = app.state.board.filter(u => u !== null).length;
         const maxCapacity = app.state.level;
 
@@ -73,6 +74,14 @@ export class StageManager {
         }
         app.saveManager?.save(SAVE_PHASES.NEXT_ROUND_READY);
 
+        // PvP 라운드는 양쪽 플레이어가 현재 보드를 제출한 뒤 기존 전투 엔진으로 이어간다.
+        if (app.multiplayerManager?.shouldPrepareBattle()) {
+            app.multiplayerManager.prepareBattle().then(ready => {
+                if (ready) this.handleBattleStart();
+            });
+            return false;
+        }
+
         // (증강체 타이밍 검사 로직은 라운드 전환 시점(전투 종료 후)으로 이동됨)
 
         // 전투 시작 전, 전투 로그창 및 통계 초기화
@@ -82,6 +91,12 @@ export class StageManager {
 
         this.app.isBattlePhase = true; // 전투 상태 플래그 활성화
         window.isBattlePhase = true; // 글로벌 상태 플래그 동기화(렌더러에서 우선 방어)
+        const startButton = document.getElementById('btn-start-battle');
+        if (startButton) {
+            startButton.disabled = true;
+            startButton.textContent = '⚔️ 전투 중...';
+        }
+        this.app.completeOnboarding?.();
         this.app.eventBus?.emit(AUGMENT_EVENTS.BATTLE_STARTED, { stage: [...this.app.state.stage] });
         
         if (this.app.soundManager) {
@@ -94,6 +109,11 @@ export class StageManager {
         // 적은 init() 및 다음 라운드에서 이미 state.enemyBoard에 스폰되어 있음
         const battleSeed = `${app.state.runSeed}:${app.state.stage.join('-')}`;
         const battleRandom = createSeededRandom(battleSeed);
+        const remoteOpponentContext = app.multiplayerManager?.isActive
+            && !app.multiplayerManager.isPveRound()
+            && app.multiplayerManager.preparedRound === app.state.stage.join('-')
+            ? app.multiplayerManager.opponentContext
+            : null;
         const {
             playerBoard: buffedPlayerBoard,
             enemyBoard: buffedEnemyBoard,
@@ -101,14 +121,22 @@ export class StageManager {
             enemySynergies
         } = prepareBattle({
             player: { board: this.app.state.board, teamRole: 'player', applyPlayerOnlyBonuses: true },
-            opponent: { board: this.app.state.enemyBoard, teamRole: 'opponent', applyPlayerOnlyBonuses: false },
+            opponent: {
+                board: this.app.state.enemyBoard,
+                teamRole: 'opponent',
+                applyPlayerOnlyBonuses: Boolean(remoteOpponentContext),
+                context: remoteOpponentContext ? {
+                    ...remoteOpponentContext,
+                    opposingGlobalBuffs: app.state.globalBuffs
+                } : {}
+            },
             getSynergies: board => this.app.getSynergyData(board),
             applySynergyStats: (...args) => this.app.applySynergyStats(...args),
             random: battleRandom
         });
 
         // 극후반 아이템 격차 보정은 시너지 준비가 끝난 뒤에만 적용한다.
-        applyLateGameEnemyModifier(buffedEnemyBoard, app.state.stage[0]);
+        if (!app.multiplayerManager?.isActive) applyLateGameEnemyModifier(buffedEnemyBoard, app.state.stage[0]);
 
         // --- 학사일정(증강체) 전투 시작 연출 ---
         const g = app.state.globalBuffs;
@@ -172,7 +200,15 @@ export class StageManager {
         // 2. 엔진 계산 (백그라운드 틱 시뮬레이션)
         const preBattlePlayerBoard = JSON.parse(JSON.stringify(buffedPlayerBoard));
         const playerAugments = this.app.state.augments.map(a => a.id);
-        const engine = new BattleEngine(buffedPlayerBoard, buffedEnemyBoard, playerAugments, resolveBattleGold(this.app.state.gold), battleSeed);
+        const engine = new BattleEngine(
+            buffedPlayerBoard,
+            buffedEnemyBoard,
+            playerAugments,
+            resolveBattleGold(this.app.state.gold),
+            battleSeed,
+            remoteOpponentContext?.gold ?? resolveBattleGold(this.app.state.gold),
+            remoteOpponentContext?.augments || []
+        );
         app.engine = engine; // 실시간 정보 조회용 참조 저장
         const logs = engine.run();
 
@@ -291,10 +327,12 @@ export class StageManager {
                         title = '게임 오버';
                         type = 'gameover';
                         msg = `<span style="color:#d63031; font-weight:800; font-size:1.3rem;">💀 체력이 0이 되었습니다.</span>`;
-                        onConfirm = () => {
-                            this.app.saveManager?.clear();
-                            location.reload();
-                        };
+                        onConfirm = this.app.multiplayerManager?.isActive
+                            ? () => this.app.multiplayerManager.leaveMultiplayer()
+                            : () => {
+                                this.app.saveManager?.clear();
+                                location.reload();
+                            };
                     } else {
                         title = '패배...';
                         type = 'loss';
@@ -302,6 +340,11 @@ export class StageManager {
                         if (st.lossStreak >= 2) msg += `<br><span style="color:#00cec9;">💧 ${st.lossStreak}연패 보너스 +${streakBonus}G</span>`;
                     }
                 }
+            }
+
+            const finalizeBattle = (multiplayerResult = null) => {
+            if (multiplayerResult?.placement) {
+                msg += `<br><strong style="color:#315f52;">현재 순위: ${multiplayerResult.placement}위 · 보드 결과가 통계에 기록되었습니다.</strong>`;
             }
 
             // PVE 라운드 (x-5) 종료 시 보상 (승패 상관없이 지급)
@@ -340,13 +383,23 @@ export class StageManager {
             }
             // ------------------
 
-            this.app.showResultModal(title, msg, type, onConfirm);
-
             if (type === 'gameover') {
                 this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
+                this.app.showResultModal(title, msg, type, onConfirm);
                 return;
             }
 
+            if (multiplayerResult?.room?.status === 'finished') {
+                const self = multiplayerResult.room.players.find(player => player.id === multiplayerResult.room.selfId);
+                title = self?.placement === 1 ? '멀티플레이 우승!' : '멀티플레이 종료';
+                type = self?.placement === 1 ? 'win' : 'loss';
+                msg += `<br><br><strong>최종 ${self?.placement || '-'}위 · 보드 비용 ${self?.boardCost || 0}코스트</strong>`;
+                this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
+                this.app.showResultModal(title, msg, type, () => this.app.multiplayerManager.leaveMultiplayer());
+                return;
+            }
+
+            const advanceRound = () => {
             // 기본 경험치 +2 자동 지급
             this.app.addExp(2);
 
@@ -402,6 +455,10 @@ export class StageManager {
             // UI/보드 복구
             this.app.isBattlePhase = false; // 전투 상태 플래그 해제
             window.isBattlePhase = false; // 글로벌 플래그 동기화
+            if (startButton) {
+                startButton.disabled = false;
+                startButton.textContent = '⚔️ 전투 시작';
+            }
             
             if (this.app.soundManager) {
                 this.app.soundManager.playBgmSequence('prep');
@@ -443,6 +500,16 @@ export class StageManager {
                 this.app.showStoreTimeSelection();
             }
             this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.NEXT_ROUND_READY);
+            };
+
+            this.app.showResultModal(title, msg, type, advanceRound);
+            };
+
+            if (this.app.multiplayerManager?.isActive) {
+                this.app.multiplayerManager.reportBattle(winner, endLog).then(finalizeBattle);
+            } else {
+                finalizeBattle();
+            }
         });
     }
 }

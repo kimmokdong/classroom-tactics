@@ -64,6 +64,9 @@ export class ItemManager {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'item-icon';
                     itemDiv.draggable = true;
+                    itemDiv.tabIndex = 0;
+                    itemDiv.setAttribute('role', 'button');
+                    itemDiv.setAttribute('aria-label', `${itemDef.name} 선택`);
 
                     const iconStr = this.getIconForItem(itemId);
                     itemDiv.innerHTML = `<span style="font-size:1.2rem;">${iconStr}</span>`;
@@ -99,6 +102,12 @@ export class ItemManager {
 
                     itemDiv.onclick = (e) => {
                         e.stopPropagation();
+                        if (this.app.selectedInventoryItem !== null && this.app.selectedInventoryItem !== i) {
+                            this.combineOrMoveItem(this.app.selectedInventoryItem, i);
+                            this.app.clearInteractionSelection();
+                            return;
+                        }
+                        this.app.selectInventoryItem(i, itemDiv);
                         if (itemDef.type === 'base') {
                             let html = `<div style="font-weight:bold; color:#d97706; margin-bottom:8px; text-align:center; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:4px;">${itemDef.name} 조합표</div>`;
                             html += `<div style="display:flex; flex-direction:column; gap:6px;">`;
@@ -135,6 +144,12 @@ export class ItemManager {
                                 </div>
                                 <div style="color:#475569;">${itemDef.desc}</div>
                             `);
+                        }
+                    };
+                    itemDiv.onkeydown = (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            itemDiv.click();
                         }
                     };
 
@@ -219,6 +234,20 @@ export class ItemManager {
 
                 this.combineOrMoveItem(sourceIdx, targetIdx);
             };
+            slot.onclick = (e) => {
+                if (e.target.closest('.item-icon')) return;
+                const sourceIdx = this.app.selectedInventoryItem;
+                if (sourceIdx !== null && sourceIdx !== i) {
+                    this.combineOrMoveItem(sourceIdx, i);
+                    this.app.clearInteractionSelection();
+                }
+            };
+            slot.onkeydown = (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && this.app.selectedInventoryItem !== null) {
+                    e.preventDefault();
+                    slot.click();
+                }
+            };
 
             slotsEl.appendChild(slot);
         }
@@ -260,12 +289,14 @@ export class ItemManager {
     combineOrMoveItem(sourceIdx, targetIdx) {
         const sourceId = this.app.state.inventory[sourceIdx];
         const targetId = this.app.state.inventory[targetIdx];
+        if (!sourceId || sourceIdx === targetIdx) return false;
 
         if (!targetId) {
             this.app.state.inventory[targetIdx] = sourceId;
             this.app.state.inventory[sourceIdx] = null;
             this.renderInventory();
-            return;
+            this.app.showFeedback?.('아이템을 이동했습니다.', 'success');
+            return true;
         }
 
         const sourceDef = this.app.ITEMS.find(i => i.id === sourceId);
@@ -283,13 +314,16 @@ export class ItemManager {
                 this.app.soundManager.playSFX('item_combine');
                 console.log(`아이템 조합 성공: ${combo.name}`);
                 this.renderInventory();
-                return;
+                this.app.showFeedback?.(`${combo.name} 조합 완료`, 'success');
+                return true;
             }
         }
 
         this.app.state.inventory[targetIdx] = sourceId;
         this.app.state.inventory[sourceIdx] = targetId;
         this.renderInventory();
+        this.app.showFeedback?.('아이템 위치를 교환했습니다.', 'success');
+        return true;
     }
 
     giveItemToUnit(itemIdx, unit) {
@@ -299,6 +333,16 @@ export class ItemManager {
         const itemDef = this.app.ITEMS.find(i => i.id === itemId);
         if (!itemDef) return false;
         unit.items ||= [];
+        const equip = (nextItems) => {
+            try {
+                equipUnitItems(unit, nextItems, { catalog: this.app.ITEMS, random: this.random });
+                return true;
+            } catch (error) {
+                if (!(error instanceof RangeError)) throw error;
+                this.app.showFeedback?.(error.message, 'warning');
+                return false;
+            }
+        };
 
         if (itemDef.type === 'base') {
             const baseIndex = unit.items.findIndex(id => this.app.ITEMS.find(i => i.id === id)?.type === 'base');
@@ -311,10 +355,11 @@ export class ItemManager {
                 if (combo) {
                     const nextItems = [...unit.items];
                     nextItems[baseIndex] = combo.id;
-                    equipUnitItems(unit, nextItems, { catalog: this.app.ITEMS, random: this.random });
+                    if (!equip(nextItems)) return false;
                     this.app.state.inventory[itemIdx] = null;
                     this.app.soundManager.playSFX('item_combine');
                     console.log(`유닛 내부 아이템 조합 성공: ${combo.name}`);
+                    this.app.showFeedback?.(`${unit.name}: ${combo.name} 조합 완료`, 'success');
                     this.renderInventory();
                     this.app.renderUnits();
                     this.app.calculateSynergy();
@@ -329,16 +374,17 @@ export class ItemManager {
         }
 
         if (unit.items.length >= 3) {
-            alert("아이템 슬롯이 꽉 찼습니다!");
+            this.app.showFeedback?.(`${unit.name}의 아이템 슬롯이 가득 찼습니다.`, 'warning');
             return false;
         }
 
-        equipUnitItems(unit, [...unit.items, itemId], { catalog: this.app.ITEMS, random: this.random });
+        if (!equip([...unit.items, itemId])) return false;
         this.app.state.inventory[itemIdx] = null;
         this.renderInventory();
         this.app.renderUnits();
         this.app.calculateSynergy();
         this.app.soundManager.playSFX('item_equip');
+        this.app.showFeedback?.(`${unit.name}에게 ${itemDef.name} 장착`, 'success');
 
         const activeDiv = document.querySelector(`.unit-character[data-index="${unit.gridIndex !== undefined ? unit.gridIndex : this.app.state.bench.indexOf(unit)}"][data-type="${unit.gridIndex !== undefined ? 'board' : 'bench'}"]`);
         if (document.getElementById('unit-details').innerHTML.includes(unit.name)) {

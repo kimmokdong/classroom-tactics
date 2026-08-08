@@ -55,6 +55,21 @@ function atomicWriteFile(filePath, text) {
     }
 }
 
+function commitRunDirectory(stagingDirectory, runDirectory) {
+    try {
+        fs.renameSync(stagingDirectory, runDirectory);
+    } catch (error) {
+        if (process.platform !== 'win32' || !['EPERM', 'EACCES', 'EBUSY'].includes(error.code)) throw error;
+        try {
+            fs.cpSync(stagingDirectory, runDirectory, { recursive: true, errorOnExist: true, force: false });
+            fs.rmSync(stagingDirectory, { recursive: true, force: true });
+        } catch (copyError) {
+            fs.rmSync(runDirectory, { recursive: true, force: true });
+            throw copyError;
+        }
+    }
+}
+
 export function writeJson(filePath, value) {
     atomicWriteFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -331,7 +346,7 @@ export function writeBalanceRun({
         writeCsv(path.join(stagingDirectory, 'csv', 'growth.csv'), aggregateRows.growth, ['parentDeckId', 'childDeckId', 'fromLevel', 'toLevel', 'parentScoreRate', 'childScoreRate', 'scoreRateDelta', 'unitGoldCostDelta', 'paidXpGoldEquivalentDelta']);
         atomicWriteFile(path.join(stagingDirectory, 'report.md'), buildReport(run, manifest, data));
         fs.mkdirSync(path.dirname(runDirectory), { recursive: true });
-        fs.renameSync(stagingDirectory, runDirectory);
+        commitRunDirectory(stagingDirectory, runDirectory);
     } catch (error) {
         fs.rmSync(stagingDirectory, { recursive: true, force: true });
         throw error;

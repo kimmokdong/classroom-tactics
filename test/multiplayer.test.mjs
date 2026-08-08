@@ -1,0 +1,191 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import {
+    aggregateMatchStats,
+    assignOpponentId,
+    buildBoardSnapshot,
+    calculateBoardCost,
+    rankPlayers,
+    sanitizeNickname,
+    sanitizeRoomCode
+} from '../js/multiplayer/core.js';
+import { createMultiplayerHandler } from '../server/multiplayer-handler.mjs';
+import { BattleEngine } from '../js/battleEngine.js';
+
+class MemoryBlobStore {
+    constructor() { this.values = new Map(); }
+    async get(key) {
+        const value = this.values.get(key);
+        return value === undefined ? null : structuredClone(value);
+    }
+    async setJSON(key, value) { this.values.set(key, structuredClone(value)); }
+    async delete(key) { this.values.delete(key); }
+    list(options = {}) {
+        const blobs = [...this.values.keys()]
+            .filter(key => key.startsWith(options.prefix || ''))
+            .map(key => ({ key, etag: key }));
+        const result = { blobs, directories: [] };
+        if (!options.paginate) return Promise.resolve(result);
+        return { async *[Symbol.asyncIterator]() { yield result; } };
+    }
+}
+
+async function callMultiplayer(handler, action, body = {}, method = 'POST') {
+    const request = new Request(`http://localhost/api/multiplayer/${action}`, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        ...(method === 'GET' ? {} : { body: JSON.stringify(body) })
+    });
+    const response = await handler(request, { params: { action } });
+    return { status: response.status, data: await response.json() };
+}
+
+test('멀티플레이 입력과 보드 스냅샷을 제한한다', () => {
+    assert.equal(sanitizeRoomCode('ab-c 12!'), 'ABC2');
+    assert.equal(sanitizeNickname('  김   목동<script>  '), '김 목동script');
+    const snapshot = buildBoardSnapshot([{ id: 'u1', star: 3, items: ['a', 'b', 'c', 'd'], permGrowth: { ad: 4, nope: 9 } }]);
+    assert.equal(snapshot.length, 24);
+    assert.deepEqual(snapshot[0], { unitId: 'u1', star: 3, items: ['a', 'b', 'c'], permGrowth: { ad: 4 } });
+});
+
+test('별 등급의 실제 기물 수를 반영해 보드 비용을 계산한다', () => {
+    const board = [
+        { unitId: 'one', star: 1 },
+        { unitId: 'four', star: 2 },
+        { unitId: 'five', star: 3 }
+    ];
+    assert.equal(calculateBoardCost(board, { one: 1, four: 4, five: 5 }), 58);
+});
+
+test('생존 참가자끼리 자기 자신을 제외한 상대를 배정한다', () => {
+    const players = ['a', 'b', 'c', 'd'].map(id => ({ id, hp: 100 }));
+    for (const player of players) {
+        const opponent = assignOpponentId(players, player.id, '3-2');
+        assert.ok(players.some(candidate => candidate.id === opponent));
+        assert.notEqual(opponent, player.id);
+    }
+    assert.equal(assignOpponentId([{ id: 'a', hp: 100 }, { id: 'b', hp: 0 }], 'a', '3-2'), null);
+});
+
+test('탈락 라운드와 시각으로 최종 순위를 정한다', () => {
+    const ranked = rankPlayers([
+        { id: 'late', hp: 0, eliminatedRound: 8, eliminatedAt: 30 },
+        { id: 'winner', hp: 20 },
+        { id: 'early', hp: 0, eliminatedRound: 6, eliminatedAt: 20 }
+    ]);
+    assert.deepEqual(ranked.map(player => [player.id, player.placement]), [
+        ['winner', 1], ['late', 2], ['early', 3]
+    ]);
+});
+
+test('탑3·우승·평균 보드 비용을 전체와 유닛별로 집계한다', () => {
+    const records = [1, 2, 3, 4].map(placement => ({
+        roomId: 'room-1',
+        participantCount: 4,
+        placement,
+        boardCost: placement * 10,
+        completedAt: `2026-08-0${placement}T00:00:00.000Z`,
+        boardSignature: placement <= 2 ? 'a:1|b:1' : `c:${placement}`,
+        units: placement === 4
+            ? [{ unitId: 'a', name: 'A', icon: '🅰️', tier: 1, star: 1 }]
+            : [{ unitId: placement === 1 ? 'a' : 'b', name: placement === 1 ? 'A' : 'B', icon: '🎓', tier: 2, star: 1 }],
+        synergies: [{ type: 'subjects', name: '수학', level: 2 }]
+    }));
+    const stats = aggregateMatchStats(records);
+    assert.equal(stats.summary.matches, 1);
+    assert.equal(stats.summary.playerResults, 4);
+    assert.equal(stats.summary.top3Rate, 75);
+    assert.equal(stats.summary.winRate, 25);
+    assert.equal(stats.summary.avgBoardCost, 25);
+    const unitA = stats.units.find(unit => unit.unitId === 'a');
+    assert.deepEqual({ games: unitA.games, top3: unitA.top3Rate, win: unitA.winRate }, { games: 2, top3: 50, win: 50 });
+    assert.equal(stats.synergies[0].games, 4);
+});
+
+test('시작 화면에 방 참가와 누적 통계 UI가 연결되어 있다', async () => {
+    const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+    const main = await readFile(new URL('../js/main.js', import.meta.url), 'utf8');
+    const stage = await readFile(new URL('../js/systems/StageManager.js', import.meta.url), 'utf8');
+    assert.match(html, /id="multiplayer-panel"/);
+    assert.match(html, /data-stats-view="units"/);
+    assert.match(html, /id="multi-stats-summary"/);
+    assert.match(main, /new MultiplayerManager\(this\)/);
+    assert.match(stage, /shouldPrepareBattle\(\)/);
+    assert.match(stage, /reportBattle\(winner, endLog\)/);
+});
+
+test('방 생성부터 상대 보드 동기화·최종 순위·누적 통계까지 이어진다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const hostCreate = await callMultiplayer(handler, 'create', { nickname: '방장' });
+    assert.equal(hostCreate.status, 201);
+    const code = hostCreate.data.room.code;
+    const host = { code, playerId: hostCreate.data.room.selfId, token: hostCreate.data.token };
+
+    const guestJoin = await callMultiplayer(handler, 'join', { code, nickname: '친구' });
+    const guest = { code, playerId: guestJoin.data.room.selfId, token: guestJoin.data.token };
+    await callMultiplayer(handler, 'ready', { ...guest, ready: true });
+    const started = await callMultiplayer(handler, 'start', host);
+    assert.equal(started.data.room.status, 'playing');
+
+    const hostBoard = Array(24).fill(null);
+    hostBoard[0] = { unitId: 'u1_1', star: 2, items: [] };
+    const guestBoard = Array(24).fill(null);
+    guestBoard[0] = { unitId: 'u2_1', star: 1, items: [] };
+    const common = { stage: [1, 1], hp: 100, globalBuffs: {}, augments: [] };
+    const hostWaiting = await callMultiplayer(handler, 'round', { ...host, ...common, board: hostBoard });
+    assert.equal(hostWaiting.data.waiting, true);
+    const guestRound = await callMultiplayer(handler, 'round', { ...guest, ...common, board: guestBoard });
+    assert.equal(guestRound.data.opponent.nickname, '방장');
+    const hostRound = await callMultiplayer(handler, 'round', { ...host, ...common, board: hostBoard });
+    assert.equal(hostRound.data.opponent.nickname, '친구');
+
+    const eliminated = await callMultiplayer(handler, 'result', { ...guest, ...common, hp: 0, board: guestBoard });
+    assert.equal(eliminated.data.room.status, 'finished');
+    assert.equal(eliminated.data.placement, 2);
+    const stats = await callMultiplayer(handler, 'stats', {}, 'GET');
+    assert.equal(stats.data.stats.summary.matches, 1);
+    assert.equal(stats.data.stats.summary.playerResults, 2);
+    assert.equal(stats.data.stats.summary.top3Rate, 100);
+    assert.equal(stats.data.stats.summary.winRate, 50);
+    assert.ok(stats.data.stats.units.some(unit => unit.unitId === 'u1_1' && unit.avgBoardCost === 3));
+});
+
+test('진행 중 나간 참가자는 탈락 처리되어 방이 멈추지 않는다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const hostCreate = await callMultiplayer(handler, 'create', { nickname: '방장' });
+    const code = hostCreate.data.room.code;
+    const host = { code, playerId: hostCreate.data.room.selfId, token: hostCreate.data.token };
+    const guestJoin = await callMultiplayer(handler, 'join', { code, nickname: '중도퇴실' });
+    const guest = { code, playerId: guestJoin.data.room.selfId, token: guestJoin.data.token };
+    await callMultiplayer(handler, 'ready', { ...guest, ready: true });
+    await callMultiplayer(handler, 'start', host);
+    const left = await callMultiplayer(handler, 'leave', guest);
+    assert.equal(left.data.room.status, 'finished');
+    assert.equal(left.data.room.players.find(player => player.id === guest.playerId).placement, 2);
+});
+
+test('상대 플레이어의 전용 증강체도 적 진영 규칙으로 활성화된다', () => {
+    const makeUnit = (name, subject = '도덕') => ({
+        id: name,
+        name,
+        subject,
+        club: '보건부',
+        manaType: '전투',
+        star: 1,
+        items: [],
+        stats: { hp: 100, maxHp: 100, mana: 0, maxMana: 0, ad: 10, ap: 100, armor: 10, mr: 10, as: 0.6, range: 1 },
+        combat: { shield: 0, vamp: 0, dmgAmp: 0, critChance: 0.1, critDmg: 1.5, dmgReduc: 0 }
+    });
+    const playerBoard = Array(24).fill(null);
+    const enemyBoard = Array(24).fill(null);
+    playerBoard[0] = makeUnit('player', '국어');
+    for (let index = 0; index < 6; index++) enemyBoard[index] = makeUnit(`enemy-${index}`);
+    const engine = new BattleEngine(playerBoard, enemyBoard, [], 50, 'multi-augment', 50, ['p15']);
+    engine.maxTicks = 1;
+    engine.run();
+    assert.equal(engine.teamTraitAugments.player.p15, false);
+    assert.equal(engine.teamTraitAugments.enemy.p15, true);
+});

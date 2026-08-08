@@ -203,7 +203,8 @@ function setupBoard() {
     fxCanvas.style.width = '100%';
     fxCanvas.style.height = '100%';
     fxCanvas.style.pointerEvents = 'none';
-    fxCanvas.style.zIndex = '50';
+    // 전투 유닛은 화면 위치에 따라 최대 수백 단위 z-index를 사용하므로 VFX를 확실히 전경에 둔다.
+    fxCanvas.style.zIndex = '1200';
 
     for(let i=0; i<48; i++) {
         const cell = document.createElement('div');
@@ -1281,7 +1282,13 @@ function applySynergiesToStats(board, isEnemy = false) {
             const subjEff = getLevelData('subjects', subj, counts.subjects[subj]);
             if (subjEff) {
                 if (subj === '국어') u.stats.ap += subjEff.selfAp || 0;
-                if (subj === '수학') { u.combat.critChance += subjEff.critChance; u.combat.critDmg += subjEff.critDmg; }
+                if (subj === '수학') {
+                    u.combat.critChance += subjEff.critChance;
+                    u.combat.critDmg += subjEff.critDmg;
+                    if (subjEff.armorPen) u.combat.armorPen = subjEff.armorPen;
+                    if (subjEff.skillCrit) u.combat.skillCrit = true;
+                    if (subjEff.critManaRestore) u.combat.critManaRestore = subjEff.critManaRestore;
+                }
                 if (subj === '과학') {
                     u.combat.dmgAmp = (u.combat.dmgAmp || 0) + (subjEff.dmgAmp || 0);
                     if (subjEff.skillCrit) u.combat.skillCrit = true;
