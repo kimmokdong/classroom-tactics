@@ -73,6 +73,11 @@
                     <span class="title-mode__soon">방 입장</span>
                 </button>
             </div>
+            <a class="title-guide-link" href="./game-guide.html" target="_blank" rel="noopener">
+                <span class="title-guide-link__icon" aria-hidden="true">📖</span>
+                <span><strong>게임 가이드</strong><small>처음이라면 5분만 읽어보세요</small></span>
+                <span class="title-guide-link__arrow" aria-hidden="true">새 창 ↗</span>
+            </a>
             <p id="title-screen-status" class="title-screen__status" role="status" aria-live="polite">모드를 선택해 입장하세요.</p>
         </main>
 
@@ -103,7 +108,7 @@
                 <div class="multi-entry-grid">
                     <article class="multi-entry-card">
                         <span class="multi-entry-card__icon">🏫</span>
-                        <div><h3>새 교실 열기</h3><p>2~8명이 코드로 모여 대전합니다.</p></div>
+                        <div><h3>새 교실 열기</h3><p>2~6명이 코드로 모여 대전합니다.</p></div>
                         <button id="btn-multi-create" class="multi-primary" type="button">방 만들기</button>
                     </article>
                     <article class="multi-entry-card">
@@ -129,6 +134,7 @@
                 <div class="multi-lobby-actions">
                     <button id="btn-multi-ready" class="multi-secondary" type="button">준비 완료</button>
                     <button id="btn-multi-start" class="multi-primary" type="button">대전 시작</button>
+                    <button id="btn-multi-rematch" class="multi-primary" type="button" hidden>같은 코드로 재대결</button>
                     <button id="btn-multi-leave" class="multi-ghost" type="button">나가기</button>
                 </div>
             </div>
@@ -159,9 +165,31 @@
     <div id="app">
         <aside id="multiplayer-hud" class="multi-hud" hidden>
             <strong id="multi-hud-text">🌐 멀티플레이 연결 중</strong>
+            <button id="btn-multi-scout" type="button">정찰</button>
+            <button id="btn-multi-emote" type="button" aria-label="감정 표현">표현</button>
             <button id="btn-multi-hud-stats" type="button">통계</button>
             <button id="btn-multi-hud-result" type="button" hidden>결과</button>
+            <button id="btn-multi-hud-rematch" type="button" hidden>재대결</button>
+            <button id="btn-multi-hud-leave" type="button" hidden>나가기</button>
+            <div id="multi-emote-menu" class="multi-emote-menu" aria-label="감정 표현 선택" hidden>
+                <button type="button" data-multi-emote="hello" aria-label="안녕">👋</button>
+                <button type="button" data-multi-emote="nice" aria-label="좋아요">👍</button>
+                <button type="button" data-multi-emote="wow" aria-label="놀라워요">😮</button>
+                <button type="button" data-multi-emote="oops" aria-label="아쉬워요">😅</button>
+                <button type="button" data-multi-emote="cheer" aria-label="응원">🔥</button>
+                <button type="button" data-multi-emote="gg" aria-label="좋은 경기">👏</button>
+            </div>
+            <div id="multi-emote-bubble" class="multi-emote-bubble" role="status" aria-live="polite" hidden></div>
         </aside>
+        <section id="multi-scout-panel" class="multi-scout-panel" aria-labelledby="multi-scout-title" hidden>
+            <header>
+                <div><small>최근 제출 보드</small><strong id="multi-scout-title">상대 정찰 · 관전</strong></div>
+                <button id="btn-multi-scout-close" type="button" aria-label="정찰창 닫기">×</button>
+            </header>
+            <div id="multi-scout-candidates" class="multi-scout-candidates" aria-label="정찰 후보"></div>
+            <div id="multi-scout-board" class="multi-scout-board" aria-label="6열 4행 미니 보드"></div>
+            <p id="multi-scout-status">정찰할 참가자를 선택하세요.</p>
+        </section>
         <!-- Top HUD -->
         <header id="game-header">
             <div class="hud-left" style="display: flex; gap: 10px; align-items: center;">
@@ -252,7 +280,7 @@
                         <div class="gold-panel">
                             <div id="board-capacity" style="font-size: 0.95rem; font-weight: bold; color: #d81b60; margin-bottom: 10px; background: rgba(216,27,96,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(216,27,96,0.3);">배치: 0/1</div>
                             <div style="font-size: 1.8rem; font-weight: 900; color: #f57f17; margin-bottom: 5px;">💰 <span id="player-gold">0</span></div>
-                            <div id="interest-info" style="font-size: 0.9rem; color: #7f8c8d; font-weight: bold;">예상 이자: +0G</div>
+                            <div id="interest-info" style="font-size: 0.82rem; color: #52636b; font-weight: bold; line-height: 1.35;">다음 수입: 승리 +6G · 패배 +5G</div>
                             <div id="streak-info" style="font-size: 0.85rem; color: #34495e; font-weight: bold; margin-top: 3px;">연승/연패: 없음</div>
                             <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px; text-align: center; line-height: 1.4;">기본 획득골드 5<br>(승리+1 / 패배+0)</div>
                         </div>
@@ -297,6 +325,7 @@
                 <!-- DPS Stats Tab -->
                 <div id="tab-content-dps" style="display: none; flex-direction: column; flex: 1; overflow-y: auto;">
                     <div id="dps-panel-content" style="width: 100%; padding: 0;">
+                        <div id="battle-insight" aria-live="polite"></div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3 style="margin: 0; color: #1e293b; font-size: 1rem; display: flex; align-items: center; gap: 6px;">📊 전투 통계</h3>
                             <select id="dps-type-select" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.82rem; background: white; cursor: pointer;">

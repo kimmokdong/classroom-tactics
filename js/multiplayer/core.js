@@ -1,7 +1,15 @@
 export const MULTIPLAYER_MIN_PLAYERS = 2;
-export const MULTIPLAYER_MAX_PLAYERS = 8;
+export const MULTIPLAYER_MAX_PLAYERS = 6;
 export const MULTIPLAYER_BALANCE_VERSION = '0.1-0807';
 export const MULTIPLAYER_STATS_SCHEMA_VERSION = 1;
+export const MULTIPLAYER_BATTLE_DURATION_MS = 30_000;
+export const MULTIPLAYER_BATTLE_START_DELAY_MS = 1_500;
+export const MULTIPLAYER_EARLY_END_GRACE_MS = 2_000;
+export const MULTIPLAYER_AUGMENT_SELECTION_SECONDS = 30;
+export const MULTIPLAYER_STORE_SELECTION_SECONDS = 20;
+export const MULTIPLAYER_RECONNECT_GRACE_MS = 90_000;
+export const MULTIPLAYER_EMOTE_COOLDOWN_MS = 1_500;
+export const MULTIPLAYER_EMOTES = Object.freeze(['hello', 'nice', 'wow', 'oops', 'cheer', 'gg']);
 
 const STAR_COPIES = Object.freeze({ 1: 1, 2: 3, 3: 9 });
 
@@ -83,6 +91,19 @@ export function assignOpponentId(players, selfId, roundKey) {
     if (selfIndex < 0) return null;
     const offset = 1 + (stringHash(roundKey) % (alive.length - 1));
     return alive[(selfIndex + offset) % alive.length].id;
+}
+
+export function getScoutCandidateIds(players, selfId, roundKey, limit = 2) {
+    const alive = (Array.isArray(players) ? players : [])
+        .filter(player => Number(player?.hp) > 0 && player.id !== selfId)
+        .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    if (!alive.length) return [];
+
+    const actualOpponentId = assignOpponentId(players, selfId, roundKey);
+    const start = stringHash(`${selfId}:${roundKey}`) % alive.length;
+    const rotated = [...alive.slice(start), ...alive.slice(0, start)].map(player => player.id);
+    return [...new Set([actualOpponentId, ...rotated].filter(Boolean))]
+        .slice(0, Math.max(0, Math.min(2, Math.floor(Number(limit) || 0))));
 }
 
 export function rankPlayers(players) {

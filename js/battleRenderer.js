@@ -4,7 +4,7 @@ import { DpsTracker } from './battle/DpsTracker.js';
 
 
 export class BattleRenderer {
-    constructor(logs, boardEl, fxCanvas = null) {
+    constructor(logs, boardEl, fxCanvas = null, options = {}) {
         this.logs = logs;
         this.boardEl = boardEl;
         this.currentTick = 0;
@@ -14,6 +14,9 @@ export class BattleRenderer {
         this.fxCleanupTimeout = null;
         this.playbackSpeed = Number(globalThis.localStorage?.getItem('classroom-tactics-battle-speed')) === 2 ? 2 : 1;
         this.isSkipping = false;
+        this.multiplayerClock = options.multiplayerClock || null;
+        this.isMultiplayer = Boolean(this.multiplayerClock);
+        if (this.isMultiplayer) this.playbackSpeed = 1;
         this.cells = Array.from(boardEl.children);
         
         this.fxCanvas = fxCanvas;
@@ -77,6 +80,10 @@ export class BattleRenderer {
         if (timerContainer) timerContainer.style.display = 'none';
         const controls = document.getElementById('battle-controls');
         if (controls) controls.style.display = 'none';
+        (this.cells || []).forEach(cell => {
+            cell.classList.remove('pve-warning', 'pve-warning--front-slam', 'pve-warning--marked-blast', 'pve-warning--row-silence');
+            delete cell.dataset.pveWarningLabel;
+        });
     }
 
     updatePlaybackControls() {
@@ -89,6 +96,7 @@ export class BattleRenderer {
     }
 
     setPlaybackSpeed(speed) {
+        if (this.isMultiplayer) return 1;
         this.playbackSpeed = Number(speed) === 2 ? 2 : 1;
         this.isSkipping = false;
         globalThis.localStorage?.setItem('classroom-tactics-battle-speed', String(this.playbackSpeed));
@@ -102,6 +110,7 @@ export class BattleRenderer {
     }
 
     skipToEnd() {
+        if (this.isMultiplayer) return;
         this.isSkipping = true;
         this.hitStopUntil = 0;
         const skipButton = globalThis.document?.getElementById('btn-skip-battle');
@@ -134,7 +143,7 @@ export class BattleRenderer {
             if (timerText) timerText.style.color = '#fff';
         }
         const controls = document.getElementById('battle-controls');
-        if (controls) controls.style.display = 'flex';
+        if (controls) controls.style.display = this.isMultiplayer ? 'none' : 'flex';
         document.querySelectorAll('.battle-speed-btn').forEach(button => {
             button.onclick = () => this.setPlaybackSpeed(button.dataset.speed);
         });
@@ -155,9 +164,15 @@ export class BattleRenderer {
         }
 
         this.timer = setInterval(() => {
-            if (performance.now() < this.hitStopUntil) return; // Hit-stop
+            const multiplayerDeadlineReached = this.isMultiplayer
+                && Date.now() >= Number(this.multiplayerClock?.deadline || 0);
+            if (!multiplayerDeadlineReached && performance.now() < this.hitStopUntil) return; // Hit-stop
+            if (multiplayerDeadlineReached) {
+                this.isSkipping = true;
+                this.hitStopUntil = 0;
+            }
 
-            const ticksPerFrame = this.isSkipping ? 50 : this.playbackSpeed;
+            const ticksPerFrame = multiplayerDeadlineReached ? Number.MAX_SAFE_INTEGER : (this.isSkipping ? 50 : this.playbackSpeed);
             for (let replayTick = 0; replayTick < ticksPerFrame; replayTick++) {
                 while (logIndex < this.logs.length && this.logs[logIndex].tick <= this.currentTick) {
                     const action = this.logs[logIndex];
@@ -175,7 +190,12 @@ export class BattleRenderer {
 
             // Update Timer UI
             if (this.currentTick >= 0 && timerText && timerContainer) {
-                if (this.currentTick >= 300) {
+                if (this.isMultiplayer) {
+                    const remainSec = Math.max(0, Math.ceil((this.multiplayerClock.deadline - Date.now()) / 1000));
+                    timerText.innerText = remainSec.toString();
+                    timerContainer.style.borderColor = remainSec <= 5 ? '#e74c3c' : '#3498db';
+                    timerText.style.color = remainSec <= 5 ? '#ff7675' : '#fff';
+                } else if (this.currentTick >= 300) {
                     if (timerText.innerText !== '연장전') {
                         timerText.innerText = '연장전';
                         timerContainer.style.borderColor = '#e74c3c';
@@ -339,6 +359,7 @@ export class BattleRenderer {
             if (!cell) return;
             const uDiv = document.createElement('div');
             uDiv.className = `unit-character tier-${action.unit.tier} star-${action.unit.star || 1}`;
+            if (action.unit.isPveMonster) uDiv.classList.add('pve-monster');
             if (action.unit.team === 'enemy') uDiv.classList.add('is-enemy');
             uDiv.innerHTML = `
                 <div class="status-icons"></div>
@@ -371,6 +392,36 @@ export class BattleRenderer {
         } else if (action.type === 'prefect_whistle') {
             if (window.gameApp && window.gameApp.soundManager) {
                 window.gameApp.soundManager.playSFX('synergy_prefect');
+            }
+        } else if (action.type === 'pve_warning') {
+            (action.targets || []).forEach(target => {
+                const cell = this.cells[target];
+                if (!cell) return;
+                cell.classList.add('pve-warning', `pve-warning--${String(action.pattern).replaceAll('_', '-')}`);
+                cell.dataset.pveWarningLabel = action.label || '위험';
+            });
+            const sourceCell = this.cells[action.source];
+            sourceCell?.querySelector('.unit-character')?.classList.add('pve-pattern-casting');
+        } else if (action.type === 'pve_resolve') {
+            (action.warningTargets || []).forEach(target => {
+                const cell = this.cells[target];
+                if (!cell) return;
+                cell.classList.remove('pve-warning', 'pve-warning--front-slam', 'pve-warning--marked-blast', 'pve-warning--row-silence');
+                delete cell.dataset.pveWarningLabel;
+            });
+            this.cells[action.source]?.querySelector('.unit-character')?.classList.remove('pve-pattern-casting');
+            if (action.cancelled) return;
+            const fxTargets = action.targets?.length ? action.targets : action.warningTargets || [];
+            if (action.pattern === 'marked_blast' && fxTargets[0] !== undefined) {
+                const from = this.getCellCenter(action.source);
+                const to = this.getCellCenter(fxTargets[0]);
+                this.spawnFx('lightning', from.x, from.y, { targetX: to.x, targetY: to.y, life: 0.5, color: '#d03b32' });
+            } else {
+                fxTargets.forEach(target => {
+                    const center = this.getCellCenter(target);
+                    const fxType = action.pattern === 'front_slam' ? 'ground_slam' : 'mana_burn_fx';
+                    this.spawnFx(fxType, center.x, center.y, { life: 0.8, size: 55, color: '#7c3aed' });
+                });
             }
         } else if (action.type === 'move') {
             const oldCell = this.cells[action.unit];

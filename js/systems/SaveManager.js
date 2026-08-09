@@ -93,8 +93,11 @@ export class SaveManager {
     }
 
     save(currentPhase = this.metadata.currentPhase) {
-        // 멀티플레이는 일회성 세션이므로 싱글플레이 저장 슬롯을 덮어쓰지 않는다.
-        if (this.app.multiplayerManager?.isActive) return true;
+        // 대기실·재대결을 포함한 멀티플레이 세션은 싱글 저장 슬롯을 덮어쓰지 않는다.
+        if (this.app.multiplayerManager?.credentials) {
+            this.app.multiplayerManager.persistSession?.();
+            return true;
+        }
         if (!this.storage) return false;
         try {
             this.metadata = {
@@ -280,7 +283,7 @@ export class SaveManager {
     }
 
     clear() {
-        if (this.app.multiplayerManager?.isActive) return;
+        if (this.app.multiplayerManager?.credentials) return;
         this.storage?.removeItem(SAVE_KEY);
     }
 }

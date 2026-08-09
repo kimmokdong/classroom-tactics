@@ -2,10 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
+    MULTIPLAYER_AUGMENT_SELECTION_SECONDS,
+    MULTIPLAYER_BATTLE_DURATION_MS,
+    MULTIPLAYER_EARLY_END_GRACE_MS,
+    MULTIPLAYER_EMOTES,
+    MULTIPLAYER_MAX_PLAYERS,
+    MULTIPLAYER_MIN_PLAYERS,
+    MULTIPLAYER_RECONNECT_GRACE_MS,
+    MULTIPLAYER_STORE_SELECTION_SECONDS,
     aggregateMatchStats,
     assignOpponentId,
     buildBoardSnapshot,
     calculateBoardCost,
+    getScoutCandidateIds,
     rankPlayers,
     sanitizeNickname,
     sanitizeRoomCode
@@ -32,7 +41,8 @@ class MemoryBlobStore {
 }
 
 async function callMultiplayer(handler, action, body = {}, method = 'POST') {
-    const request = new Request(`http://localhost/api/multiplayer/${action}`, {
+    const query = method === 'GET' ? `?${new URLSearchParams(body)}` : '';
+    const request = new Request(`http://localhost/api/multiplayer/${action}${query}`, {
         method,
         headers: { 'content-type': 'application/json' },
         ...(method === 'GET' ? {} : { body: JSON.stringify(body) })
@@ -40,6 +50,39 @@ async function callMultiplayer(handler, action, body = {}, method = 'POST') {
     const response = await handler(request, { params: { action } });
     return { status: response.status, data: await response.json() };
 }
+
+test('멀티플레이는 2명부터 시작하고 최대 6명까지 입장한다', async () => {
+    assert.equal(MULTIPLAYER_MIN_PLAYERS, 2);
+    assert.equal(MULTIPLAYER_MAX_PLAYERS, 6);
+
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const host = await callMultiplayer(handler, 'create', { nickname: 'host' });
+    assert.equal(host.data.room.maxPlayers, 6);
+
+    for (let index = 1; index <= 5; index += 1) {
+        const joined = await callMultiplayer(handler, 'join', {
+            code: host.data.room.code,
+            nickname: `guest${index}`
+        });
+        assert.equal(joined.status, 201);
+    }
+
+    const overflow = await callMultiplayer(handler, 'join', {
+        code: host.data.room.code,
+        nickname: 'guest6'
+    });
+    assert.equal(overflow.status, 409);
+});
+
+test('멀티플레이 전투와 선택 제한시간을 고정한다', () => {
+    assert.equal(MULTIPLAYER_BATTLE_DURATION_MS, 30_000);
+    assert.equal(MULTIPLAYER_EARLY_END_GRACE_MS, 2_000);
+    assert.equal(MULTIPLAYER_AUGMENT_SELECTION_SECONDS, 30);
+    assert.equal(MULTIPLAYER_STORE_SELECTION_SECONDS, 20);
+    assert.equal(MULTIPLAYER_RECONNECT_GRACE_MS, 90_000);
+    assert.deepEqual(MULTIPLAYER_EMOTES, ['hello', 'nice', 'wow', 'oops', 'cheer', 'gg']);
+});
 
 test('멀티플레이 입력과 보드 스냅샷을 제한한다', () => {
     assert.equal(sanitizeRoomCode('ab-c 12!'), 'ABC2');
@@ -66,6 +109,18 @@ test('생존 참가자끼리 자기 자신을 제외한 상대를 배정한다',
         assert.notEqual(opponent, player.id);
     }
     assert.equal(assignOpponentId([{ id: 'a', hp: 100 }, { id: 'b', hp: 0 }], 'a', '3-2'), null);
+});
+
+test('정찰 후보는 실제 상대를 포함해 최대 두 명만 고른다', () => {
+    const players = ['a', 'b', 'c', 'd'].map(id => ({ id, hp: 100 }));
+    const actualOpponent = assignOpponentId(players, 'a', '3-2');
+    const candidates = getScoutCandidateIds(players, 'a', '3-2');
+    assert.equal(candidates.length, 2);
+    assert.equal(candidates[0], actualOpponent);
+    assert.ok(candidates.every(id => id !== 'a'));
+
+    const eliminatedViewer = players.map(player => player.id === 'a' ? { ...player, hp: 0 } : player);
+    assert.equal(getScoutCandidateIds(eliminatedViewer, 'a', '3-2').length, 2);
 });
 
 test('탈락 라운드와 시각으로 최종 순위를 정한다', () => {
@@ -107,12 +162,18 @@ test('시작 화면에 방 참가와 누적 통계 UI가 연결되어 있다', a
     const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
     const main = await readFile(new URL('../js/main.js', import.meta.url), 'utf8');
     const stage = await readFile(new URL('../js/systems/StageManager.js', import.meta.url), 'utf8');
+    const renderer = await readFile(new URL('../js/battleRenderer.js', import.meta.url), 'utf8');
+    const augmentManager = await readFile(new URL('../js/systems/AugmentManager.js', import.meta.url), 'utf8');
+    assert.match(html, /2~6명이 코드로 모여 대전합니다/);
     assert.match(html, /id="multiplayer-panel"/);
     assert.match(html, /data-stats-view="units"/);
     assert.match(html, /id="multi-stats-summary"/);
     assert.match(main, /new MultiplayerManager\(this\)/);
     assert.match(stage, /shouldPrepareBattle\(\)/);
     assert.match(stage, /reportBattle\(winner, endLog\)/);
+    assert.match(renderer, /this\.isMultiplayer \? 'none' : 'flex'/);
+    assert.match(augmentManager, /startSelectionTimer\(MULTIPLAYER_AUGMENT_SELECTION_SECONDS/);
+    assert.match(augmentManager, /startSelectionTimer\(MULTIPLAYER_STORE_SELECTION_SECONDS/);
 });
 
 test('방 생성부터 상대 보드 동기화·최종 순위·누적 통계까지 이어진다', async () => {
@@ -133,23 +194,161 @@ test('방 생성부터 상대 보드 동기화·최종 순위·누적 통계까�
     hostBoard[0] = { unitId: 'u1_1', star: 2, items: [] };
     const guestBoard = Array(24).fill(null);
     guestBoard[0] = { unitId: 'u2_1', star: 1, items: [] };
-    const common = { stage: [1, 1], hp: 100, globalBuffs: {}, augments: [] };
+    const common = { stage: [2, 1], hp: 100, globalBuffs: {}, augments: [] };
     const hostWaiting = await callMultiplayer(handler, 'round', { ...host, ...common, board: hostBoard });
     assert.equal(hostWaiting.data.waiting, true);
     const guestRound = await callMultiplayer(handler, 'round', { ...guest, ...common, board: guestBoard });
     assert.equal(guestRound.data.opponent.nickname, '방장');
+    assert.equal(guestRound.data.room.battleClock.deadline - guestRound.data.room.battleClock.startedAt, 30_000);
     const hostRound = await callMultiplayer(handler, 'round', { ...host, ...common, board: hostBoard });
     assert.equal(hostRound.data.opponent.nickname, '친구');
+    assert.deepEqual(hostRound.data.room.battleClock, guestRound.data.room.battleClock);
 
+    const hostResult = await callMultiplayer(handler, 'result', { ...host, ...common, hp: 100, board: hostBoard });
+    assert.equal(hostResult.data.room.battleClock.allFinished, false);
     const eliminated = await callMultiplayer(handler, 'result', { ...guest, ...common, hp: 0, board: guestBoard });
     assert.equal(eliminated.data.room.status, 'finished');
     assert.equal(eliminated.data.placement, 2);
+    assert.equal(eliminated.data.room.battleClock.allFinished, true);
+    assert.ok(eliminated.data.room.battleClock.deadline <= Date.now() + 2_100);
     const stats = await callMultiplayer(handler, 'stats', {}, 'GET');
     assert.equal(stats.data.stats.summary.matches, 1);
     assert.equal(stats.data.stats.summary.playerResults, 2);
     assert.equal(stats.data.stats.summary.top3Rate, 100);
     assert.equal(stats.data.stats.summary.winRate, 50);
     assert.ok(stats.data.stats.units.some(unit => unit.unitId === 'u1_1' && unit.avgBoardCost === 3));
+});
+
+test('인증된 정찰은 실제 상대를 포함한 두 보드만 공개한다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const created = await callMultiplayer(handler, 'create', { nickname: 'host' });
+    const code = created.data.room.code;
+    const credentials = [{ code, playerId: created.data.room.selfId, token: created.data.token }];
+    for (const nickname of ['guest1', 'guest2', 'guest3']) {
+        const joined = await callMultiplayer(handler, 'join', { code, nickname });
+        const entry = { code, playerId: joined.data.room.selfId, token: joined.data.token };
+        credentials.push(entry);
+        await callMultiplayer(handler, 'ready', { ...entry, ready: true });
+    }
+    await callMultiplayer(handler, 'start', credentials[0]);
+
+    const board = Array(24).fill(null);
+    board[0] = { unitId: 'u1_1', star: 1, items: [] };
+    for (const entry of credentials) {
+        await callMultiplayer(handler, 'round', {
+            ...entry, stage: [2, 1], hp: 100, gold: 99,
+            board, globalBuffs: { hidden: 777 }, augments: []
+        });
+    }
+
+    const viewer = credentials[0];
+    const scouted = await callMultiplayer(handler, 'scout', { ...viewer, roundKey: '2-1' }, 'GET');
+    const actualId = assignOpponentId(scouted.data.room.players, viewer.playerId, '2-1');
+    assert.equal(scouted.status, 200);
+    assert.equal(scouted.data.candidates.length, 2);
+    assert.equal(scouted.data.candidates[0].id, actualId);
+    assert.equal(scouted.data.candidates[0].actualOpponent, true);
+    assert.equal(scouted.data.candidates[0].board.length, 24);
+    assert.equal(scouted.data.candidates[0].boardCost, 1);
+    assert.equal(Object.hasOwn(scouted.data.candidates[0], 'gold'), false);
+    assert.equal(Object.hasOwn(scouted.data.candidates[0], 'globalBuffs'), false);
+    assert.equal(Object.hasOwn(scouted.data.candidates[0], 'tokenHash'), false);
+
+    const viewerKey = [...store.values.keys()].find(key => key.endsWith(`/players/${viewer.playerId}`));
+    const eliminatedViewer = await store.get(viewerKey);
+    eliminatedViewer.hp = 0;
+    await store.setJSON(viewerKey, eliminatedViewer);
+    const spectated = await callMultiplayer(handler, 'scout', { ...viewer, roundKey: '2-1' }, 'GET');
+    assert.equal(spectated.data.candidates.length, 3);
+    assert.ok(spectated.data.candidates.every(candidate => candidate.hp > 0));
+    assert.ok(spectated.data.candidates.every(candidate => candidate.actualOpponent === false));
+});
+
+test('방장은 참가자 인증을 유지한 채 끝난 방을 재대결로 초기화한다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const created = await callMultiplayer(handler, 'create', { nickname: 'host' });
+    const code = created.data.room.code;
+    const host = { code, playerId: created.data.room.selfId, token: created.data.token };
+    const joined = await callMultiplayer(handler, 'join', { code, nickname: 'guest' });
+    const guest = { code, playerId: joined.data.room.selfId, token: joined.data.token };
+    await callMultiplayer(handler, 'ready', { ...guest, ready: true });
+    await callMultiplayer(handler, 'start', host);
+    const board = Array(24).fill(null);
+    board[0] = { unitId: 'u1_1', star: 2, items: [] };
+    await callMultiplayer(handler, 'round', { ...host, stage: [2, 1], hp: 55, board, augments: [] });
+    const finished = await callMultiplayer(handler, 'leave', guest);
+    const oldMatchId = finished.data.room.id;
+    const oldSeed = finished.data.room.seed;
+
+    assert.equal((await callMultiplayer(handler, 'rematch', guest)).status, 403);
+    const rematch = await callMultiplayer(handler, 'rematch', host);
+    assert.equal(rematch.data.room.code, code);
+    assert.notEqual(rematch.data.room.id, oldMatchId);
+    assert.notEqual(rematch.data.room.seed, oldSeed);
+    assert.equal(rematch.data.room.status, 'waiting');
+    assert.equal(rematch.data.room.selfId, host.playerId);
+    assert.deepEqual(rematch.data.room.players.map(player => [player.hp, player.placement, player.ready]), [
+        [100, null, true], [100, null, false]
+    ]);
+    assert.equal((await callMultiplayer(handler, 'room', host, 'GET')).status, 200);
+    assert.equal((await callMultiplayer(handler, 'stats', {}, 'GET')).data.stats.summary.matches, 1);
+});
+
+test('연결 종료는 즉시 탈락시키지 않고 90초 안의 재접속을 허용한다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const created = await callMultiplayer(handler, 'create', { nickname: 'host' });
+    const code = created.data.room.code;
+    const host = { code, playerId: created.data.room.selfId, token: created.data.token };
+    const joined = await callMultiplayer(handler, 'join', { code, nickname: 'guest' });
+    const guest = { code, playerId: joined.data.room.selfId, token: joined.data.token };
+    await callMultiplayer(handler, 'ready', { ...guest, ready: true });
+    await callMultiplayer(handler, 'start', host);
+
+    const disconnected = await callMultiplayer(handler, 'disconnect', guest);
+    const offlineGuest = disconnected.data.room.players.find(player => player.id === guest.playerId);
+    assert.equal(disconnected.data.room.status, 'playing');
+    assert.equal(offlineGuest.hp, 100);
+    assert.equal(offlineGuest.connected, false);
+    assert.ok(offlineGuest.reconnectUntil > Date.now());
+
+    const reconnected = await callMultiplayer(handler, 'room', guest, 'GET');
+    assert.equal(reconnected.data.room.players.find(player => player.id === guest.playerId).connected, true);
+
+    const key = `rooms/${code}/players/${guest.playerId}`;
+    const stale = await store.get(key);
+    await store.setJSON(key, {
+        ...stale,
+        disconnectedAt: Date.now() - MULTIPLAYER_RECONNECT_GRACE_MS - 1,
+        lastSeenAt: Date.now() - MULTIPLAYER_RECONNECT_GRACE_MS - 1
+    });
+    const expired = await callMultiplayer(handler, 'room', guest, 'GET');
+    assert.equal(expired.data.room.status, 'finished');
+    assert.equal(expired.data.room.players.find(player => player.id === guest.playerId).hp, 0);
+});
+
+test('멀티플레이 PVE도 전원이 준비되면 같은 30초 시계로 시작한다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const hostCreate = await callMultiplayer(handler, 'create', { nickname: '방장' });
+    const code = hostCreate.data.room.code;
+    const host = { code, playerId: hostCreate.data.room.selfId, token: hostCreate.data.token };
+    const guestJoin = await callMultiplayer(handler, 'join', { code, nickname: '친구' });
+    const guest = { code, playerId: guestJoin.data.room.selfId, token: guestJoin.data.token };
+    await callMultiplayer(handler, 'ready', { ...guest, ready: true });
+    await callMultiplayer(handler, 'start', host);
+
+    const common = { stage: [1, 1], hp: 100, board: [], globalBuffs: {}, augments: [] };
+    const hostWaiting = await callMultiplayer(handler, 'round', { ...host, ...common });
+    assert.equal(hostWaiting.data.waiting, true);
+    const guestReady = await callMultiplayer(handler, 'round', { ...guest, ...common });
+    const hostReady = await callMultiplayer(handler, 'round', { ...host, ...common });
+    assert.equal(guestReady.data.ready, true);
+    assert.equal(hostReady.data.ready, true);
+    assert.equal(guestReady.data.opponent, undefined);
+    assert.deepEqual(hostReady.data.room.battleClock, guestReady.data.room.battleClock);
 });
 
 test('진행 중 나간 참가자는 탈락 처리되어 방이 멈추지 않는다', async () => {

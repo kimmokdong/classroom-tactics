@@ -8,10 +8,15 @@ import { WebSocket, WebSocketServer } from 'ws';
 
 import { createMultiplayerHandler } from './multiplayer-handler.mjs';
 import { createMultiplayerStore } from './multiplayer-store.mjs';
+import {
+    MULTIPLAYER_EMOTE_COOLDOWN_MS,
+    MULTIPLAYER_EMOTES
+} from '../js/multiplayer/core.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const jsonHeaders = { accept: 'application/json', 'content-type': 'application/json' };
+const allowedEmotes = new Set(MULTIPLAYER_EMOTES);
 
 function requestFromExpress(req) {
     const init = { method: req.method, headers: jsonHeaders };
@@ -33,6 +38,15 @@ export async function createRenderServer({ store, staticRoot, logger = console }
         for (const socket of socketsByRoom.get(code) || []) {
             if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
         }
+    };
+
+    const reportDisconnect = async credentials => {
+        const response = await handler(new Request('http://render.local/api/multiplayer/disconnect', {
+            method: 'POST',
+            headers: jsonHeaders,
+            body: JSON.stringify(credentials)
+        }), { params: { action: 'disconnect' } });
+        if (response.ok) broadcast(credentials.code, { type: 'room:changed', action: 'disconnect' });
     };
 
     app.get('/health', async (_req, res) => {
@@ -89,10 +103,40 @@ export async function createRenderServer({ store, staticRoot, logger = console }
 
                 clearTimeout(authTimer);
                 socket.roomCode = data.room.code;
+                socket.playerId = data.room.selfId;
+                socket.credentials = {
+                    code: data.room.code,
+                    playerId: data.room.selfId,
+                    token: String(message.token || '')
+                };
+                socket.nickname = data.room.players.find(player => player.id === data.room.selfId)?.nickname || '';
+                socket.lastEmoteAt = 0;
                 const roomSockets = socketsByRoom.get(socket.roomCode) || new Set();
                 roomSockets.add(socket);
                 socketsByRoom.set(socket.roomCode, roomSockets);
                 socket.send(JSON.stringify({ type: 'authenticated', room: data.room }));
+
+                socket.on('message', emoteRaw => {
+                    try {
+                        const emoteMessage = JSON.parse(String(emoteRaw));
+                        if (emoteMessage.type !== 'emote' || !allowedEmotes.has(emoteMessage.emote)) return;
+                        const now = Date.now();
+                        if (now - socket.lastEmoteAt < MULTIPLAYER_EMOTE_COOLDOWN_MS) {
+                            socket.send(JSON.stringify({ type: 'emote:rejected', reason: 'rate_limited' }));
+                            return;
+                        }
+                        socket.lastEmoteAt = now;
+                        broadcast(socket.roomCode, {
+                            type: 'emote',
+                            playerId: socket.playerId,
+                            nickname: socket.nickname,
+                            emote: emoteMessage.emote,
+                            sentAt: now
+                        });
+                    } catch {
+                        // 잘못된 실시간 메시지는 연결을 끊지 않고 무시한다.
+                    }
+                });
             } catch {
                 clearTimeout(authTimer);
                 socket.close(4001, 'authentication failed');
@@ -104,6 +148,11 @@ export async function createRenderServer({ store, staticRoot, logger = console }
             const roomSockets = socketsByRoom.get(socket.roomCode);
             roomSockets?.delete(socket);
             if (roomSockets?.size === 0) socketsByRoom.delete(socket.roomCode);
+            const hasReplacement = [...(roomSockets || [])]
+                .some(entry => entry.playerId === socket.playerId);
+            if (socket.credentials && !hasReplacement) {
+                reportDisconnect(socket.credentials).catch(error => logger.warn('disconnect update failed', error.message));
+            }
         });
         socket.on('error', error => logger.warn('websocket error', error.message));
     });

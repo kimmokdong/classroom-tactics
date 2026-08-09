@@ -1,4 +1,8 @@
 import { promoteUnitToStar } from '../battle/combatPreparation.js';
+import {
+    MULTIPLAYER_AUGMENT_SELECTION_SECONDS,
+    MULTIPLAYER_STORE_SELECTION_SECONDS
+} from '../multiplayer/core.js';
 
 export const AUGMENT_EVENTS = Object.freeze({
     SELECTED: 'AUGMENT_SELECTED',
@@ -28,9 +32,41 @@ export class AugmentManager {
         this.unsubscribers = [AUGMENT_EVENTS.BATTLE_ENDED, AUGMENT_EVENTS.ROUND_STARTED]
             .map(event => this.app.eventBus?.on(event, payload => this.handleEvent(event, payload)))
             .filter(Boolean);
+        this.selectionTimeout = null;
+        this.selectionInterval = null;
+    }
+
+    clearSelectionTimer() {
+        clearTimeout(this.selectionTimeout);
+        clearInterval(this.selectionInterval);
+        this.selectionTimeout = null;
+        this.selectionInterval = null;
+    }
+
+    startSelectionTimer(seconds, container) {
+        this.clearSelectionTimer();
+        if (!this.app.multiplayerManager?.isActive) return;
+        const subtitle = document.getElementById('augment-subtitle');
+        const countdown = document.createElement('span');
+        countdown.style.cssText = 'display:block;margin-top:8px;font-weight:800;color:#c0392b;';
+        subtitle?.appendChild(countdown);
+        const update = () => {
+            const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            countdown.textContent = `⏱ 자동 선택까지 ${remaining}초`;
+        };
+        const deadline = Date.now() + seconds * 1000;
+        update();
+        this.selectionInterval = setInterval(update, 250);
+        this.selectionTimeout = setTimeout(() => {
+            const cards = [...container.querySelectorAll('.augment-card')];
+            const selected = cards[Math.floor(this.random() * cards.length)] || cards[0];
+            this.clearSelectionTimer();
+            selected?.click();
+        }, seconds * 1000);
     }
 
     showStoreTimeSelection() {
+        this.clearSelectionTimer();
         const modal = document.getElementById('augment-modal');
         const container = document.getElementById('augment-cards-container');
         document.getElementById('augment-title').innerText = "🏫 매점 타임";
@@ -70,6 +106,7 @@ export class AugmentManager {
                     this.app.itemManager.renderInventory();
                     return;
                 }
+                this.clearSelectionTimer();
                 modal.style.display = 'none';
                 // 혹시 플로팅 버튼이 떠 있다면 숨김
                 const floatingBtn = document.getElementById('floating-store-btn');
@@ -96,9 +133,11 @@ export class AugmentManager {
         }
 
         modal.style.display = 'flex';
+        this.startSelectionTimer(MULTIPLAYER_STORE_SELECTION_SECONDS, container);
     }
 
     showAugmentSelection(tierNeeded) {
+        this.clearSelectionTimer();
         const modal = document.getElementById('augment-modal');
         const container = document.getElementById('augment-cards-container');
         document.getElementById('augment-title').innerText = "생기부 특기사항 기록";
@@ -132,6 +171,7 @@ export class AugmentManager {
             `;
 
             card.onclick = () => {
+                this.clearSelectionTimer();
                 modal.style.display = 'none';
                 this.applyAugment(aug, tierNeeded);
             };
@@ -139,6 +179,7 @@ export class AugmentManager {
         });
 
         modal.style.display = 'flex';
+        this.startSelectionTimer(MULTIPLAYER_AUGMENT_SELECTION_SECONDS, container);
     }
 
     applyAugment(augment, tier = augment.rarity) {
@@ -156,7 +197,10 @@ export class AugmentManager {
             ? this.app.saveManager.runTransaction(transactionId, apply, 'REWARD_APPLIED')
             : (apply(), true);
         if (applied && typeof document !== 'undefined') this.renderActiveAugments();
-        if (applied) this.app.updateHeader?.();
+        if (applied) {
+            this.app.updateHeader?.();
+            this.app.updateOnboarding?.();
+        }
         return applied;
     }
 
@@ -243,6 +287,7 @@ export class AugmentManager {
     }
 
     dispose() {
+        this.clearSelectionTimer();
         this.unsubscribers.forEach(unsubscribe => unsubscribe());
         this.unsubscribers = [];
     }

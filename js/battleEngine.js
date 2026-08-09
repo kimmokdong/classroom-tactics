@@ -1,4 +1,5 @@
 import { SkillEngine } from './battle/SkillEngine.js';
+import { getGridDistance } from './gameplayInsights.js';
 
 const CROWD_CONTROL_TYPES = new Set(['stun', 'taunt', 'zephyr', 'disarm', 'silence', 'manaSeal']);
 const REVERSIBLE_BUFF_STATS = new Set(['ad', 'ap', 'as', 'armor', 'mr', 'range', 'maxHp']);
@@ -184,9 +185,7 @@ export class BattleEngine {
     }
 
     getDist(i1, i2) {
-        const x1 = i1 % 8; const y1 = Math.floor(i1 / 8);
-        const x2 = i2 % 8; const y2 = Math.floor(i2 / 8);
-        return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
+        return getGridDistance(i1, i2);
     }
 
     getDistanceDamageAmp(distance, maximumAmp) {
@@ -218,6 +217,132 @@ export class BattleEngine {
 
     clampPenetration(value) {
         return clampPenetration(value);
+    }
+
+    applyPvePatternDamage(source, target, rawDamage, damageType, activeUnits, pattern, fxType) {
+        const defense = damageType === 'physical' ? target.stats.armor : target.stats.mr;
+        let damage = rawDamage * (100 / (100 + Math.max(0, defense || 0)));
+        let reduction = target.combat.dmgReduc || 0;
+        if (target.buffs.some(buff => buff.type === 'dmgReduc25')) reduction += 0.25;
+        damage *= 1 - Math.min(0.75, reduction);
+        if (target.currShield > 0) {
+            const absorbed = Math.min(target.currShield, damage);
+            target.currShield -= absorbed;
+            damage -= absorbed;
+        }
+        target.currHp -= damage;
+        if (target.manaType === '근성') {
+            const gain = 10 * Math.max(0, 1 + (target.combat.manaGain || 0));
+            target.currMana = Math.min(target.stats.maxMana, target.currMana + gain);
+        }
+        this.logs.push({
+            tick: this.tick,
+            type: 'damage',
+            source: source.gridIndex,
+            target: target.gridIndex,
+            dmg: Math.round(damage),
+            dmgType: damageType,
+            damageType,
+            sourceType: 'pve-pattern',
+            pattern,
+            fxType,
+            isCrit: false,
+            currHp: target.currHp,
+            maxHp: target.stats.maxHp,
+            currShield: target.currShield,
+            targetMana: target.currMana,
+            targetMaxMana: target.stats.maxMana
+        });
+        this.checkHpThresholds(target, activeUnits, source);
+        if (target.currHp <= 0) this.handleDeath(target, activeUnits);
+    }
+
+    processPvePatterns(activeUnits) {
+        activeUnits.filter(unit => unit.pvePattern).forEach(unit => {
+            const pattern = unit.pvePattern;
+            const state = unit.combat.pvePatternState ||= {
+                nextWarningTick: (pattern.firstWarningTick || 10) + (pattern.offset || 0),
+                resolveTick: null,
+                warningTargets: []
+            };
+
+            if (state.resolveTick !== null && this.tick >= state.resolveTick) {
+                const cancelled = unit.currHp <= 0 || unit.isDead;
+                let targets = [];
+                if (!cancelled && pattern.type === 'front_slam') {
+                    targets = activeUnits.filter(target => target.team !== unit.team
+                        && target.currHp > 0
+                        && state.warningTargets.includes(target.gridIndex));
+                    targets.forEach(target => {
+                        this.applyPvePatternDamage(unit, target, unit.stats.ad * pattern.adRatio, 'physical', activeUnits, pattern.type, 'ground_slam');
+                        this.addBuff(target, 'stun', null, 0, pattern.stunTicks, unit.gridIndex);
+                    });
+                } else if (!cancelled && pattern.type === 'marked_blast') {
+                    const marked = activeUnits.find(target => target.instanceId === state.markedInstanceId && target.currHp > 0);
+                    if (marked) {
+                        targets = activeUnits.filter(target => target.team !== unit.team && target.currHp > 0 && this.getDist(marked.gridIndex, target.gridIndex) <= 1);
+                        targets.forEach(target => {
+                            const ratio = target === marked ? pattern.adRatio : pattern.adRatio * pattern.splashRatio;
+                            this.applyPvePatternDamage(unit, target, unit.stats.ad * ratio, 'magic', activeUnits, pattern.type, 'lightning');
+                        });
+                    }
+                } else if (!cancelled && pattern.type === 'row_silence') {
+                    targets = activeUnits.filter(target => target.team !== unit.team
+                        && target.currHp > 0
+                        && Math.floor(target.gridIndex / 8) === state.targetRow);
+                    targets.forEach(target => this.addBuff(target, 'manaSeal', null, 0, pattern.sealTicks, unit.gridIndex));
+                }
+
+                this.logs.push({
+                    tick: this.tick,
+                    type: 'pve_resolve',
+                    source: unit.gridIndex,
+                    pattern: pattern.type,
+                    warningTargets: state.warningTargets,
+                    targets: targets.map(target => target.gridIndex),
+                    cancelled
+                });
+                state.resolveTick = null;
+                state.warningTargets = [];
+                delete state.markedInstanceId;
+                delete state.targetRow;
+            }
+
+            if (state.resolveTick !== null || unit.currHp <= 0 || unit.isDead || this.tick < state.nextWarningTick) return;
+            const opponents = activeUnits.filter(target => target.team !== unit.team && target.currHp > 0 && !target.isDead);
+            if (opponents.length === 0) return;
+            if (pattern.type === 'front_slam') {
+                const target = [...opponents].sort((a, b) => this.getDist(unit.gridIndex, a.gridIndex) - this.getDist(unit.gridIndex, b.gridIndex) || a.gridIndex - b.gridIndex)[0];
+                const row = Math.floor(target.gridIndex / 8);
+                const column = target.gridIndex % 8;
+                state.warningTargets = [column - 1, column, column + 1]
+                    .filter(value => value >= 0 && value < 8)
+                    .map(value => row * 8 + value);
+            } else if (pattern.type === 'marked_blast') {
+                const target = [...opponents].sort((a, b) => this.getDist(unit.gridIndex, b.gridIndex) - this.getDist(unit.gridIndex, a.gridIndex) || a.gridIndex - b.gridIndex)[0];
+                state.warningTargets = [target.gridIndex];
+                state.markedInstanceId = target.instanceId;
+            } else if (pattern.type === 'row_silence') {
+                const rows = new Map();
+                opponents.forEach(target => {
+                    const row = Math.floor(target.gridIndex / 8);
+                    rows.set(row, (rows.get(row) || 0) + 1);
+                });
+                state.targetRow = [...rows.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+                state.warningTargets = Array.from({ length: 8 }, (_, column) => state.targetRow * 8 + column);
+            }
+            state.resolveTick = this.tick + pattern.warningDelay;
+            state.nextWarningTick = this.tick + pattern.period;
+            this.logs.push({
+                tick: this.tick,
+                type: 'pve_warning',
+                source: unit.gridIndex,
+                pattern: pattern.type,
+                targets: [...state.warningTargets],
+                label: pattern.label,
+                resolveTick: state.resolveTick
+            });
+        });
     }
 
     
@@ -447,6 +572,7 @@ export class BattleEngine {
         this.tick = 0;
 
         while (this.tick < this.maxTicks) {
+            this.processPvePatterns(activeUnits);
             const playerAlive = activeUnits.some(u => u.team === 'player' && u.currHp > 0);
             const enemyAlive = activeUnits.some(u => u.team === 'enemy' && u.currHp > 0);
             
@@ -699,6 +825,7 @@ export class BattleEngine {
             
             actionOrder.forEach(unit => {
                 if (unit.currHp <= 0) return;
+                if (unit.combat.pvePatternState && unit.combat.pvePatternState.resolveTick !== null) return;
 
                 // CC 체크 (기절)
                 const isStunned = unit.buffs.some(b => b.type === 'stun');

@@ -1,8 +1,13 @@
 import { createHash, randomInt, randomUUID } from 'node:crypto';
 import { AUGMENTS, SYNERGIES, UNIT_POOL } from '../js/data.js';
 import { ITEMS } from '../js/items.js';
+import { isPveStage } from '../js/pveRounds.js';
 import { getActiveSynergyLevel, getSynergyData } from '../js/systems/SynergyManager.js';
 import {
+    MULTIPLAYER_BATTLE_DURATION_MS,
+    MULTIPLAYER_BATTLE_START_DELAY_MS,
+    MULTIPLAYER_EARLY_END_GRACE_MS,
+    MULTIPLAYER_RECONNECT_GRACE_MS,
     MULTIPLAYER_MAX_PLAYERS,
     MULTIPLAYER_MIN_PLAYERS,
     MULTIPLAYER_BALANCE_VERSION,
@@ -10,6 +15,7 @@ import {
     aggregateMatchStats,
     assignOpponentId,
     calculateBoardCost,
+    getScoutCandidateIds,
     getRoundKey,
     getRoundOrdinal,
     rankPlayers,
@@ -111,7 +117,26 @@ function publicPlayer(player) {
         boardCost: Number(player.boardCost || 0),
         eliminatedRound: player.eliminatedRound || null,
         placement: player.placement || null,
-        isHost: Boolean(player.isHost)
+        isHost: Boolean(player.isHost),
+        connected: !player.disconnectedAt,
+        reconnectUntil: player.disconnectedAt
+            ? Number(player.disconnectedAt) + MULTIPLAYER_RECONNECT_GRACE_MS
+            : null
+    };
+}
+
+function scoutPlayer(player, actualOpponentId) {
+    return {
+        id: player.id,
+        nickname: player.nickname,
+        hp: Number(player.hp),
+        stage: player.stage,
+        roundKey: player.roundKey || null,
+        board: Array.isArray(player.board) ? player.board : [],
+        boardCost: Number(player.boardCost || 0),
+        synergies: Array.isArray(player.synergies) ? player.synergies : [],
+        augments: Array.isArray(player.augments) ? player.augments : [],
+        actualOpponent: player.id === actualOpponentId
     };
 }
 
@@ -127,14 +152,102 @@ function publicRoom(meta, players, selfId) {
         maxPlayers: MULTIPLAYER_MAX_PLAYERS,
         startedAt: meta.startedAt || null,
         finishedAt: meta.finishedAt || null,
+        battleClock: meta.battleClock ? {
+            roundKey: meta.battleClock.roundKey,
+            startedAt: meta.battleClock.startedAt,
+            deadline: meta.battleClock.deadline,
+            allFinished: Boolean(meta.battleClock.allFinished)
+        } : null,
         selfId,
         players: visiblePlayers.map(publicPlayer)
     };
 }
 
+async function ensureBattleClock(store, meta, players, roundKey) {
+    if (meta.battleClock?.roundKey === roundKey) return meta;
+    const participants = players.filter(entry => Number(entry.hp) > 0);
+    if (participants.length < MULTIPLAYER_MIN_PLAYERS
+        || participants.some(entry => entry.roundKey !== roundKey)) return meta;
+
+    const readyAt = Math.max(...participants.map(entry => Number(entry.lastSeenAt) || Date.now()));
+    const startedAt = readyAt + MULTIPLAYER_BATTLE_START_DELAY_MS;
+    const updated = {
+        ...meta,
+        battleClock: {
+            roundKey,
+            startedAt,
+            deadline: startedAt + MULTIPLAYER_BATTLE_DURATION_MS,
+            participantIds: participants.map(entry => entry.id),
+            allFinished: false
+        }
+    };
+    await store.setJSON(roomMetaKey(meta.code), updated);
+    return updated;
+}
+
+async function shortenBattleClockIfFinished(store, meta, players) {
+    const clock = meta.battleClock;
+    if (!clock || clock.allFinished) return meta;
+    const allFinished = clock.participantIds.every(id => {
+        const participant = players.find(entry => entry.id === id);
+        return !participant || Number(participant.hp) <= 0 || participant.battleFinishedRound === clock.roundKey;
+    });
+    if (!allFinished) return meta;
+
+    const updated = {
+        ...meta,
+        battleClock: {
+            ...clock,
+            deadline: Math.min(clock.deadline, Date.now() + MULTIPLAYER_EARLY_END_GRACE_MS),
+            allFinished: true
+        }
+    };
+    await store.setJSON(roomMetaKey(meta.code), updated);
+    return updated;
+}
+
 async function readPlayers(store, code) {
     const listing = await store.list({ prefix: `${roomPrefix(code)}/players/` });
     return Promise.all((listing.blobs || []).map(blob => store.get(blob.key, { type: 'json' })));
+}
+
+async function expireDisconnectedPlayers(store, meta, players, now = Date.now()) {
+    if (meta.status !== 'playing') return players;
+    const expired = [];
+    const updated = players.map(player => {
+        if (Number(player.hp) <= 0 || !player.disconnectedAt
+            || now - Number(player.disconnectedAt) < MULTIPLAYER_RECONNECT_GRACE_MS) return player;
+        const eliminated = {
+            ...player,
+            hp: 0,
+            eliminatedRound: player.eliminatedRound || getRoundOrdinal(player.stage),
+            eliminatedAt: player.eliminatedAt || now
+        };
+        expired.push(eliminated);
+        return eliminated;
+    });
+    await Promise.all(expired.map(player => store.setJSON(playerKey(meta.code, player.id), player)));
+    return updated;
+}
+
+function resetPlayerForRematch(player, hostId) {
+    return {
+        id: player.id,
+        tokenHash: player.tokenHash,
+        nickname: player.nickname,
+        isHost: player.id === hostId,
+        ready: player.id === hostId,
+        hp: 100,
+        stage: [1, 1],
+        joinedAt: player.joinedAt,
+        lastSeenAt: Date.now(),
+        board: [],
+        boardCost: 0,
+        synergies: [],
+        augments: [],
+        globalBuffs: {},
+        gold: 0
+    };
 }
 
 async function authenticate(store, code, playerId, token) {
@@ -243,7 +356,8 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             };
             const player = {
                 id: playerId, tokenHash: hashToken(token), nickname, isHost: true, ready: true,
-                hp: 100, stage: [1, 1], joinedAt: Date.now(), board: [], boardCost: 0, synergies: []
+                hp: 100, stage: [1, 1], joinedAt: Date.now(), lastSeenAt: Date.now(),
+                board: [], boardCost: 0, synergies: []
             };
             await Promise.all([store.setJSON(roomMetaKey(code), meta), store.setJSON(playerKey(code, playerId), player)]);
             return json({ ok: true, token, room: publicRoom(meta, [player], playerId) }, 201);
@@ -263,7 +377,8 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             const token = randomUUID();
             const player = {
                 id: playerId, tokenHash: hashToken(token), nickname, isHost: false, ready: false,
-                hp: 100, stage: [1, 1], joinedAt: Date.now(), board: [], boardCost: 0, synergies: []
+                hp: 100, stage: [1, 1], joinedAt: Date.now(), lastSeenAt: Date.now(),
+                board: [], boardCost: 0, synergies: []
             };
             await store.setJSON(playerKey(code, playerId), player);
             return json({ ok: true, token, room: publicRoom(meta, [...players, player], playerId) }, 201);
@@ -274,12 +389,71 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
         const token = String(body.token || url.searchParams.get('token') || '');
         const meta = await store.get(roomMetaKey(code), { type: 'json' });
         if (!meta) return fail('방을 찾을 수 없습니다.', 404);
-        const player = await authenticate(store, code, playerId, token);
+        let player = await authenticate(store, code, playerId, token);
         if (!player) return fail('참가자 인증 정보가 올바르지 않습니다.', 401);
 
+        if (action !== 'disconnect') {
+            const now = Date.now();
+            const { disconnectedAt: _disconnectedAt, ...connectedPlayer } = player;
+            const reconnectExpired = meta.status === 'playing' && Number(player.hp) > 0
+                && player.disconnectedAt
+                && now - Number(player.disconnectedAt) >= MULTIPLAYER_RECONNECT_GRACE_MS;
+            player = {
+                ...connectedPlayer,
+                lastSeenAt: now,
+                ...(reconnectExpired ? {
+                    hp: 0,
+                    eliminatedRound: player.eliminatedRound || getRoundOrdinal(player.stage),
+                    eliminatedAt: player.eliminatedAt || now
+                } : {})
+            };
+            await store.setJSON(playerKey(code, playerId), player);
+        }
+
         if (action === 'room' && request.method === 'GET') {
-            const finished = await finishIfNeeded(store, meta, await readPlayers(store, code));
+            const players = await expireDisconnectedPlayers(store, meta, await readPlayers(store, code));
+            const finished = await finishIfNeeded(store, meta, players);
             return json({ ok: true, room: publicRoom(finished.meta, finished.players, playerId) });
+        }
+
+        if (action === 'scout' && request.method === 'GET') {
+            const players = await expireDisconnectedPlayers(store, meta, await readPlayers(store, code));
+            const finished = await finishIfNeeded(store, meta, players);
+            const requestedRoundKey = url.searchParams.get('roundKey');
+            const roundKey = /^\d{1,4}-[1-5]$/.test(requestedRoundKey || '')
+                ? requestedRoundKey
+                : String(finished.meta.battleClock?.roundKey || player.roundKey || getRoundKey(player.stage));
+            const currentPlayers = finished.players;
+            const viewer = currentPlayers.find(entry => entry.id === playerId) || player;
+            const isSpectating = Number(viewer.hp) <= 0;
+            const actualOpponentId = isSpectating ? null : assignOpponentId(currentPlayers, playerId, roundKey);
+            const candidateIds = isSpectating
+                ? currentPlayers
+                    .filter(entry => Number(entry.hp) > 0 && entry.id !== playerId)
+                    .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+                    .map(entry => entry.id)
+                : getScoutCandidateIds(currentPlayers, playerId, roundKey);
+            const candidates = candidateIds
+                .map(id => currentPlayers.find(entry => entry.id === id))
+                .filter(Boolean)
+                .map(entry => scoutPlayer(entry, actualOpponentId));
+            return json({
+                ok: true,
+                roundKey,
+                candidates,
+                room: publicRoom(finished.meta, finished.players, playerId)
+            });
+        }
+
+        if (action === 'disconnect' && request.method === 'POST') {
+            if (meta.status !== 'playing' || Number(player.hp) <= 0) {
+                return json({ ok: true, room: publicRoom(meta, await readPlayers(store, code), playerId) });
+            }
+            const disconnected = { ...player, disconnectedAt: Date.now(), lastSeenAt: Date.now() };
+            await store.setJSON(playerKey(code, playerId), disconnected);
+            const players = (await readPlayers(store, code))
+                .map(entry => entry.id === playerId ? disconnected : entry);
+            return json({ ok: true, room: publicRoom(meta, players, playerId) });
         }
 
         if (action === 'ready' && request.method === 'POST') {
@@ -288,6 +462,27 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             await store.setJSON(playerKey(code, playerId), updated);
             const players = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
             return json({ ok: true, room: publicRoom(meta, players, playerId) });
+        }
+
+        if (action === 'rematch' && request.method === 'POST') {
+            if (meta.hostId !== playerId) return fail('방장만 재대결을 시작할 수 있습니다.', 403);
+            if (meta.status !== 'finished') return fail('끝난 게임에서만 재대결할 수 있습니다.', 409);
+            const players = (await readPlayers(store, code)).map(entry => resetPlayerForRematch(entry, meta.hostId));
+            const randomSeed = randomInt(0x100000000);
+            const rematched = {
+                id: randomUUID(),
+                code: meta.code,
+                hostId: meta.hostId,
+                status: 'waiting',
+                seed: randomSeed === meta.seed ? (randomSeed + 1) >>> 0 : randomSeed,
+                balanceVersion: MULTIPLAYER_BALANCE_VERSION,
+                createdAt: Date.now()
+            };
+            await Promise.all([
+                store.setJSON(roomMetaKey(code), rematched),
+                ...players.map(entry => store.setJSON(playerKey(code, entry.id), entry))
+            ]);
+            return json({ ok: true, room: publicRoom(rematched, players, playerId) });
         }
 
         if (action === 'leave' && request.method === 'POST') {
@@ -345,15 +540,23 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
                 lastSeenAt: Date.now()
             };
             await store.setJSON(playerKey(code, playerId), updated);
-            const players = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
+            const submittedPlayers = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
+            const players = await expireDisconnectedPlayers(store, meta, submittedPlayers);
             const finished = await finishIfNeeded(store, meta, players);
             if (finished.meta.status === 'finished') {
                 return json({ ok: true, finished: true, room: publicRoom(finished.meta, finished.players, playerId) });
             }
+            const synchronizedMeta = await ensureBattleClock(store, finished.meta, players, roundKey);
+            if (synchronizedMeta.battleClock?.roundKey !== roundKey) {
+                return json({ ok: true, waiting: true, room: publicRoom(synchronizedMeta, players, playerId) });
+            }
+            if (isPveStage(stage, { includeOpening: true })) {
+                return json({ ok: true, ready: true, room: publicRoom(synchronizedMeta, players, playerId) });
+            }
             const opponentId = assignOpponentId(players, playerId, roundKey);
             const opponent = players.find(entry => entry.id === opponentId);
             if (!opponent || opponent.roundKey !== roundKey || !Array.isArray(opponent.board)) {
-                return json({ ok: true, waiting: true, room: publicRoom(meta, players, playerId) });
+                return json({ ok: true, waiting: true, room: publicRoom(synchronizedMeta, players, playerId) });
             }
             return json({
                 ok: true,
@@ -362,7 +565,7 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
                     board: opponent.board, gold: opponent.gold || 0,
                     globalBuffs: opponent.globalBuffs || {}, augments: opponent.augments || []
                 },
-                room: publicRoom(meta, players, playerId)
+                room: publicRoom(synchronizedMeta, players, playerId)
             });
         }
 
@@ -372,14 +575,16 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             const snapshot = sanitizeSnapshot(body);
             const hp = Math.max(0, Math.min(100, Number(body.hp) || 0));
             const updated = {
-                ...player, ...snapshot, hp, stage, lastSeenAt: Date.now(),
+                ...player, ...snapshot, hp, stage, battleFinishedRound: getRoundKey(stage), lastSeenAt: Date.now(),
                 ...(hp <= 0 && !player.eliminatedRound
                     ? { eliminatedRound: getRoundOrdinal(stage), eliminatedAt: Date.now() }
                     : {})
             };
             await store.setJSON(playerKey(code, playerId), updated);
-            const players = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
-            const finished = await finishIfNeeded(store, meta, players);
+            const submittedPlayers = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
+            const players = await expireDisconnectedPlayers(store, meta, submittedPlayers);
+            const synchronizedMeta = await shortenBattleClockIfFinished(store, meta, players);
+            const finished = await finishIfNeeded(store, synchronizedMeta, players);
             const ranked = rankPlayers(finished.players);
             return json({
                 ok: true,

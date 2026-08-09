@@ -69,6 +69,32 @@ test('Render 서버는 방 변경과 상대 보드 제출을 WebSocket으로 즉
     const guestCredentials = { code: guest.room.code, playerId: guest.room.selfId, token: guest.token };
     const hostSocket = await connectPlayer(wsUrl, hostCredentials);
     sockets.push(hostSocket);
+    const guestSocket = await connectPlayer(wsUrl, guestCredentials);
+    sockets.push(guestSocket);
+
+    const outsider = await api(baseUrl, 'create', { nickname: '다른방학생' });
+    const outsiderSocket = await connectPlayer(wsUrl, {
+        code: outsider.room.code,
+        playerId: outsider.room.selfId,
+        token: outsider.token
+    });
+    sockets.push(outsiderSocket);
+    let leakedEmote = false;
+    outsiderSocket.on('message', raw => {
+        if (JSON.parse(String(raw)).type === 'emote') leakedEmote = true;
+    });
+
+    const hostEmote = waitForMessage(hostSocket, message => message.type === 'emote');
+    const guestEmote = waitForMessage(guestSocket, message => message.type === 'emote');
+    guestSocket.send(JSON.stringify({ type: 'emote', emote: 'hello' }));
+    assert.equal((await hostEmote).emote, 'hello');
+    assert.equal((await guestEmote).playerId, guest.room.selfId);
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(leakedEmote, false);
+
+    const rateLimited = waitForMessage(guestSocket, message => message.type === 'emote:rejected');
+    guestSocket.send(JSON.stringify({ type: 'emote', emote: 'nice' }));
+    assert.equal((await rateLimited).reason, 'rate_limited');
 
     const readyNotice = waitForMessage(hostSocket, message => message.type === 'room:changed' && message.action === 'ready');
     await api(baseUrl, 'ready', { ...guestCredentials, ready: true });
@@ -76,18 +102,18 @@ test('Render 서버는 방 변경과 상대 보드 제출을 WebSocket으로 즉
 
     await api(baseUrl, 'start', hostCredentials);
     const hostWaiting = await api(baseUrl, 'round', {
-        ...hostCredentials, stage: [1, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
+        ...hostCredentials, stage: [2, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
     });
     assert.equal(hostWaiting.waiting, true);
 
     const roundNotice = waitForMessage(hostSocket, message => message.type === 'room:changed' && message.action === 'round');
     await api(baseUrl, 'round', {
-        ...guestCredentials, stage: [1, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
+        ...guestCredentials, stage: [2, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
     });
     await roundNotice;
 
     const matched = await api(baseUrl, 'round', {
-        ...hostCredentials, stage: [1, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
+        ...hostCredentials, stage: [2, 1], hp: 100, gold: 10, board: [], globalBuffs: {}, augments: []
     });
     assert.equal(matched.opponent.id, guest.room.selfId);
 });

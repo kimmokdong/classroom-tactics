@@ -97,6 +97,7 @@ export class UnitManager {
         `;
         uDiv.dataset.type = type;
         uDiv.dataset.index = idx;
+        if (unit.isPveMonster) uDiv.classList.add('pve-monster');
         if (unit.isEnemy) uDiv.classList.add('is-enemy');
 
         uDiv.ondragstart = (e) => {
@@ -625,6 +626,7 @@ export class UnitManager {
 
         const starText = '⭐'.repeat(unit.star || 1);
         const infoEl = document.getElementById('unit-details');
+        const costLabel = unit.isPveMonster ? 'PVE' : `${unit.tier}G`;
 
         let skillHtml = '';
         if (unit.skill) {
@@ -659,7 +661,7 @@ export class UnitManager {
 
         infoEl.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <div style="font-size: 1.1rem;"><strong>${starText} ${unit.name}</strong> <span style="color:var(--gold-color);">(${unit.tier}G)</span></div>
+                <div style="font-size: 1.1rem;"><strong>${starText} ${unit.name}</strong> <span style="color:var(--gold-color);">(${costLabel})</span></div>
                 <div class="unit-items-container" data-type="${uDiv ? uDiv.dataset.type : ''}" data-index="${uDiv ? uDiv.dataset.index : ''}" style="display: flex; gap: 4px;">
                     ${itemsHtml}
                 </div>

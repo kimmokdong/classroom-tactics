@@ -254,6 +254,15 @@ test('렌더러 재생 속도는 1배속과 2배속만 허용한다', () => {
         assert.equal(renderer.isSkipping, true);
         assert.equal(renderer.hitStopUntil, 0);
         assert.equal(skipButton.disabled, true);
+
+        renderer.isMultiplayer = true;
+        renderer.isSkipping = false;
+        renderer.hitStopUntil = 1000;
+        assert.equal(BattleRenderer.prototype.setPlaybackSpeed.call(renderer, 2), 1);
+        BattleRenderer.prototype.skipToEnd.call(renderer);
+        assert.equal(renderer.playbackSpeed, 1);
+        assert.equal(renderer.isSkipping, false);
+        assert.equal(renderer.hitStopUntil, 1000);
     } finally {
         globalThis.document = oldDocument;
         globalThis.localStorage = oldLocalStorage;

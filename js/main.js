@@ -22,6 +22,7 @@ import { UnitManager } from './systems/UnitManager.js';
 import SoundManager from './systems/SoundManager.js';
 import { SaveManager, SAVE_PHASES } from './systems/SaveManager.js';
 import { MultiplayerManager } from './multiplayer/MultiplayerManager.js';
+import { getIncomingThreatCount, getLikelyTargetIndex, getNextContextTip, getThreatAreaIndices } from './gameplayInsights.js';
 
 class GameApp {
     constructor() {
@@ -30,6 +31,7 @@ class GameApp {
         this.selectedUnit = null;
         this.selectedInventoryItem = null;
         this.feedbackTimer = null;
+        this.activeOnboardingTipId = null;
         this.saveManager = new SaveManager(this);
         this.wasRestored = Boolean(this.saveManager.load());
         this.EXP_TABLE = EXP_TABLE; // ShopManager needs this
@@ -100,9 +102,7 @@ class GameApp {
         }
         this.saveManager.metadata = this.saveManager.createMetadata(this.state);
         this.clearInteractionSelection();
-        this.giveRandomBaseItem();
-        this.giveRandomBaseItem();
-        this.giveRandomBaseItem();
+        // 멀티플레이 시작 아이템은 1-1~1-3 PVE에서 한 개씩 지급한다.
         this.spawnEnemyBoard();
         this.renderBoard();
         this.renderUnits();
@@ -152,8 +152,10 @@ class GameApp {
         this.selectedUnit = null;
         this.selectedInventoryItem = null;
         this.hideCustomTooltip();
-        document.querySelectorAll('.tap-selected, .tap-target, .item-target').forEach(el => {
-            el.classList.remove('tap-selected', 'tap-target', 'item-target');
+        document.querySelectorAll('.tap-selected, .tap-target, .item-target, .predicted-first-target, .threat-preview, .incoming-threat-preview').forEach(el => {
+            el.classList.remove('tap-selected', 'tap-target', 'item-target', 'predicted-first-target', 'threat-preview', 'incoming-threat-preview');
+            delete el.dataset.threatCount;
+            delete el.dataset.incomingThreatCount;
             if (el.classList.contains('cell') || el.classList.contains('item-slot')) {
                 el.tabIndex = -1;
                 el.removeAttribute('role');
@@ -182,6 +184,27 @@ class GameApp {
             cell.setAttribute('role', 'button');
             cell.setAttribute('aria-label', `대기석 ${cellIndex + 1}번 칸`);
         });
+        if (type === 'board') {
+            const likelyTarget = getLikelyTargetIndex(index, this.state.enemyBoard);
+            if (likelyTarget !== null) {
+                const targetCell = document.querySelectorAll('.board-cell')[likelyTarget];
+                targetCell?.classList.add('predicted-first-target');
+                const selectedUnit = this.state.board[index];
+                const rawRadius = selectedUnit?.skill?.aoeRange || selectedUnit?.skill?.splashRange || 0;
+                const radius = Math.max(0, Number(Array.isArray(rawRadius) ? rawRadius[(selectedUnit.star || 1) - 1] : rawRadius) || 0);
+                getThreatAreaIndices(likelyTarget, radius).forEach(cellIndex => {
+                    document.querySelectorAll('.board-cell')[cellIndex]?.classList.add('threat-preview');
+                });
+                const incomingThreats = getIncomingThreatCount(index, this.state.board, this.state.enemyBoard);
+                const ownCell = document.querySelectorAll('.board-cell')[index + 24];
+                if (incomingThreats > 0) {
+                    ownCell?.classList.add('incoming-threat-preview');
+                    if (ownCell) ownCell.dataset.incomingThreatCount = incomingThreats;
+                }
+                this.showFeedback(`예상 첫 대상: ${this.state.enemyBoard[likelyTarget]?.name || '적'}${radius ? ` · 주변 ${radius}칸 영향` : ''} · 적 ${incomingThreats}명 주시`);
+                return;
+            }
+        }
         this.showFeedback('이동할 칸이나 교환할 유닛을 선택하세요.');
     }
 
@@ -210,25 +233,61 @@ class GameApp {
         const tip = document.getElementById('onboarding-tip');
         const text = document.getElementById('onboarding-tip-text');
         if (!tip || !text) return;
-        const storage = globalThis.localStorage;
-        const isFirstRound = this.state.stage[0] === 1 && this.state.stage[1] === 1;
-        if (storage?.getItem('classroom-tactics-onboarding') === 'done' || !isFirstRound) {
+        if (this.isBattlePhase) {
             tip.classList.remove('show');
             return;
         }
-        const hasBoardUnit = this.state.board.some(Boolean);
-        const hasBenchUnit = this.state.bench.some(Boolean);
-        text.textContent = !hasBoardUnit && !hasBenchUnit
-            ? '① 상점의 학생을 눌러 구매하세요.'
-            : !hasBoardUnit
-                ? '② 대기석 학생을 누른 뒤 전장의 빈칸을 누르세요.'
-                : '③ 준비가 끝났다면 전투 시작을 누르세요.';
+        const storage = globalThis.localStorage;
+        const isFirstRound = this.state.stage[0] === 1 && this.state.stage[1] === 1;
+        const baseDone = storage?.getItem('classroom-tactics-onboarding') === 'done';
+        if (!baseDone && isFirstRound) {
+            const hasBoardUnit = this.state.board.some(Boolean);
+            const hasBenchUnit = this.state.bench.some(Boolean);
+            text.textContent = !hasBoardUnit && !hasBenchUnit
+                ? '① 상점의 학생을 눌러 구매하세요.'
+                : !hasBoardUnit
+                    ? '② 대기석 학생을 누른 뒤 전장의 빈칸을 누르세요.'
+                    : '③ 준비가 끝났다면 전투 시작을 누르세요.';
+            this.activeOnboardingTipId = 'base';
+            tip.classList.add('show');
+            return;
+        }
+
+        if (tip.classList.contains('show') && this.activeOnboardingTipId && this.activeOnboardingTipId !== 'base') return;
+        let seen = [];
+        try {
+            const stored = JSON.parse(storage?.getItem('classroom-tactics-context-tips-v1') || '[]');
+            seen = Array.isArray(stored) ? stored : [];
+        } catch { seen = []; }
+        const hint = getNextContextTip(
+            this.state,
+            this.getSynergyData(this.state.board),
+            this.SYNERGIES,
+            seen
+        );
+        if (!hint) {
+            tip.classList.remove('show');
+            this.activeOnboardingTipId = null;
+            return;
+        }
+        text.textContent = `💡 ${hint.text}`;
+        this.activeOnboardingTipId = hint.id;
+        storage?.setItem('classroom-tactics-context-tips-v1', JSON.stringify([...new Set([...seen, hint.id])]));
         tip.classList.add('show');
     }
 
     completeOnboarding() {
         globalThis.localStorage?.setItem('classroom-tactics-onboarding', 'done');
         document.getElementById('onboarding-tip')?.classList.remove('show');
+        this.activeOnboardingTipId = null;
+    }
+
+    dismissOnboarding() {
+        if (this.activeOnboardingTipId === 'base') this.completeOnboarding();
+        else {
+            document.getElementById('onboarding-tip')?.classList.remove('show');
+            this.activeOnboardingTipId = null;
+        }
     }
 
     bindEvents() {
@@ -329,7 +388,7 @@ class GameApp {
 
         document.getElementById('btn-skip-onboarding')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.completeOnboarding();
+            this.dismissOnboarding();
         });
 
         const shortcutTitles = {

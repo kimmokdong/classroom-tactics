@@ -1,4 +1,5 @@
 import { createUnitInstance } from '../battle/combatPreparation.js';
+import { isPveStage } from '../pveRounds.js';
 import {
     buildBoardSnapshot,
     calculateBoardCost,
@@ -8,6 +9,10 @@ import {
 } from './core.js';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const MULTIPLAYER_SESSION_KEY = 'classroom-tactics-multiplayer-session';
+const MULTIPLAYER_EMOTES = Object.freeze({
+    hello: '👋', nice: '👍', wow: '😮', oops: '😅', cheer: '🔥', gg: '👏'
+});
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
 }[char]));
@@ -19,7 +24,9 @@ export class MultiplayerManager {
         this.room = null;
         this.isActive = false;
         this.isFinished = false;
+        this.isSpectating = false;
         this.preparedRound = null;
+        this.battleClock = null;
         this.currentOpponent = null;
         this.opponentContext = null;
         this.pollTimer = null;
@@ -33,6 +40,10 @@ export class MultiplayerManager {
         this.statsView = 'units';
         this.enterGame = null;
         this.unloadHandler = null;
+        this.scoutSnapshots = [];
+        this.selectedScoutId = null;
+        this.scoutRefreshAt = 0;
+        this.pendingRestoredState = null;
     }
 
     bindTitle({ multiButton, enterGame, setTitleStatus }) {
@@ -40,6 +51,11 @@ export class MultiplayerManager {
         this.setTitleStatus = setTitleStatus;
         this.bindPanelEvents();
         multiButton?.addEventListener('click', () => this.openPanel('play'));
+        if (!this.unloadHandler) {
+            this.unloadHandler = () => this.persistSession();
+            window.addEventListener('beforeunload', this.unloadHandler);
+        }
+        this.restoreSession();
     }
 
     bindPanelEvents() {
@@ -58,6 +74,20 @@ export class MultiplayerManager {
         document.getElementById('btn-multi-leave')?.addEventListener('click', () => this.leaveMultiplayer());
         document.getElementById('btn-multi-hud-stats')?.addEventListener('click', () => this.openPanel('stats'));
         document.getElementById('btn-multi-hud-result')?.addEventListener('click', () => this.showFinalResult());
+        document.getElementById('btn-multi-scout')?.addEventListener('click', () => this.openScout());
+        document.getElementById('btn-multi-scout-close')?.addEventListener('click', () => this.closeScout());
+        document.getElementById('btn-multi-emote')?.addEventListener('click', () => this.toggleEmotes());
+        document.getElementById('btn-multi-rematch')?.addEventListener('click', () => this.rematch());
+        document.getElementById('btn-multi-hud-rematch')?.addEventListener('click', () => this.rematch());
+        document.getElementById('btn-multi-hud-leave')?.addEventListener('click', () => this.leaveMultiplayer());
+        document.querySelectorAll('[data-multi-emote]').forEach(button => {
+            button.addEventListener('click', () => this.sendEmote(button.dataset.multiEmote));
+        });
+        document.addEventListener('click', event => {
+            if (!this.isSpectating || !event.target.closest('#shop-slots .shop-card')) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }, true);
 
         this.panel.querySelectorAll('[data-multi-tab]').forEach(button => {
             button.addEventListener('click', () => {
@@ -132,6 +162,54 @@ export class MultiplayerManager {
         return nickname;
     }
 
+    persistSession() {
+        if (!this.credentials || this.isLeaving) return;
+        try {
+            globalThis.sessionStorage?.setItem(MULTIPLAYER_SESSION_KEY, JSON.stringify({
+                credentials: this.credentials,
+                isActive: this.isActive,
+                state: this.isActive ? this.app.saveManager?.serializeState(this.app.state) : null
+            }));
+        } catch (error) {
+            console.warn('멀티플레이 세션 저장 실패:', error);
+        }
+    }
+
+    clearSession() {
+        globalThis.sessionStorage?.removeItem(MULTIPLAYER_SESSION_KEY);
+    }
+
+    async restoreSession() {
+        let saved;
+        try {
+            saved = JSON.parse(globalThis.sessionStorage?.getItem(MULTIPLAYER_SESSION_KEY) || 'null');
+        } catch {
+            this.clearSession();
+            return;
+        }
+        if (!saved?.credentials?.code || !saved.credentials.playerId || !saved.credentials.token) return;
+        this.credentials = saved.credentials;
+        this.pendingRestoredState = saved.isActive ? saved.state : null;
+        try {
+            const data = await this.request('room', { method: 'GET', authenticated: true });
+            this.room = data.room;
+            this.showPanelView(data.room.status === 'waiting' ? 'lobby' : 'play');
+            this.updateRoom(data.room);
+            if (data.room.status === 'finished' && saved.isActive) {
+                this.isActive = true;
+                this.enterGame?.();
+                this.renderHud();
+            }
+            if (data.room.status !== 'playing') this.openPanel('play');
+            this.startPolling();
+            this.setStatus(`방 ${data.room.code}에 다시 연결했습니다.`, 'success');
+        } catch {
+            this.credentials = null;
+            this.pendingRestoredState = null;
+            this.clearSession();
+        }
+    }
+
     async createRoom() {
         const nickname = this.getNickname();
         if (nickname.length < 2) return this.setStatus('닉네임을 2자 이상 입력해 주세요.', 'warning');
@@ -165,9 +243,10 @@ export class MultiplayerManager {
         this.credentials = {
             code: data.room.code,
             playerId: data.room.selfId,
-            token: data.token
+            token: data.token || this.credentials?.token
         };
         this.room = data.room;
+        this.persistSession();
         this.showPanelView('lobby');
         this.renderRoom();
         this.startPolling();
@@ -195,6 +274,8 @@ export class MultiplayerManager {
             let message;
             try { message = JSON.parse(event.data); } catch { return; }
             if (message.type === 'authenticated' && message.room) this.updateRoom(message.room);
+            if (message.type === 'emote') this.showEmote(message.emote, message.nickname || message.playerName);
+            if (message.type === 'emote:rejected') this.app.showFeedback?.('감정 표현은 잠시 뒤 다시 보낼 수 있습니다.', 'warning');
             if (message.type === 'room:changed') {
                 this.wakeRealtimeWaiters();
                 this.refreshRoom();
@@ -250,17 +331,22 @@ export class MultiplayerManager {
     updateRoom(room) {
         if (!room) return;
         this.room = room;
+        this.battleClock = room.battleClock || null;
         this.renderRoom();
         this.renderHud();
         if (room.status === 'playing' && !this.isActive) this.activateGame();
+        const self = room.players.find(player => player.id === this.credentials?.playerId);
+        if (room.status === 'playing' && Number(self?.hp) <= 0) this.enterSpectatorMode();
         if (room.status === 'finished') {
             this.isFinished = true;
+            this.setGameControlsDisabled(true);
             const startButton = document.getElementById('btn-start-battle');
             if (startButton) {
                 startButton.disabled = true;
                 startButton.textContent = '🏁 대전 종료';
             }
         }
+        this.persistSession();
     }
 
     renderRoom() {
@@ -273,12 +359,13 @@ export class MultiplayerManager {
                 <li class="multi-player${player.id === this.credentials?.playerId ? ' is-me' : ''}">
                     <span class="multi-player__rank">${player.placement ? `${player.placement}위` : (player.isHost ? '방장' : '학생')}</span>
                     <strong>${escapeHtml(player.nickname)}</strong>
-                    <span>${this.room.status === 'waiting' ? (player.ready ? '✅ 준비' : '⏳ 대기') : `❤️ ${Math.max(0, player.hp)} · ${escapeHtml(player.stage?.join('-') || '1-1')}`}</span>
+                    <span>${player.connected === false ? '🔌 재연결 대기' : (this.room.status === 'waiting' ? (player.ready ? '✅ 준비' : '⏳ 대기') : `❤️ ${Math.max(0, player.hp)} · ${escapeHtml(player.stage?.join('-') || '1-1')}`)}</span>
                 </li>`).join('');
         }
         const self = this.room.players.find(player => player.id === this.credentials?.playerId);
         const readyButton = document.getElementById('btn-multi-ready');
         const startButton = document.getElementById('btn-multi-start');
+        const rematchButton = document.getElementById('btn-multi-rematch');
         if (readyButton) {
             readyButton.hidden = self?.isHost || this.room.status !== 'waiting';
             readyButton.textContent = self?.ready ? '준비 취소' : '준비 완료';
@@ -287,8 +374,14 @@ export class MultiplayerManager {
             startButton.hidden = !self?.isHost || this.room.status !== 'waiting';
             startButton.disabled = this.room.players.length < this.room.minPlayers || this.room.players.some(player => !player.ready);
         }
+        if (rematchButton) rematchButton.hidden = !self?.isHost || this.room.status !== 'finished';
         const count = document.getElementById('multi-player-count');
-        if (count) count.textContent = `${this.room.players.length}/${this.room.maxPlayers}`;
+        if (count) {
+            const ready = this.room.players.filter(player => player.ready).length;
+            count.textContent = this.room.status === 'waiting'
+                ? `${this.room.players.length}/${this.room.maxPlayers} · 준비 ${ready}/${this.room.players.length}`
+                : `${this.room.players.length}/${this.room.maxPlayers}`;
+        }
     }
 
     async toggleReady() {
@@ -316,30 +409,83 @@ export class MultiplayerManager {
         if (this.isActive || !this.room) return;
         this.isActive = true;
         this.isFinished = false;
+        this.isSpectating = false;
         this.preparedRound = null;
-        this.app.resetForMultiplayer?.({ room: this.room, playerId: this.credentials.playerId });
-        if (!this.unloadHandler) {
-            this.unloadHandler = () => {
-                if (!this.credentials || !this.isActive || this.isFinished) return;
-                const body = JSON.stringify(this.credentials);
-                navigator.sendBeacon?.('/api/multiplayer/leave', new Blob([body], { type: 'application/json' }));
+        this.battleClock = null;
+        if (this.pendingRestoredState) {
+            this.app.state = this.app.saveManager.normalizeState(this.pendingRestoredState);
+            this.app.state.multiplayer = {
+                roomId: this.room.id,
+                roomCode: this.room.code,
+                playerId: this.credentials.playerId
             };
-            window.addEventListener('beforeunload', this.unloadHandler);
+            this.app.saveManager.metadata = this.app.saveManager.createMetadata(this.app.state);
+            this.app.clearInteractionSelection?.();
+            this.app.spawnEnemyBoard();
+            this.app.renderBoard();
+            this.app.renderUnits();
+            this.app.renderShop();
+            this.app.renderInventory();
+            this.app.calculateSynergy();
+            this.app.updateHeader();
+            this.pendingRestoredState = null;
+        } else {
+            this.app.resetForMultiplayer?.({ room: this.room, playerId: this.credentials.playerId });
         }
         this.closePanel();
         this.enterGame?.();
+        this.setGameControlsDisabled(false);
         this.renderHud();
         this.startPolling();
+        this.persistSession();
         this.app.showFeedback?.(`멀티플레이 방 ${this.room.code}에 입장했습니다.`, 'success');
     }
 
     isPveRound() {
-        return Number(this.app.state.stage?.[1]) === 5;
+        return isPveStage(this.app.state.stage, { includeOpening: true });
     }
 
     shouldPrepareBattle() {
-        return this.isActive && !this.isFinished && !this.isPveRound()
+        return this.isActive && !this.isFinished && !this.isSpectating
             && this.preparedRound !== getRoundKey(this.app.state.stage);
+    }
+
+    getBattleClock(roundKey = getRoundKey(this.app.state.stage)) {
+        const clock = this.battleClock || this.room?.battleClock;
+        return clock?.roundKey === roundKey ? clock : null;
+    }
+
+    async waitForBattleStart(roundKey) {
+        const clock = this.getBattleClock(roundKey);
+        if (!clock) return;
+        const startButton = document.getElementById('btn-start-battle');
+        while (Date.now() < clock.startedAt) {
+            const seconds = Math.max(1, Math.ceil((clock.startedAt - Date.now()) / 1000));
+            if (startButton) startButton.textContent = `⚔️ 동시 전투 시작 ${seconds}초`;
+            await sleep(Math.min(100, clock.startedAt - Date.now()));
+        }
+    }
+
+    async waitForBattleEnd(roundKey) {
+        const timerContainer = document.getElementById('battle-timer-container');
+        const timerText = document.getElementById('battle-timer');
+        while (this.isActive) {
+            const clock = this.getBattleClock(roundKey);
+            if (!clock) break;
+            const remaining = clock.deadline - Date.now();
+            if (timerContainer) {
+                timerContainer.style.display = 'flex';
+                timerContainer.style.borderColor = remaining <= 5_000 ? '#e74c3c' : '#3498db';
+            }
+            if (timerText) {
+                timerText.textContent = String(Math.max(0, Math.ceil(remaining / 1000)));
+                timerText.style.color = remaining <= 5_000 ? '#ff7675' : '#fff';
+            }
+            if (remaining <= 0) break;
+            await this.waitForRealtime(Math.min(500, remaining));
+            await this.refreshRoom();
+        }
+        if (timerContainer) timerContainer.style.display = 'none';
     }
 
     battlePayload() {
@@ -368,26 +514,28 @@ export class MultiplayerManager {
                     const data = await this.request('round', { authenticated: true, body: this.battlePayload() });
                     this.updateRoom(data.room);
                     if (data.finished) return false;
-                    if (data.opponent) {
-                        this.currentOpponent = data.opponent;
-                        this.opponentContext = {
+                    if (data.ready || data.opponent) {
+                        this.battleClock = data.room?.battleClock || null;
+                        this.currentOpponent = data.opponent || null;
+                        this.opponentContext = data.opponent ? {
                             globalBuffs: data.opponent.globalBuffs || {},
                             playerHp: data.opponent.hp,
                             gold: data.opponent.gold || 0,
                             augments: data.opponent.augments || []
-                        };
-                        this.app.state.enemyBoard = this.hydrateOpponentBoard(data.opponent.board);
+                        } : null;
+                        if (data.opponent) this.app.state.enemyBoard = this.hydrateOpponentBoard(data.opponent.board);
                         this.preparedRound = roundKey;
                         this.app.renderUnits();
                         const info = document.getElementById('enemy-info');
-                        if (info) info.textContent = `🌐 ${data.opponent.nickname} · ❤️ ${data.opponent.hp} · 보드 ${calculateBoardCost(data.opponent.board)}코스트`;
-                        if (startButton) {
-                            startButton.disabled = false;
-                            startButton.textContent = '⚔️ 전투 시작';
-                        }
+                        if (info && data.opponent) info.textContent = `🌐 ${data.opponent.nickname} · ❤️ ${data.opponent.hp} · 보드 ${calculateBoardCost(data.opponent.board)}코스트`;
+                        await this.waitForBattleStart(roundKey);
+                        this.persistSession();
                         return true;
                     }
-                    this.setStatus(`${roundKey} 라운드 상대의 보드 제출을 기다리는 중입니다…`);
+                    const alive = this.room?.players.filter(player => Number(player.hp) > 0) || [];
+                    const submitted = alive.filter(player => player.roundKey === roundKey).length;
+                    this.setStatus(`${roundKey} 라운드 보드 제출 ${submitted}/${alive.length} · 모두 준비되면 곧바로 시작합니다.`);
+                    this.renderHud();
                     await this.waitForRealtime();
                 }
                 return false;
@@ -423,11 +571,14 @@ export class MultiplayerManager {
 
     async reportBattle(winner, endLog) {
         if (!this.isActive) return null;
+        const roundKey = getRoundKey(this.app.state.stage);
         const body = { ...this.battlePayload(), winner, survivingEnemies: endLog?.survivingEnemies || 0 };
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
                 const data = await this.request('result', { authenticated: true, body });
                 this.updateRoom(data.room);
+                await this.waitForBattleEnd(roundKey);
+                data.room = this.room || data.room;
                 return data;
             } catch (error) {
                 if (attempt === 0) await sleep(700);
@@ -437,19 +588,188 @@ export class MultiplayerManager {
         return null;
     }
 
+    setGameControlsDisabled(disabled) {
+        document.body.classList.toggle('multi-spectating', disabled);
+        for (const id of ['btn-start-battle', 'btn-reroll', 'btn-buy-exp', 'btn-lock-shop']) {
+            const button = document.getElementById(id);
+            if (button) button.disabled = disabled;
+        }
+        document.querySelectorAll('#shop-slots .shop-card').forEach(card => {
+            card.setAttribute('aria-disabled', String(disabled));
+            card.tabIndex = disabled ? -1 : 0;
+        });
+    }
+
+    enterSpectatorMode() {
+        if (this.isSpectating || this.room?.status !== 'playing') return;
+        this.isSpectating = true;
+        this.app.isBattlePhase = false;
+        window.isBattlePhase = false;
+        this.setGameControlsDisabled(true);
+        const startButton = document.getElementById('btn-start-battle');
+        if (startButton) startButton.textContent = '👀 관전 중';
+        this.openScout();
+        this.persistSession();
+        this.app.showFeedback?.('탈락했습니다. 참가자들의 최근 제출 보드를 관전할 수 있습니다.', 'warning');
+    }
+
+    async openScout() {
+        const panel = document.getElementById('multi-scout-panel');
+        if (panel) panel.hidden = false;
+        await this.loadScout();
+    }
+
+    closeScout() {
+        const panel = document.getElementById('multi-scout-panel');
+        if (panel) panel.hidden = true;
+    }
+
+    async loadScout(force = true) {
+        if (!this.credentials) return;
+        if (!force && Date.now() - this.scoutRefreshAt < 3000) return;
+        const status = document.getElementById('multi-scout-status');
+        if (status) status.textContent = '최근 제출 보드를 불러오는 중…';
+        try {
+            const data = await this.request('scout', {
+                method: 'GET', authenticated: true,
+                body: { roundKey: getRoundKey(this.app.state.stage) }
+            });
+            const raw = data.candidates || data.scouts || data.players || data.boards
+                || [data.candidate, data.recent].filter(Boolean);
+            this.scoutSnapshots = (Array.isArray(raw) ? raw : []).map(entry => ({
+                ...entry,
+                ...(entry.snapshot || {}),
+                id: entry.id || entry.playerId || entry.snapshot?.id,
+                nickname: entry.nickname || entry.playerName || entry.snapshot?.nickname || '참가자',
+                board: entry.board || entry.snapshot?.board || []
+            })).filter(entry => entry.id && Array.isArray(entry.board));
+            this.scoutRefreshAt = Date.now();
+            if (!this.scoutSnapshots.some(entry => entry.id === this.selectedScoutId)) {
+                this.selectedScoutId = this.scoutSnapshots.find(entry => Number(entry.hp) > 0)?.id
+                    || this.scoutSnapshots[0]?.id || null;
+            }
+            this.renderScout();
+        } catch (error) {
+            if (status) status.textContent = this.friendlyNetworkError(error);
+        }
+    }
+
+    renderScout() {
+        const tabs = document.getElementById('multi-scout-candidates');
+        const status = document.getElementById('multi-scout-status');
+        if (tabs) {
+            tabs.innerHTML = this.scoutSnapshots.map((entry, index) => `
+                <button type="button" data-scout-index="${index}" class="${entry.id === this.selectedScoutId ? 'active' : ''}">
+                    ${entry.actualOpponent ? '🎯 ' : ''}${escapeHtml(entry.nickname)} <small>${Math.max(0, Number(entry.hp) || 0)}HP</small>
+                </button>`).join('');
+            tabs.querySelectorAll('[data-scout-index]').forEach(button => {
+                button.addEventListener('click', () => {
+                    this.selectedScoutId = this.scoutSnapshots[Number(button.dataset.scoutIndex)]?.id;
+                    this.renderScout();
+                });
+            });
+        }
+        const selected = this.scoutSnapshots.find(entry => entry.id === this.selectedScoutId);
+        if (status) status.textContent = selected
+            ? `${selected.nickname} · ${selected.stage?.join?.('-') || selected.roundKey || '최근'} 제출 · ${Number(selected.boardCost) || 0}코스트`
+            : '아직 정찰할 수 있는 제출 보드가 없습니다.';
+        const board = document.getElementById('multi-scout-board');
+        if (!board) return;
+        board.innerHTML = Array.from({ length: 24 }, (_, index) => {
+            const snapshot = selected?.board?.[index];
+            const unit = this.app.UNIT_POOL.find(candidate => candidate.id === snapshot?.unitId);
+            return `<div class="multi-scout-cell${unit ? ' is-filled' : ''}" title="${unit ? escapeHtml(`${unit.name} ${snapshot.star || 1}성`) : ''}">
+                ${unit ? `<span>${escapeHtml(unit.icon)}</span><small>${snapshot.star > 1 ? '★'.repeat(snapshot.star) : ''}</small>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    toggleEmotes() {
+        const menu = document.getElementById('multi-emote-menu');
+        if (menu) menu.hidden = !menu.hidden;
+    }
+
+    sendEmote(emote) {
+        if (!MULTIPLAYER_EMOTES[emote]) return;
+        if (Date.now() - (this.lastEmoteSentAt || 0) < 1500) return;
+        this.lastEmoteSentAt = Date.now();
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({ type: 'emote', emote }));
+        }
+        this.showEmote(emote, '나');
+        const menu = document.getElementById('multi-emote-menu');
+        if (menu) menu.hidden = true;
+    }
+
+    showEmote(emote, nickname = '') {
+        if (!MULTIPLAYER_EMOTES[emote]) return;
+        const bubble = document.getElementById('multi-emote-bubble');
+        if (!bubble) return;
+        bubble.textContent = `${nickname ? `${nickname} ` : ''}${MULTIPLAYER_EMOTES[emote]}`;
+        bubble.hidden = false;
+        clearTimeout(this.emoteTimer);
+        this.emoteTimer = setTimeout(() => { bubble.hidden = true; }, 1800);
+    }
+
+    async rematch() {
+        const self = this.room?.players.find(player => player.id === this.credentials?.playerId);
+        if (!self?.isHost || this.room?.status !== 'finished') return;
+        this.setStatus('같은 방 코드로 재대결을 준비하는 중입니다…');
+        try {
+            const data = await this.request('rematch', { authenticated: true });
+            if (data.token) this.credentials.token = data.token;
+            this.room = data.room;
+            this.isActive = false;
+            this.isFinished = false;
+            this.isSpectating = false;
+            this.isLeaving = false;
+            this.preparedRound = null;
+            this.currentOpponent = null;
+            this.opponentContext = null;
+            this.setGameControlsDisabled(false);
+            this.closeScout();
+            this.openPanel('play');
+            this.renderRoom();
+            this.renderHud();
+            this.startPolling();
+            this.persistSession();
+            this.setStatus(`방 ${this.room.code}에서 재대결을 준비합니다.`, 'success');
+        } catch (error) {
+            this.setStatus(this.friendlyNetworkError(error), 'error');
+        }
+    }
+
+    showPostGameControls() {
+        this.app.isBattlePhase = false;
+        window.isBattlePhase = false;
+        this.renderHud();
+        this.openPanel('play');
+    }
+
     renderHud() {
         const hud = document.getElementById('multiplayer-hud');
         if (!hud) return;
         hud.hidden = !this.isActive;
         if (!this.isActive || !this.room) return;
         const self = this.room.players.find(player => player.id === this.credentials?.playerId);
-        const alive = this.room.players.filter(player => player.hp > 0).length;
+        const alivePlayers = this.room.players.filter(player => Number(player.hp) > 0);
+        const roundKey = getRoundKey(this.app.state.stage);
+        const submitted = alivePlayers.filter(player => player.roundKey === roundKey).length;
         const text = document.getElementById('multi-hud-text');
         if (text) text.textContent = this.room.status === 'finished'
             ? `🏁 ${self?.placement || '-'}위 · 최종 보드 ${self?.boardCost || 0}코스트`
-            : `🌐 ${this.room.code} · 생존 ${alive}/${this.room.players.length} · ${this.currentOpponent ? `상대 ${this.currentOpponent.nickname}` : '상대 대기'}`;
+            : this.isSpectating
+                ? `👀 관전 중 · 생존 ${alivePlayers.length}/${this.room.players.length}`
+                : `🌐 ${this.room.code} · 생존 ${alivePlayers.length}/${this.room.players.length} · 제출 ${submitted}/${alivePlayers.length}`;
         const resultButton = document.getElementById('btn-multi-hud-result');
         if (resultButton) resultButton.hidden = this.room.status !== 'finished';
+        const rematchButton = document.getElementById('btn-multi-hud-rematch');
+        if (rematchButton) rematchButton.hidden = this.room.status !== 'finished' || !self?.isHost;
+        const leaveButton = document.getElementById('btn-multi-hud-leave');
+        if (leaveButton) leaveButton.hidden = this.room.status !== 'finished';
+        const scoutButton = document.getElementById('btn-multi-scout');
+        if (scoutButton) scoutButton.hidden = this.room.status !== 'playing';
+        if (this.isSpectating) this.loadScout(false);
     }
 
     showFinalResult() {
@@ -460,7 +780,7 @@ export class MultiplayerManager {
             `${medal} 멀티플레이 ${self.placement}위`,
             `<strong>${escapeHtml(self.nickname)}</strong> · 최종 보드 비용 <strong>${self.boardCost || 0}코스트</strong><br>이번 결과는 밸런스 통계에 누적되었습니다.`,
             self.placement === 1 ? 'win' : 'loss',
-            () => this.leaveMultiplayer()
+            () => this.showPostGameControls()
         );
     }
 
@@ -481,7 +801,8 @@ export class MultiplayerManager {
         if (this.credentials) {
             try { await this.request('leave', { authenticated: true }); } catch { /* 새로고침으로 로컬 세션은 종료된다. */ }
         }
-        // isActive는 새로고침이 끝날 때까지 유지해 beforeunload 자동 저장이 싱글 슬롯을 덮어쓰지 않게 한다.
+        this.clearSession();
+        // isActive는 새로고침이 끝날 때까지 유지해 싱글 저장 슬롯을 덮어쓰지 않게 한다.
         location.reload();
     }
 

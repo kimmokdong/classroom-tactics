@@ -6,6 +6,18 @@ import { SYNERGIES } from '../data.js';
 import { AUGMENT_EVENTS } from './AugmentManager.js';
 import { SAVE_PHASES } from './SaveManager.js';
 import { prepareBattle, rollThievesItems } from '../battle/combatPreparation.js';
+import {
+    generatePveBoard,
+    getNextStage,
+    getPveEncounter,
+    grantPveReward,
+    isPveStage
+} from '../pveRounds.js';
+import {
+    buildBattleSummary,
+    formatBattleSummaryHtml,
+    getStreakBonus
+} from '../gameplayInsights.js';
 
 export function resolveBattleGold(gold) {
     return gold ?? 50;
@@ -28,7 +40,16 @@ export class StageManager {
         this.app = gameApp;
     }
 
-        spawnEnemyBoard() {
+    spawnEnemyBoard() {
+        const pveOptions = { includeOpening: Boolean(this.app.multiplayerManager?.isActive) };
+        const encounter = getPveEncounter(this.app.state.stage, pveOptions);
+        if (encounter) {
+            this.app.state.enemyBoard = generatePveBoard(this.app.state.stage, pveOptions);
+            const enemyInfo = document.getElementById('enemy-info');
+            if (enemyInfo) enemyInfo.innerText = `🌿 PVE · ${encounter.name} | ${encounter.description}`;
+            return;
+        }
+
         this.app.state.enemyBoard = generateEnemyBoard(this.app.state);
         const enemySynergies = this.app.getSynergyData(this.app.state.enemyBoard);
         const activeTraits = [];
@@ -44,7 +65,8 @@ export class StageManager {
         const opponent = lobby?.opponents?.find(candidate => candidate.id === lobby.currentOpponentId);
         const strategyNames = { reroll: '리롤형', tempo: '템포형', standard: '표준형', fastLevel: '빠른 레벨업형' };
         const opponentInfo = opponent ? `${opponent.profile.name} · Lv.${opponent.level} ${strategyNames[opponent.profile.strategy]}` : '가상 상대';
-        document.getElementById('enemy-info').innerText = `🚨 ${opponentInfo} | 시너지: ${activeTraits.length > 0 ? activeTraits.join(', ') : '없음'}`;
+        const enemyInfo = document.getElementById('enemy-info');
+        if (enemyInfo) enemyInfo.innerText = `🚨 ${opponentInfo} | 시너지: ${activeTraits.length > 0 ? activeTraits.join(', ') : '없음'}`;
     }
 
     handleBattleStart() {
@@ -107,10 +129,12 @@ export class StageManager {
         document.querySelectorAll('.board-cell .unit-character').forEach(u => u.draggable = false);
 
         // 적은 init() 및 다음 라운드에서 이미 state.enemyBoard에 스폰되어 있음
+        const pveOptions = { includeOpening: Boolean(app.multiplayerManager?.isActive) };
+        const isPveBattle = isPveStage(app.state.stage, pveOptions);
         const battleSeed = `${app.state.runSeed}:${app.state.stage.join('-')}`;
         const battleRandom = createSeededRandom(battleSeed);
         const remoteOpponentContext = app.multiplayerManager?.isActive
-            && !app.multiplayerManager.isPveRound()
+            && !isPveBattle
             && app.multiplayerManager.preparedRound === app.state.stage.join('-')
             ? app.multiplayerManager.opponentContext
             : null;
@@ -136,7 +160,9 @@ export class StageManager {
         });
 
         // 극후반 아이템 격차 보정은 시너지 준비가 끝난 뒤에만 적용한다.
-        if (!app.multiplayerManager?.isActive) applyLateGameEnemyModifier(buffedEnemyBoard, app.state.stage[0]);
+        if (!app.multiplayerManager?.isActive && !isPveBattle) {
+            applyLateGameEnemyModifier(buffedEnemyBoard, app.state.stage[0]);
+        }
 
         // --- 학사일정(증강체) 전투 시작 연출 ---
         const g = app.state.globalBuffs;
@@ -214,7 +240,11 @@ export class StageManager {
 
         // 3. 리플레이 시각화 재생
         const fxCanvas = document.getElementById('fx-canvas');
-        const renderer = new BattleRenderer(logs, document.getElementById('battle-board'), fxCanvas);
+        const renderer = new BattleRenderer(logs, document.getElementById('battle-board'), fxCanvas, {
+            multiplayerClock: app.multiplayerManager?.isActive
+                ? app.multiplayerManager.getBattleClock(app.state.stage.join('-'))
+                : null
+        });
         this.app.renderer = renderer; // 통계창에서 접근할 수 있도록 저장
         const battleTransactionId = `battle:${app.state.runId}:${app.state.stage.join('-')}`;
         
@@ -227,7 +257,7 @@ export class StageManager {
 
             // [패치] 승리 시 즉시 +1 골드 지급 (이자 계산에 포함하기 위함)
             let winBonus = 0;
-            if (winner === 'player') {
+            if (winner === 'player' && !isPveBattle) {
                 winBonus = 1;
                 st.gold += winBonus;
             }
@@ -260,49 +290,50 @@ export class StageManager {
                 st.freeRerolls = (st.freeRerolls || 0) + 1;
             }
 
-            // 연승/연패 보너스 계산 함수 (2~4연:1G, 5연:2G, 6연 이상:3G)
-            const getStreakBonus = (count) => {
-                if (count >= 6) return 3;
-                if (count >= 5) return 2;
-                if (count >= 2) return 1;
-                return 0;
-            };
-
             let title = '';
             let msg = '';
             let type = 'win';
             let onConfirm = null;
 
             if (winner === 'player') {
-                st.winStreak++;
-                st.lossStreak = 0;
-                const streakBonus = getStreakBonus(st.winStreak);
+                if (!isPveBattle) {
+                    st.winStreak++;
+                    st.lossStreak = 0;
+                }
+                const activeStreak = isPveBattle ? Math.max(st.winStreak, st.lossStreak) : st.winStreak;
+                const streakBonus = getStreakBonus(activeStreak);
 
                 let baseGold = 5;
                 let totalGold = baseGold + interest + streakBonus; // 승리 +1골드는 이미 지급됨
                 if (st.honorStudent) { totalGold += 1; this.app.addExp(1); }
                 if (st.snackShop) { totalGold += 1; }
                 st.gold += totalGold;
-                title = '승리!';
-                
+                title = isPveBattle ? 'PVE 클리어!' : '승리!';
+
                 let displayGold = totalGold + winBonus; // 표기상으로는 획득한 전체 골드를 합산
-                msg = `<span style="color:#2563eb; font-weight:800;">⚔️ 전투 승리!</span> (+${displayGold}G)`;
-                if (st.winStreak >= 2) msg += `<br><span style="color:#e84393;">🔥 ${st.winStreak}연승 보너스 +${streakBonus}G</span>`;
+                msg = `<span style="color:#2563eb; font-weight:800;">${isPveBattle ? '🌿 PVE 클리어!' : '⚔️ 전투 승리!'}</span> (+${displayGold}G)`;
+                if (!isPveBattle && st.winStreak >= 2) msg += `<br><span style="color:#e84393;">🔥 ${st.winStreak}연승 보너스 +${streakBonus}G</span>`;
             } else if (winner === 'draw') {
                 // 무승부: 연승/연패 초기화, 체력 피해 없음
-                st.winStreak = 0;
-                st.lossStreak = 0;
+                if (!isPveBattle) {
+                    st.winStreak = 0;
+                    st.lossStreak = 0;
+                }
+                const streakBonus = isPveBattle ? getStreakBonus(Math.max(st.winStreak, st.lossStreak)) : 0;
                 let baseGold = 5; // 기본 보상은 5G로 통일
-                let totalGold = baseGold + interest;
+                let totalGold = baseGold + interest + streakBonus;
                 if (st.snackShop) { totalGold += 1; }
                 st.gold += totalGold;
-                title = '무승부!';
+                title = isPveBattle ? 'PVE 시간 초과' : '무승부!';
                 type = 'draw';
                 msg = `<span style="color:#f39c12; font-weight:800;">⚡ 연장전 무승부!</span><br><span style="font-size:0.9rem; color:#636e72;">양쪽 모두 생존 — 체력 피해 없음 (+${totalGold}G)</span>`;
             } else if (winner === 'enemy') {
-                st.lossStreak++;
-                st.winStreak = 0;
-                const streakBonus = getStreakBonus(st.lossStreak);
+                if (!isPveBattle) {
+                    st.lossStreak++;
+                    st.winStreak = 0;
+                }
+                const activeStreak = isPveBattle ? Math.max(st.winStreak, st.lossStreak) : st.lossStreak;
+                const streakBonus = getStreakBonus(activeStreak);
 
                 let baseGold = 5; // 기본 보상은 5G로 통일
                 let totalGold = baseGold + interest + streakBonus;
@@ -319,7 +350,7 @@ export class StageManager {
                     title = '체력 보존!';
                     type = 'save';
                     msg = `<span style="color:#0984e3; font-weight:800;">😭 패배했지만 [지각 면제권]으로 체력 보존!</span><br><span style="font-size:0.9rem; color:#636e72;">(남은 무적: ${st.invincibleRounds}회)</span>`;
-                    if (st.lossStreak >= 3) msg += `<br><span style="color:#00cec9;">💧 ${st.lossStreak}연패 보너스 +${streakBonus}G</span>`;
+                    if (!isPveBattle && st.lossStreak >= 3) msg += `<br><span style="color:#00cec9;">💧 ${st.lossStreak}연패 보너스 +${streakBonus}G</span>`;
                 } else {
                     if (st.lateLeave) dmg = Math.floor(dmg / 2);
                     st.hp -= dmg;
@@ -334,10 +365,10 @@ export class StageManager {
                                 location.reload();
                             };
                     } else {
-                        title = '패배...';
+                        title = isPveBattle ? 'PVE 방어 실패' : '패배...';
                         type = 'loss';
-                        msg = `<span style="color:#d63031; font-weight:800;">😭 전투 패배...</span><br><span style="font-size:0.9rem; color:#636e72;">(-${dmg} HP, 적 ${survivingEnemies}명 생존) (+${totalGold}G)</span>`;
-                        if (st.lossStreak >= 2) msg += `<br><span style="color:#00cec9;">💧 ${st.lossStreak}연패 보너스 +${streakBonus}G</span>`;
+                        msg = `<span style="color:#d63031; font-weight:800;">${isPveBattle ? '🌿 PVE 방어 실패' : '😭 전투 패배...'}</span><br><span style="font-size:0.9rem; color:#636e72;">(-${dmg} HP, 적 ${survivingEnemies}명 생존) (+${totalGold}G)</span>`;
+                        if (!isPveBattle && st.lossStreak >= 2) msg += `<br><span style="color:#00cec9;">💧 ${st.lossStreak}연패 보너스 +${streakBonus}G</span>`;
                     }
                 }
             }
@@ -347,11 +378,23 @@ export class StageManager {
                 msg += `<br><strong style="color:#315f52;">현재 순위: ${multiplayerResult.placement}위 · 보드 결과가 통계에 기록되었습니다.</strong>`;
             }
 
-            // PVE 라운드 (x-5) 종료 시 보상 (승패 상관없이 지급)
-            if (st.stage[1] === 5 && type !== 'gameover') {
-                this.app.giveRandomBaseItem();
-                this.app.giveRandomBaseItem();
-                msg += `<br><br><div style="background:rgba(241,196,15,0.15); padding:12px; border-radius:12px; border:1px solid rgba(241,196,15,0.4);"><span style="font-size:1.5rem;">🎉</span> <strong style="color:#d35400;">기말고사(PVE) 완료!</strong><br><span style="color:#34495e; font-size:0.95rem;">무작위 기본 아이템 2개를 획득했습니다!</span></div>`;
+            const battleSummary = buildBattleSummary(logs, st.dpsStats);
+            const battleSummaryHtml = formatBattleSummaryHtml(battleSummary);
+            st.lastBattleSummary = battleSummary;
+            msg += battleSummaryHtml;
+            const insightPanel = document.getElementById('battle-insight');
+            if (insightPanel) insightPanel.innerHTML = battleSummaryHtml;
+
+            // PVE 보상은 승패와 무관하게 같은 조각 가치로 지급한다.
+            if (isPveBattle && type !== 'gameover') {
+                const reward = grantPveReward(
+                    this.app,
+                    st.stage,
+                    this.app.itemManager?.random || Math.random,
+                    pveOptions
+                );
+                const encounter = getPveEncounter(st.stage, pveOptions);
+                msg += `<br><br><div style="background:rgba(241,196,15,0.15); padding:12px; border-radius:12px; border:1px solid rgba(241,196,15,0.4);"><span style="font-size:1.5rem;">🎉</span> <strong style="color:#d35400;">${encounter?.name || 'PVE'} 완료!</strong><br><span style="color:#34495e; font-size:0.95rem;">${reward.label}를 획득했습니다. (모든 플레이어 동일 가치)</span></div>`;
             }
 
             // --- 전투 MVP 계산 ---
@@ -383,19 +426,30 @@ export class StageManager {
             }
             // ------------------
 
-            if (type === 'gameover') {
-                this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
-                this.app.showResultModal(title, msg, type, onConfirm);
-                return;
-            }
-
             if (multiplayerResult?.room?.status === 'finished') {
                 const self = multiplayerResult.room.players.find(player => player.id === multiplayerResult.room.selfId);
                 title = self?.placement === 1 ? '멀티플레이 우승!' : '멀티플레이 종료';
                 type = self?.placement === 1 ? 'win' : 'loss';
                 msg += `<br><br><strong>최종 ${self?.placement || '-'}위 · 보드 비용 ${self?.boardCost || 0}코스트</strong>`;
                 this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
-                this.app.showResultModal(title, msg, type, () => this.app.multiplayerManager.leaveMultiplayer());
+                this.app.showResultModal(title, msg, type, () => this.app.multiplayerManager.showPostGameControls());
+                return;
+            }
+
+            if (this.app.multiplayerManager?.isSpectating) {
+                this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
+                this.app.showResultModal(
+                    '탈락 · 관전 모드',
+                    `${msg}<br><br><strong>다른 참가자들의 최근 제출 보드를 계속 관전할 수 있습니다.</strong>`,
+                    'loss',
+                    () => this.app.multiplayerManager.openScout()
+                );
+                return;
+            }
+
+            if (type === 'gameover') {
+                this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.REWARD_APPLIED);
+                this.app.showResultModal(title, msg, type, onConfirm);
                 return;
             }
 
@@ -403,12 +457,10 @@ export class StageManager {
             // 기본 경험치 +2 자동 지급
             this.app.addExp(2);
 
-            // 라운드/스테이지 증가
-            this.app.state.stage[1]++;
-            if (this.app.state.stage[1] > 5) {
-                this.app.state.stage[0]++;
-                this.app.state.stage[1] = 1;
-            }
+            // 멀티플레이 준비전은 1-3 뒤 곧바로 첫 유저전인 2-1로 이동한다.
+            this.app.state.stage = getNextStage(this.app.state.stage, {
+                skipOpeningRounds: Boolean(this.app.multiplayerManager?.isActive)
+            });
             this.app.eventBus?.emit(AUGMENT_EVENTS.ROUND_STARTED, { stage: [...this.app.state.stage] });
 
             // 전투 종료 시 도적의 장갑 아이템 리롤
@@ -469,6 +521,7 @@ export class StageManager {
             this.app.updateHeader();
 
             this.app.renderUnits(); // 적 보드 및 아군 보드 재렌더링
+            this.app.updateOnboarding?.();
 
             // 보드의 유닛들 다시 드래그 가능하게
             document.querySelectorAll('.board-cell .unit-character').forEach(u => u.draggable = true);
@@ -496,7 +549,7 @@ export class StageManager {
             }
 
             // 매점 타임 팝업 (x-3 라운드 시작 시)
-            if (st.stage[1] === 3) {
+            if (st.stage[0] >= 2 && st.stage[1] === 3) {
                 this.app.showStoreTimeSelection();
             }
             this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.NEXT_ROUND_READY);

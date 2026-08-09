@@ -17,7 +17,7 @@ export class DpsTracker {
     }
 
     reset() {
-        this.stats = {};
+        Object.keys(this.stats).forEach(key => delete this.stats[key]);
     }
 
     /**

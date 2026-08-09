@@ -1,3 +1,5 @@
+import { getIncomePreview, getStreakBonus } from '../gameplayInsights.js';
+
 export class HudRenderer {
     constructor(gameApp) {
         this.app = gameApp;
@@ -6,33 +8,38 @@ export class HudRenderer {
     updateHeader() {
         document.getElementById('player-hp').innerText = this.app.state.hp;
         document.getElementById('player-gold').innerText = this.app.state.gold;
-        let interest = Math.floor(this.app.state.gold / 10);
         let maxInterest = 5;
 
         // 경제부 시너지 반영
         const playerSynergies = this.app.getSynergyData(this.app.state.board);
         const ecoCount = playerSynergies.clubs['경제부'] || 0;
-        if (ecoCount > 0) {
-            // SYNERGIES를 임포트하지 않았으므로 앱의 함수로 직접 처리 불가능하다면?
-            // 아니면 그냥 단순하게 조건문으로 처리: 1->7, 2->999
-            if (ecoCount >= 2) maxInterest = 999;
-            else if (ecoCount >= 1) maxInterest = 7;
+        const ecoDefinition = this.app.SYNERGIES?.clubs?.['경제부'];
+        if (ecoCount > 0 && ecoDefinition) {
+            const ecoLevel = this.app.getActiveSynergyLevel(
+                ecoCount,
+                Object.keys(ecoDefinition.levels),
+                ecoDefinition.exactMatch
+            );
+            maxInterest = ecoDefinition.levels[ecoLevel]?.extraInterestCap || maxInterest;
         }
 
         if (this.app.state.richFoundation) maxInterest = 999;
-        interest = Math.min(maxInterest, interest);
+        const [world, round] = this.app.state.stage;
+        const isPve = round === 5 || (Boolean(this.app.multiplayerManager?.isActive) && world === 1 && round <= 3);
+        const income = getIncomePreview(this.app.state, { maxInterest, isPve });
 
         const streakCount = this.app.state.winStreak || this.app.state.lossStreak;
-        let streakBonus = 0;
-        if (streakCount >= 7) streakBonus = 3;
-        else if (streakCount >= 5) streakBonus = 2;
-        else if (streakCount >= 3) streakBonus = 1;
+        const streakBonus = getStreakBonus(streakCount);
 
         let streakText = '연승/연패: 없음';
         if (this.app.state.winStreak >= 2) streakText = `🔥 ${this.app.state.winStreak}연승 (+${streakBonus}G)`;
         else if (this.app.state.lossStreak >= 2) streakText = `💧 ${this.app.state.lossStreak}연패 (+${streakBonus}G)`;
 
-        document.getElementById('interest-info').innerText = `예상 이자: +${interest}G`;
+        const interestEl = document.getElementById('interest-info');
+        interestEl.innerText = income.isPve
+            ? `PVE 수입: 클리어 +${income.winTotal}G · 실패 +${income.lossTotal}G`
+            : `다음 수입: 승리 +${income.winTotal}G · 패배 +${income.lossTotal}G`;
+        interestEl.title = `기본 5G · 현재 이자 +${income.currentInterest}G · 승리 보너스 +1G · 연속 보너스 최대 +3G`;
         const streakEl = document.getElementById('streak-info');
         if (streakEl) streakEl.innerText = streakText;
 
@@ -48,10 +55,15 @@ export class HudRenderer {
         const timelineEl = document.getElementById('stage-timeline');
         if (timelineEl) {
             let html = '';
-            for (let r = 1; r <= 5; r++) {
+            const isMultiplayerOpening = Boolean(this.app.multiplayerManager?.isActive)
+                && this.app.state.stage[0] === 1;
+            const maxRound = isMultiplayerOpening ? 3 : 5;
+            const openingIcons = ['☁️', '🧽', '📄'];
+            for (let r = 1; r <= maxRound; r++) {
                 let icon = '⚔️';
-                if (r === 3) icon = '🏪'; // 매점 타임
-                if (r === 5) icon = '👹'; // 기말고사(PVE)
+                if (isMultiplayerOpening) icon = openingIcons[r - 1];
+                else if (r === 3) icon = '🏪'; // 매점 타임
+                else if (r === 5) icon = '👹'; // PVE
 
                 let opacity = r < this.app.state.stage[1] ? '0.3' : (r === this.app.state.stage[1] ? '1' : '0.5');
                 let scale = r === this.app.state.stage[1] ? 'scale(1.3)' : 'scale(1)';
