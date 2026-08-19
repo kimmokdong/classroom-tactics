@@ -17,7 +17,10 @@ except ImportError:
     sys.exit(1)
 
 # --- [사용자 설정 영역] ---
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8978626029:AAHD-q2xFtkYtozUIaPpwW9Aq-u1WFPdG1o")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if not TOKEN:
+    print("❌ TELEGRAM_BOT_TOKEN 환경변수가 설정되지 않았습니다.")
+    sys.exit(1)
 WATCH_DIR = r"C:\Users\hyunseung\Desktop\classroom-tactics\telegram"
 AG_PATH = r"C:\Users\hyunseung\AppData\Local\agy\bin\agy.exe"
 
