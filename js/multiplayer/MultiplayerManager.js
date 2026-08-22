@@ -30,6 +30,8 @@ export class MultiplayerManager {
         this.currentOpponent = null;
         this.opponentContext = null;
         this.pollTimer = null;
+        this.planningTimer = null;
+        this.resultAdvanceTimer = null;
         this.pollBusy = false;
         this.socket = null;
         this.reconnectTimer = null;
@@ -265,7 +267,8 @@ export class MultiplayerManager {
         clearTimeout(this.reconnectTimer);
 
         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const socket = new WebSocket(`${protocol}//${location.host}/ws`);
+        const roomCode = encodeURIComponent(this.credentials.code);
+        const socket = new WebSocket(`${protocol}//${location.host}/ws?code=${roomCode}`);
         this.socket = socket;
         socket.addEventListener('open', () => {
             socket.send(JSON.stringify({ type: 'authenticate', ...this.credentials }));
@@ -339,6 +342,7 @@ export class MultiplayerManager {
         if (room.status === 'playing' && Number(self?.hp) <= 0) this.enterSpectatorMode();
         if (room.status === 'finished') {
             this.isFinished = true;
+            this.clearCountdownTimers();
             this.setGameControlsDisabled(true);
             const startButton = document.getElementById('btn-start-battle');
             if (startButton) {
@@ -346,6 +350,7 @@ export class MultiplayerManager {
                 startButton.textContent = '🏁 대전 종료';
             }
         }
+        this.schedulePlanningCountdown();
         this.persistSession();
     }
 
@@ -372,7 +377,7 @@ export class MultiplayerManager {
         }
         if (startButton) {
             startButton.hidden = !self?.isHost || this.room.status !== 'waiting';
-            startButton.disabled = this.room.players.length < this.room.minPlayers || this.room.players.some(player => !player.ready);
+            startButton.disabled = this.room.players.length < this.room.minPlayers;
         }
         if (rematchButton) rematchButton.hidden = !self?.isHost || this.room.status !== 'finished';
         const count = document.getElementById('multi-player-count');
@@ -382,6 +387,73 @@ export class MultiplayerManager {
                 ? `${this.room.players.length}/${this.room.maxPlayers} · 준비 ${ready}/${this.room.players.length}`
                 : `${this.room.players.length}/${this.room.maxPlayers}`;
         }
+    }
+
+    clearCountdownTimers() {
+        clearInterval(this.planningTimer);
+        clearInterval(this.resultAdvanceTimer);
+        this.planningTimer = null;
+        this.resultAdvanceTimer = null;
+    }
+
+    schedulePlanningCountdown() {
+        clearInterval(this.planningTimer);
+        this.planningTimer = null;
+        if (!this.isActive || this.isFinished || this.isSpectating || this.app.isBattlePhase) return;
+        const roundKey = getRoundKey(this.app.state.stage);
+        if (this.getBattleClock(roundKey) && this.shouldPrepareBattle() && !this.syncPromise) {
+            this.app.stageManager?.handleBattleStart();
+            return;
+        }
+        const clock = this.room?.planningClock;
+        if (clock?.roundKey !== roundKey || !this.shouldPrepareBattle()) return;
+        const tick = () => {
+            if (this.room?.planningClock?.roundKey !== roundKey
+                || getRoundKey(this.app.state.stage) !== roundKey
+                || !this.shouldPrepareBattle()
+                || this.syncPromise) {
+                clearInterval(this.planningTimer);
+                this.planningTimer = null;
+                return;
+            }
+            const seconds = Math.max(0, Math.ceil((clock.deadline - Date.now()) / 1000));
+            const startButton = document.getElementById('btn-start-battle');
+            if (startButton) startButton.textContent = `⚔️ 자동 전투 ${seconds}초`;
+            if (seconds <= 0) {
+                clearInterval(this.planningTimer);
+                this.planningTimer = null;
+                this.app.showFeedback?.('준비 시간이 끝나 대기석 유닛을 자동 배치하고 전투를 시작합니다.', 'info');
+                this.app.stageManager?.handleBattleStart();
+            }
+        };
+        tick();
+        if (this.shouldPrepareBattle() && !this.syncPromise) this.planningTimer = setInterval(tick, 250);
+    }
+
+    scheduleRoundAdvance(seconds = 5) {
+        clearInterval(this.resultAdvanceTimer);
+        const modal = document.getElementById('result-modal');
+        const button = document.getElementById('btn-result-ok');
+        if (!modal || modal.style.display === 'none') return;
+        const deadline = Date.now() + seconds * 1000;
+        const tick = () => {
+            if (modal.style.display === 'none') {
+                clearInterval(this.resultAdvanceTimer);
+                this.resultAdvanceTimer = null;
+                if (button) button.textContent = '확인';
+                return;
+            }
+            const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            if (button) button.textContent = `다음 라운드 (${remaining}초)`;
+            if (remaining <= 0) {
+                clearInterval(this.resultAdvanceTimer);
+                this.resultAdvanceTimer = null;
+                if (button) button.textContent = '확인';
+                this.app.modalManager?.closeResultModal();
+            }
+        };
+        tick();
+        if (modal.style.display !== 'none') this.resultAdvanceTimer = setInterval(tick, 250);
     }
 
     async toggleReady() {
@@ -438,6 +510,7 @@ export class MultiplayerManager {
         this.renderHud();
         this.startPolling();
         this.persistSession();
+        this.schedulePlanningCountdown();
         this.app.showFeedback?.(`멀티플레이 방 ${this.room.code}에 입장했습니다.`, 'success');
     }
 
@@ -486,6 +559,7 @@ export class MultiplayerManager {
             await this.refreshRoom();
         }
         if (timerContainer) timerContainer.style.display = 'none';
+        await this.refreshRoom();
     }
 
     battlePayload() {
@@ -536,7 +610,7 @@ export class MultiplayerManager {
                     const submitted = alive.filter(player => player.roundKey === roundKey).length;
                     this.setStatus(`${roundKey} 라운드 보드 제출 ${submitted}/${alive.length} · 모두 준비되면 곧바로 시작합니다.`);
                     this.renderHud();
-                    await this.waitForRealtime();
+                    await this.waitForRealtime(1000);
                 }
                 return false;
             } catch (error) {
@@ -726,6 +800,7 @@ export class MultiplayerManager {
             this.preparedRound = null;
             this.currentOpponent = null;
             this.opponentContext = null;
+            this.clearCountdownTimers();
             this.setGameControlsDisabled(false);
             this.closeScout();
             this.openPanel('play');
@@ -796,6 +871,7 @@ export class MultiplayerManager {
 
     async leaveMultiplayer() {
         this.isLeaving = true;
+        this.clearCountdownTimers();
         clearInterval(this.pollTimer);
         this.stopRealtime();
         if (this.credentials) {
@@ -872,7 +948,7 @@ export class MultiplayerManager {
     friendlyNetworkError(error) {
         const message = String(error?.message || error || '알 수 없는 오류');
         if (/Unexpected token|Failed to fetch|404|서버에 연결/.test(message)) {
-            return '실시간 멀티플레이 서버가 실행 중인 Render 배포 사이트에서 이용할 수 있습니다.';
+            return '실시간 멀티플레이 서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
         }
         return message;
     }

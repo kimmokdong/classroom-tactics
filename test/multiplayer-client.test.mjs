@@ -13,6 +13,18 @@ test('멀티 HUD는 현재 라운드 제출 준비 인원을 표시한다', () =
     assert.match(manager, /제출 \$\{submitted\}\/\$\{alivePlayers\.length\}/);
 });
 
+test('대기실은 수동 시작하고 배치 단계만 서버 공용 마감시간 뒤 자동 진행한다', () => {
+    assert.doesNotMatch(manager, /lobbyDeadline|scheduleLobbyCountdown/);
+    assert.match(manager, /room\?\.planningClock/);
+    assert.match(manager, /schedulePlanningCountdown\(\)/);
+    assert.match(manager, /stageManager\?\.handleBattleStart\(\)/);
+    assert.match(manager, /자동 전투 \$\{seconds\}초/);
+    assert.match(manager, /scheduleRoundAdvance\(seconds = 5\)/);
+    assert.match(manager, /modalManager\?\.closeResultModal\(\)/);
+    assert.match(stage, /autoDeployBench\(app\.state\.board, app\.state\.bench, maxCapacity\)/);
+    assert.match(stage, /multiplayerManager\?\.scheduleRoundAdvance\(\)/);
+});
+
 test('정찰은 인증된 scout API와 6x4 최근 보드 UI를 사용한다', () => {
     assert.match(manager, /request\('scout',[\s\S]*roundKey: getRoundKey/);
     assert.match(html, /id="multi-scout-board"[^>]+6열 4행/);

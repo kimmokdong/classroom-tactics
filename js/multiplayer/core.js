@@ -5,6 +5,8 @@ export const MULTIPLAYER_STATS_SCHEMA_VERSION = 1;
 export const MULTIPLAYER_BATTLE_DURATION_MS = 30_000;
 export const MULTIPLAYER_BATTLE_START_DELAY_MS = 1_500;
 export const MULTIPLAYER_EARLY_END_GRACE_MS = 2_000;
+export const MULTIPLAYER_PLANNING_DURATION_MS = 20_000;
+export const MULTIPLAYER_SPECIAL_PLANNING_DURATION_MS = 30_000;
 export const MULTIPLAYER_AUGMENT_SELECTION_SECONDS = 30;
 export const MULTIPLAYER_STORE_SELECTION_SECONDS = 20;
 export const MULTIPLAYER_RECONNECT_GRACE_MS = 90_000;
@@ -62,6 +64,32 @@ export function buildBoardSnapshot(board) {
             ...(growth && Object.keys(growth).length > 0 ? { permGrowth: growth } : {})
         };
     });
+}
+
+export function autoDeployBench(board, bench, capacity) {
+    const limit = Math.min(24, Math.max(0, Math.floor(Number(capacity) || 0)));
+    let deployed = board.filter(Boolean).length;
+    const placements = [];
+    const boardOrder = [16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7];
+    for (let benchIndex = 0; benchIndex < bench.length && deployed < limit; benchIndex += 1) {
+        if (!bench[benchIndex]) continue;
+        const boardIndex = boardOrder.find(index => !board[index]);
+        if (boardIndex === undefined) break;
+        board[boardIndex] = bench[benchIndex];
+        bench[benchIndex] = null;
+        placements.push({ benchIndex, boardIndex });
+        deployed += 1;
+    }
+    return placements;
+}
+
+export function getMultiplayerPlanningDurationMs(stage) {
+    const [world, round] = Array.isArray(stage) ? stage.map(Number) : [0, 0];
+    const hasAugmentSelection = round === 1 && [2, 3, 4].includes(world);
+    const hasStoreSelection = world >= 2 && round === 3;
+    return hasAugmentSelection || hasStoreSelection
+        ? MULTIPLAYER_SPECIAL_PLANNING_DURATION_MS
+        : MULTIPLAYER_PLANNING_DURATION_MS;
 }
 
 export function calculateBoardCost(board, unitCosts = {}) {

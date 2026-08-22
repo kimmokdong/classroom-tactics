@@ -4,16 +4,21 @@ import { readFile } from 'node:fs/promises';
 import {
     MULTIPLAYER_AUGMENT_SELECTION_SECONDS,
     MULTIPLAYER_BATTLE_DURATION_MS,
+    MULTIPLAYER_BATTLE_START_DELAY_MS,
     MULTIPLAYER_EARLY_END_GRACE_MS,
     MULTIPLAYER_EMOTES,
     MULTIPLAYER_MAX_PLAYERS,
     MULTIPLAYER_MIN_PLAYERS,
+    MULTIPLAYER_PLANNING_DURATION_MS,
+    MULTIPLAYER_SPECIAL_PLANNING_DURATION_MS,
     MULTIPLAYER_RECONNECT_GRACE_MS,
     MULTIPLAYER_STORE_SELECTION_SECONDS,
     aggregateMatchStats,
     assignOpponentId,
+    autoDeployBench,
     buildBoardSnapshot,
     calculateBoardCost,
+    getMultiplayerPlanningDurationMs,
     getScoutCandidateIds,
     rankPlayers,
     sanitizeNickname,
@@ -78,10 +83,97 @@ test('멀티플레이는 2명부터 시작하고 최대 6명까지 입장한다'
 test('멀티플레이 전투와 선택 제한시간을 고정한다', () => {
     assert.equal(MULTIPLAYER_BATTLE_DURATION_MS, 30_000);
     assert.equal(MULTIPLAYER_EARLY_END_GRACE_MS, 2_000);
+    assert.equal(MULTIPLAYER_PLANNING_DURATION_MS, 20_000);
+    assert.equal(MULTIPLAYER_SPECIAL_PLANNING_DURATION_MS, 30_000);
+    assert.equal(getMultiplayerPlanningDurationMs([1, 1]), 20_000);
+    assert.equal(getMultiplayerPlanningDurationMs([2, 1]), 30_000);
+    assert.equal(getMultiplayerPlanningDurationMs([6, 3]), 30_000);
     assert.equal(MULTIPLAYER_AUGMENT_SELECTION_SECONDS, 30);
     assert.equal(MULTIPLAYER_STORE_SELECTION_SECONDS, 20);
     assert.equal(MULTIPLAYER_RECONNECT_GRACE_MS, 90_000);
     assert.deepEqual(MULTIPLAYER_EMOTES, ['hello', 'nice', 'wow', 'oops', 'cheer', 'gg']);
+});
+
+test('자동 배치는 대기석 왼쪽부터 플레이어 보드 좌하단을 채운다', () => {
+    const existing = { id: 'existing' };
+    const first = { id: 'first' };
+    const second = { id: 'second' };
+    const board = Array(24).fill(null);
+    const bench = [first, null, second, { id: 'unused' }];
+    board[4] = existing;
+
+    const placements = autoDeployBench(board, bench, 3);
+
+    assert.deepEqual(placements, [
+        { benchIndex: 0, boardIndex: 16 },
+        { benchIndex: 2, boardIndex: 17 }
+    ]);
+    assert.equal(board[16], first);
+    assert.equal(board[17], second);
+    assert.equal(bench[0], null);
+    assert.equal(bench[2], null);
+    assert.equal(bench[3].id, 'unused');
+});
+
+test('대기실은 자동 시작하지 않고 방장만 수동으로 시작한다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const created = await callMultiplayer(handler, 'create', { nickname: '방장' });
+    const host = { code: created.data.room.code, playerId: created.data.room.selfId, token: created.data.token };
+    const joined = await callMultiplayer(handler, 'join', { code: host.code, nickname: '친구' });
+    assert.equal(joined.data.room.lobbyDeadline, undefined);
+
+    const metaKey = `rooms/${host.code}/meta`;
+    const waitingMeta = await store.get(metaKey);
+    await store.setJSON(metaKey, { ...waitingMeta, createdAt: Date.now() - 120_000 });
+    const stillWaiting = await callMultiplayer(handler, 'room', host, 'GET');
+    assert.equal(stillWaiting.data.room.status, 'waiting');
+
+    const startedByHost = await callMultiplayer(handler, 'start', host);
+    assert.equal(startedByHost.data.room.status, 'playing');
+    assert.equal(startedByHost.data.room.planningClock.roundKey, '1-1');
+    assert.equal(startedByHost.data.room.planningClock.deadline - startedByHost.data.room.planningClock.startedAt, 20_000);
+});
+
+test('20초 배치 시간이 끝나면 미제출 참가자는 직전 보드로 자동 제출된다', async () => {
+    const store = new MemoryBlobStore();
+    const handler = createMultiplayerHandler({ getStoreImpl: () => store });
+    const created = await callMultiplayer(handler, 'create', { nickname: '방장' });
+    const host = { code: created.data.room.code, playerId: created.data.room.selfId, token: created.data.token };
+    const joined = await callMultiplayer(handler, 'join', { code: host.code, nickname: '친구' });
+    const guest = { code: host.code, playerId: joined.data.room.selfId, token: joined.data.token };
+    await callMultiplayer(handler, 'start', host);
+
+    const metaKey = `rooms/${host.code}/meta`;
+    const meta = await store.get(metaKey);
+    await store.setJSON(metaKey, {
+        ...meta,
+        planningClock: {
+            ...meta.planningClock,
+            deadline: Date.now() - MULTIPLAYER_BATTLE_START_DELAY_MS - 1
+        }
+    });
+    const board = Array(24).fill(null);
+    board[16] = { unitId: 'u1_1', star: 1, items: [] };
+    const submitted = await callMultiplayer(handler, 'round', {
+        ...host, stage: [1, 1], hp: 100, gold: 0, board, globalBuffs: {}, augments: []
+    });
+
+    assert.equal(submitted.data.ready, true);
+    assert.equal(submitted.data.room.battleClock.roundKey, '1-1');
+    assert.equal(submitted.data.room.planningClock, null);
+    const storedGuest = await store.get(`rooms/${host.code}/players/${guest.playerId}`);
+    assert.equal(storedGuest.roundKey, '1-1');
+    assert.deepEqual(storedGuest.board, []);
+
+    const battleMeta = await store.get(metaKey);
+    await store.setJSON(metaKey, {
+        ...battleMeta,
+        battleClock: { ...battleMeta.battleClock, deadline: Date.now() - 1, allFinished: false }
+    });
+    const nextRound = await callMultiplayer(handler, 'room', host, 'GET');
+    assert.equal(nextRound.data.room.battleClock.allFinished, true);
+    assert.equal(nextRound.data.room.planningClock.roundKey, '1-2');
 });
 
 test('멀티플레이 입력과 보드 스냅샷을 제한한다', () => {

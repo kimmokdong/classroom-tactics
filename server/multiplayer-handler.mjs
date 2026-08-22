@@ -1,7 +1,7 @@
 import { createHash, randomInt, randomUUID } from 'node:crypto';
 import { AUGMENTS, SYNERGIES, UNIT_POOL } from '../js/data.js';
 import { ITEMS } from '../js/items.js';
-import { isPveStage } from '../js/pveRounds.js';
+import { getNextStage, isPveStage } from '../js/pveRounds.js';
 import { getActiveSynergyLevel, getSynergyData } from '../js/systems/SynergyManager.js';
 import {
     MULTIPLAYER_BATTLE_DURATION_MS,
@@ -15,6 +15,7 @@ import {
     aggregateMatchStats,
     assignOpponentId,
     calculateBoardCost,
+    getMultiplayerPlanningDurationMs,
     getScoutCandidateIds,
     getRoundKey,
     getRoundOrdinal,
@@ -152,6 +153,11 @@ function publicRoom(meta, players, selfId) {
         maxPlayers: MULTIPLAYER_MAX_PLAYERS,
         startedAt: meta.startedAt || null,
         finishedAt: meta.finishedAt || null,
+        planningClock: meta.planningClock ? {
+            roundKey: meta.planningClock.roundKey,
+            startedAt: meta.planningClock.startedAt,
+            deadline: meta.planningClock.deadline
+        } : null,
         battleClock: meta.battleClock ? {
             roundKey: meta.battleClock.roundKey,
             startedAt: meta.battleClock.startedAt,
@@ -161,6 +167,36 @@ function publicRoom(meta, players, selfId) {
         selfId,
         players: visiblePlayers.map(publicPlayer)
     };
+}
+
+function createPlanningClock(stage, now = Date.now()) {
+    return {
+        roundKey: getRoundKey(stage),
+        startedAt: now,
+        deadline: now + getMultiplayerPlanningDurationMs(stage)
+    };
+}
+
+async function startRoom(store, meta, now = Date.now()) {
+    const started = {
+        ...meta,
+        status: 'playing',
+        startedAt: now,
+        planningClock: createPlanningClock([1, 1], now)
+    };
+    await store.setJSON(roomMetaKey(meta.code), started);
+    return started;
+}
+
+async function autoSubmitExpiredPlanning(store, meta, players, stage, roundKey, now = Date.now()) {
+    const clock = meta.planningClock;
+    if (clock?.roundKey !== roundKey
+        || now < Number(clock.deadline) + MULTIPLAYER_BATTLE_START_DELAY_MS) return players;
+    const missing = players.filter(entry => Number(entry.hp) > 0 && entry.roundKey !== roundKey);
+    if (!missing.length) return players;
+    const replacements = new Map(missing.map(entry => [entry.id, { ...entry, stage, roundKey }]));
+    await Promise.all([...replacements.values()].map(entry => store.setJSON(playerKey(meta.code, entry.id), entry)));
+    return players.map(entry => replacements.get(entry.id) || entry);
 }
 
 async function ensureBattleClock(store, meta, players, roundKey) {
@@ -173,6 +209,7 @@ async function ensureBattleClock(store, meta, players, roundKey) {
     const startedAt = readyAt + MULTIPLAYER_BATTLE_START_DELAY_MS;
     const updated = {
         ...meta,
+        planningClock: null,
         battleClock: {
             roundKey,
             startedAt,
@@ -194,13 +231,33 @@ async function shortenBattleClockIfFinished(store, meta, players) {
     });
     if (!allFinished) return meta;
 
+    const now = Date.now();
+    const stage = players.find(entry => clock.participantIds.includes(entry.id))?.stage || [1, 1];
     const updated = {
         ...meta,
+        planningClock: players.filter(entry => Number(entry.hp) > 0).length > 1
+            ? createPlanningClock(getNextStage(stage, { skipOpeningRounds: true }), now)
+            : null,
         battleClock: {
             ...clock,
-            deadline: Math.min(clock.deadline, Date.now() + MULTIPLAYER_EARLY_END_GRACE_MS),
+            deadline: Math.min(clock.deadline, now + MULTIPLAYER_EARLY_END_GRACE_MS),
             allFinished: true
         }
+    };
+    await store.setJSON(roomMetaKey(meta.code), updated);
+    return updated;
+}
+
+async function ensurePlanningAfterBattleDeadline(store, meta, players, now = Date.now()) {
+    const clock = meta.battleClock;
+    const alive = players.filter(entry => Number(entry.hp) > 0);
+    if (meta.status !== 'playing' || meta.planningClock || !clock
+        || now < Number(clock.deadline) || alive.length <= 1) return meta;
+    const stage = players.find(entry => clock.participantIds.includes(entry.id))?.stage || [1, 1];
+    const updated = {
+        ...meta,
+        planningClock: createPlanningClock(getNextStage(stage, { skipOpeningRounds: true }), now),
+        battleClock: { ...clock, allFinished: true }
     };
     await store.setJSON(roomMetaKey(meta.code), updated);
     return updated;
@@ -318,8 +375,9 @@ async function parseBody(request) {
     try { return await request.json(); } catch { return {}; }
 }
 
-export function createMultiplayerHandler({ getStoreImpl } = {}) {
+export function createMultiplayerHandler({ getStoreImpl, createRoomCodeImpl = createRoomCode } = {}) {
     if (typeof getStoreImpl !== 'function') throw new TypeError('멀티플레이 저장소가 필요합니다.');
+    if (typeof createRoomCodeImpl !== 'function') throw new TypeError('방 코드 생성기가 올바르지 않습니다.');
     return async function handler(request, context = {}) {
     const url = new URL(request.url);
     const action = context.params?.action || url.pathname.split('/').filter(Boolean).at(-1);
@@ -344,7 +402,7 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             if (nickname.length < 2) return fail('닉네임은 2자 이상 입력해 주세요.');
             let code;
             for (let attempt = 0; attempt < 10; attempt++) {
-                const candidate = createRoomCode();
+                const candidate = createRoomCodeImpl();
                 if (!await store.get(roomMetaKey(candidate), { type: 'json' })) { code = candidate; break; }
             }
             if (!code) return fail('방 코드를 만들지 못했습니다. 다시 시도해 주세요.', 503);
@@ -380,8 +438,9 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
                 hp: 100, stage: [1, 1], joinedAt: Date.now(), lastSeenAt: Date.now(),
                 board: [], boardCost: 0, synergies: []
             };
+            const joinedPlayers = [...players, player];
             await store.setJSON(playerKey(code, playerId), player);
-            return json({ ok: true, token, room: publicRoom(meta, [...players, player], playerId) }, 201);
+            return json({ ok: true, token, room: publicRoom(meta, joinedPlayers, playerId) }, 201);
         }
 
         const code = getRoomCodeFromRequest(url, body);
@@ -411,8 +470,16 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
         }
 
         if (action === 'room' && request.method === 'GET') {
-            const players = await expireDisconnectedPlayers(store, meta, await readPlayers(store, code));
-            const finished = await finishIfNeeded(store, meta, players);
+            let players = await expireDisconnectedPlayers(store, meta, await readPlayers(store, code));
+            let currentMeta = meta;
+            const planningKey = currentMeta.planningClock?.roundKey;
+            if (currentMeta.status === 'playing' && planningKey) {
+                const stage = planningKey.split('-').map(Number);
+                players = await autoSubmitExpiredPlanning(store, currentMeta, players, stage, planningKey);
+                currentMeta = await ensureBattleClock(store, currentMeta, players, planningKey);
+            }
+            currentMeta = await ensurePlanningAfterBattleDeadline(store, currentMeta, players);
+            const finished = await finishIfNeeded(store, currentMeta, players);
             return json({ ok: true, room: publicRoom(finished.meta, finished.players, playerId) });
         }
 
@@ -523,9 +590,7 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             if (meta.status !== 'waiting') return fail('이미 시작된 방입니다.', 409);
             const players = await readPlayers(store, code);
             if (players.length < MULTIPLAYER_MIN_PLAYERS) return fail(`최소 ${MULTIPLAYER_MIN_PLAYERS}명이 필요합니다.`, 409);
-            if (players.some(entry => !entry.ready)) return fail('아직 준비하지 않은 참가자가 있습니다.', 409);
-            const started = { ...meta, status: 'playing', startedAt: Date.now() };
-            await store.setJSON(roomMetaKey(code), started);
+            const started = await startRoom(store, meta);
             return json({ ok: true, room: publicRoom(started, players, playerId) });
         }
 
@@ -541,7 +606,8 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             };
             await store.setJSON(playerKey(code, playerId), updated);
             const submittedPlayers = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
-            const players = await expireDisconnectedPlayers(store, meta, submittedPlayers);
+            let players = await expireDisconnectedPlayers(store, meta, submittedPlayers);
+            players = await autoSubmitExpiredPlanning(store, meta, players, stage, roundKey);
             const finished = await finishIfNeeded(store, meta, players);
             if (finished.meta.status === 'finished') {
                 return json({ ok: true, finished: true, room: publicRoom(finished.meta, finished.players, playerId) });
@@ -584,7 +650,8 @@ export function createMultiplayerHandler({ getStoreImpl } = {}) {
             const submittedPlayers = (await readPlayers(store, code)).map(entry => entry.id === playerId ? updated : entry);
             const players = await expireDisconnectedPlayers(store, meta, submittedPlayers);
             const synchronizedMeta = await shortenBattleClockIfFinished(store, meta, players);
-            const finished = await finishIfNeeded(store, synchronizedMeta, players);
+            const timedMeta = await ensurePlanningAfterBattleDeadline(store, synchronizedMeta, players);
+            const finished = await finishIfNeeded(store, timedMeta, players);
             const ranked = rankPlayers(finished.players);
             return json({
                 ok: true,

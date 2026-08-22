@@ -18,6 +18,7 @@ import {
     formatBattleSummaryHtml,
     getStreakBonus
 } from '../gameplayInsights.js';
+import { autoDeployBench } from '../multiplayer/core.js';
 
 export function resolveBattleGold(gold) {
     return gold ?? 50;
@@ -78,15 +79,17 @@ export class StageManager {
 
         // 자동 배치 로직 (대기석의 유닛을 보드의 빈 자리로)
         if (playerUnitsCount < maxCapacity) {
-            for (let i = 0; i < app.state.bench.length; i++) {
-                if (app.state.bench[i] !== null && playerUnitsCount < maxCapacity) {
-                    // 보드 뒤쪽부터 배치하는 것이 보통 유리하므로 뒤쪽 빈 공간(16~23)부터 찾거나, 그냥 앞에서부터 찾음
-                    // 심플하게 앞에서부터 빈 공간을 찾음
-                    const emptyBoardIdx = app.state.board.findIndex(u => u === null);
-                    if (emptyBoardIdx !== -1) {
-                        app.state.board[emptyBoardIdx] = app.state.bench[i];
-                        app.state.bench[i] = null;
-                        playerUnitsCount++;
+            if (app.multiplayerManager?.isActive) {
+                autoDeployBench(app.state.board, app.state.bench, maxCapacity);
+            } else {
+                for (let i = 0; i < app.state.bench.length; i++) {
+                    if (app.state.bench[i] !== null && playerUnitsCount < maxCapacity) {
+                        const emptyBoardIdx = app.state.board.findIndex(u => u === null);
+                        if (emptyBoardIdx !== -1) {
+                            app.state.board[emptyBoardIdx] = app.state.bench[i];
+                            app.state.bench[i] = null;
+                            playerUnitsCount++;
+                        }
                     }
                 }
             }
@@ -553,9 +556,11 @@ export class StageManager {
                 this.app.showStoreTimeSelection();
             }
             this.app.saveManager?.commitTransaction(battleTransactionId, SAVE_PHASES.NEXT_ROUND_READY);
+            this.app.multiplayerManager?.schedulePlanningCountdown();
             };
 
             this.app.showResultModal(title, msg, type, advanceRound);
+            this.app.multiplayerManager?.scheduleRoundAdvance();
             };
 
             if (this.app.multiplayerManager?.isActive) {

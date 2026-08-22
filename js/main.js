@@ -291,6 +291,7 @@ class GameApp {
     }
 
     bindEvents() {
+        this.unitManager.setupSellDropZone();
         const titleScreen = document.getElementById('title-screen');
         const singleButton = document.getElementById('btn-title-single');
         const multiButton = document.getElementById('btn-title-multi');
@@ -457,7 +458,7 @@ class GameApp {
 
     renderUnits() { return this.unitManager.renderUnits(); }
     createUnitElement(unit, type, idx) { return this.unitManager.createUnitElement(unit, type, idx); }
-    sellUnit(sourceType, sourceIdx, unit) { return this.unitManager.sellUnit(sourceType, sourceIdx, unit); }
+    sellUnit(sourceType, sourceIdx, unit, options) { return this.unitManager.sellUnit(sourceType, sourceIdx, unit, options); }
     moveUnit(sourceType, sourceIdx, targetType, targetIdx) { return this.unitManager.moveUnit(sourceType, sourceIdx, targetType, targetIdx); }
     checkForUpgrade(unitId) { return this.unitManager.checkForUpgrade(unitId); }
 

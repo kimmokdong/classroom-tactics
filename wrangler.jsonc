@@ -1,0 +1,44 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "classroom-tactics",
+	"main": "server/cloudflare-worker.mjs",
+	"compatibility_date": "2026-08-22",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"run_worker_first": [
+			"/api/*",
+			"/ws",
+			"/health"
+		]
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "ROOMS",
+				"class_name": "RoomSession"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"RoomSession"
+			]
+		}
+	],
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "MATCHES",
+			"database_name": "classroom-tactics-stats",
+			"database_id": "7e13a761-e7e6-436c-ba0a-fb7a1fc68890"
+		}
+	]
+}

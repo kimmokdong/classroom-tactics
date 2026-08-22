@@ -102,11 +102,15 @@ export class UnitManager {
 
         uDiv.ondragstart = (e) => {
             console.log("유닛 드래그 시작!", type, idx, "isBattlePhase:", window.isBattlePhase);
-            if (window.isBattlePhase && type === 'board') { e.preventDefault(); return; }
+            if (window.isBattlePhase || unit.isEnemy || unit.team === 'enemy' || unit.teamRole === 'opponent') {
+                e.preventDefault();
+                return;
+            }
             e.dataTransfer.setData('sourceType', type);
             e.dataTransfer.setData('sourceIdx', idx);
             this.app.soundManager.playSFX('unit_grab');
         };
+        uDiv.ondragend = () => document.getElementById('shop-wrapper')?.classList.remove('is-sell-drop-active');
 
         uDiv.onclick = (e) => {
             e.stopPropagation();
@@ -153,10 +157,43 @@ export class UnitManager {
         return unit.tier * copies - (unit.star >= 2 && unit.tier > 1 ? 1 : 0);
     }
 
-    sellUnit(sourceType, sourceIdx, unit) {
-        if (window.isBattlePhase && sourceType === 'board') return false;
+    setupSellDropZone(element = document.getElementById('shop-wrapper')) {
+        if (!element) return;
+        element.ondragover = (e) => {
+            const types = [...(e.dataTransfer?.types || [])].map(type => type.toLowerCase());
+            if (!window.isBattlePhase && types.includes('sourcetype')) {
+                e.preventDefault();
+                element.classList.add('is-sell-drop-active');
+            }
+        };
+        element.ondragleave = () => element.classList.remove('is-sell-drop-active');
+        element.ondrop = (e) => this.handleSellDrop(e);
+    }
 
-        if (sourceType === 'board') {
+    handleSellDrop(e) {
+        e.currentTarget?.classList.remove('is-sell-drop-active');
+        if (window.isBattlePhase) return false;
+        const sourceType = e.dataTransfer?.getData('sourceType');
+        const rawSourceIdx = e.dataTransfer?.getData('sourceIdx');
+        if (!['board', 'bench'].includes(sourceType) || rawSourceIdx === '') return false;
+
+        const sourceIdx = Number(rawSourceIdx);
+        const sourceArray = sourceType === 'board' ? this.app.state.board : this.app.state.bench;
+        const unit = sourceArray[sourceIdx];
+        if (!Number.isInteger(sourceIdx) || !unit || unit.isEnemy || unit.isPveMonster || unit.team === 'enemy' || unit.teamRole === 'opponent') return false;
+
+        e.preventDefault();
+        e.stopPropagation();
+        return this.sellUnit(sourceType, sourceIdx, unit, { direct: true });
+    }
+
+    sellUnit(sourceType, sourceIdx, unit, { direct = false } = {}) {
+        if (window.isBattlePhase) return false;
+
+        const sourceArray = sourceType === 'board' ? this.app.state.board : sourceType === 'bench' ? this.app.state.bench : null;
+        if (!sourceArray || sourceArray[sourceIdx] !== unit || unit.isEnemy || unit.isPveMonster || unit.team === 'enemy' || unit.teamRole === 'opponent') return false;
+
+        if (sourceType === 'board' && !direct) {
             // 보드에 있는 유닛은 판매되지 않고 대기석으로 이동
             const emptyBenchIdx = this.app.state.bench.findIndex(u => u === null);
             if (emptyBenchIdx !== -1) {
@@ -175,8 +212,7 @@ export class UnitManager {
             return true;
         }
 
-        // 대기석 유닛만 판매
-        this.app.state.bench[sourceIdx] = null;
+        sourceArray[sourceIdx] = null;
         this.flushPendingUnitRewards();
         this.app.soundManager.playSFX('shop_sell');
 
